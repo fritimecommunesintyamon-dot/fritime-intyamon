@@ -79,6 +79,7 @@ textarea.fi{resize:vertical;min-height:60px}
   <script src="fritime_data.js"></script>
   <script src="fritime_sync.js"></script>
   <script src="fritime_auth.js"></script>
+  <script src="fritime_supabase.js"></script>
 
 <style id="sidebar-css">
 .ft-wrap{display:flex;min-height:calc(100vh - 52px)}
@@ -876,6 +877,26 @@ function refuserCompte(idx){
   renderPendingAccounts();
 }
 
+
+async function loadFromDB(){
+  if(typeof FriDB === 'undefined') return;
+  try {
+    var dbMembres = await FriDB.getMembres();
+    if(dbMembres && dbMembres.length) {
+      membres = dbMembres;
+    }
+  } catch(e){ console.warn('Supabase non disponible, données locales utilisées'); }
+}
+
+async function saveMembre_DB(m){
+  if(typeof FriDB === 'undefined') return;
+  try { await FriDB.saveMembre(m); } catch(e){ console.warn('Sauvegarde DB échouée:', e); }
+}
+
+async function deleteMembre_DB(id){
+  if(typeof FriDB === 'undefined') return;
+  try { await FriDB.deleteMembre(id); } catch(e){ console.warn('Suppression DB échouée:', e); }
+}
 </script>
 </body>
 </html>

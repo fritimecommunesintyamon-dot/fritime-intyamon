@@ -69,6 +69,7 @@ tr:hover td{background:#fafaf8;cursor:pointer}
   <script src="fritime_data.js"></script>
   <script src="fritime_sync.js"></script>
   <script src="fritime_auth.js"></script>
+  <script src="fritime_supabase.js"></script>
 
 <style id="sidebar-css">
 .ft-wrap{display:flex;min-height:calc(100vh - 52px)}
@@ -480,7 +481,7 @@ function saveEdit(){
   }:e);
   closeEdit();renderDet();render();
 }
-render();
+(async function(){ await loadEnfantsDB(); render(); })();
 </script>
 
 <div id="mEdit" class="overlay" onclick="if(event.target.id==='mEdit')closeEdit()">
@@ -522,6 +523,14 @@ render();
     if(a.getAttribute("href")===p){a.className="on";}
   });
 })();
+
+async function loadEnfantsDB(){
+  if(typeof FriDB === 'undefined') return;
+  try {
+    var dbData = await FriDB.getEnfants();
+    if(dbData && dbData.length) enfants = dbData;
+  } catch(e){ console.warn('Supabase non dispo'); }
+}
 </script>
 </body>
 </html>

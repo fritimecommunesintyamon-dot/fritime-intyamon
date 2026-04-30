@@ -71,6 +71,7 @@ textarea.fi{resize:vertical;min-height:80px}
   <script src="fritime_data.js"></script>
   <script src="fritime_sync.js"></script>
   <script src="fritime_auth.js"></script>
+  <script src="fritime_supabase.js"></script>
 
 <style id="sidebar-css">
 .ft-wrap{display:flex;min-height:calc(100vh - 52px)}
@@ -552,9 +553,10 @@ renderAll();
 </div>
 <script>
 (function(){
-var cp=window.location.pathname.split("/").pop();
-document.querySelectorAll("
-});
+  var p=window.location.pathname.split("/").pop();
+  document.querySelectorAll("#ft-sb a").forEach(function(a){
+    if(a.getAttribute("href")===p){a.className="on";}
+  });
 })();
 </script>
 </div>

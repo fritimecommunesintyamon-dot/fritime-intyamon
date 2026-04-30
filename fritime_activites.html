@@ -93,6 +93,7 @@ textarea.fi{resize:vertical;min-height:70px}
   <script src="fritime_data.js"></script>
   <script src="fritime_sync.js"></script>
   <script src="fritime_auth.js"></script>
+  <script src="fritime_supabase.js"></script>
 
 <style id="sidebar-css">
 .ft-wrap{display:flex;min-height:calc(100vh - 52px)}
@@ -235,8 +236,7 @@ function toggleSidebar(){
   document.getElementById("ft-sidebar").classList.toggle("open");
   document.getElementById("ft-sidebar-overlay").classList.toggle("open");
 }
-function t
-oggleAvatarMenu(){
+function toggleAvatarMenu(){
   document.getElementById("ft-avatar-menu").classList.toggle("open");
 }
 document.addEventListener("click", function(e){
@@ -660,7 +660,7 @@ function renderDet(){
 }
 
 function render(){renderMetrics();renderFilters();renderGrid();}
-render();
+(async function(){ await loadActivitesDB(); render(); })();
 </script>
 
 
@@ -669,9 +669,10 @@ render();
 </div>
 <script>
 (function(){
-var cp=window.location.pathname.split("/").pop();
-document.querySelectorAll("
-});
+  var p=window.location.pathname.split("/").pop();
+  document.querySelectorAll("#ft-sb a").forEach(function(a){
+    if(a.getAttribute("href")===p){a.className="on";}
+  });
 })();
 </script>
 </div>
@@ -683,6 +684,19 @@ document.querySelectorAll("
     if(a.getAttribute("href")===p){a.className="on";}
   });
 })();
+
+async function loadActivitesDB(){
+  if(typeof FriDB === 'undefined') return;
+  try {
+    var dbData = await FriDB.getActivites();
+    if(dbData && dbData.length) activites = dbData;
+  } catch(e){ console.warn('Supabase non dispo'); }
+}
+
+async function saveActivite_DB(a){
+  if(typeof FriDB === 'undefined') return;
+  try { await FriDB.saveActivite(a); } catch(e){ console.warn('Save échoué:', e); }
+}
 </script>
 </body>
 </html>
