@@ -11,6 +11,12 @@ const FriSync = {
   // INITIALISATION
   // ─────────────────────────────────────────────
   init() {
+    // Version check - force reset if demo data still present
+    const version = localStorage.getItem("ft_version");
+    if (version !== "prod_v1") {
+      localStorage.removeItem("ft_data");
+      localStorage.setItem("ft_version", "prod_v1");
+    }
     // Charger les données sauvegardées ou utiliser les données par défaut
     const saved = localStorage.getItem("ft_data");
     if (saved) {

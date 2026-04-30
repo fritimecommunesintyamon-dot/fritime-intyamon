@@ -70,11 +70,7 @@ const FriAuth = {
     // Comptes enregistrés (dans la version finale → vérification côté serveur)
     const comptes = JSON.parse(localStorage.getItem("ft_comptes") || "[]");
     const defaults = [
-      {email:"marie.dupont@example.ch", pwd:"Fritim2026!", nom:"Marie Dupont", role:"Présidente"},
-      {email:"jean.martin@example.ch", pwd:"Fritim2026!", nom:"Jean Martin", role:"Trésorier"},
-      {email:"sophie.remy@example.ch", pwd:"Fritim2026!", nom:"Sophie Remy", role:"Responsable inscriptions"},
-      {email:"lara.blanc@example.ch", pwd:"Fritim2026!", nom:"Lara Blanc", role:"Responsable communication"},
-      {email:"paul.morel@example.ch", pwd:"Fritim2026!", nom:"Paul Morel", role:"Contact prestataires"},
+      {email:"karine_rebelo@hotmail.fr", pwd:"Fritim2026!", nom:"Karine Rebelo", role:"Présidente"},
     ];
     const tous = [...defaults, ...comptes];
     const compte = tous.find(c => c.email === email && c.pwd === pwd);

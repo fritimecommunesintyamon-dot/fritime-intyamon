@@ -106,10 +106,10 @@ body{font-family:system-ui,sans-serif;background:#f5f5f3;color:#1a1a1a;font-size
     <button class="btn-submit" onclick="doLogin()">Se connecter</button>
     <a class="forgot-link" onclick="showForgot()">Mot de passe oublié ?</a>
 
-    <div class="members-demo">
-      <strong>Comptes de démonstration :</strong>
-      <div class="member-row">👤 marie.dupont@example.ch · mdp : <code>Fritim2026!</code></div>
-      <div class="member-row">👤 jean.martin@example.ch · mdp : <code>Fritim2026!</code></div>
+    <div class="members-demo" style="background:#eaf3de;border-radius:8px;padding:10px 12px;font-size:12px;color:#275a0a;margin-top:1rem">
+      <strong>Compte administrateur :</strong>
+      <div class="member-row" style="margin-top:4px">👤 karine_rebelo@hotmail.fr · mdp : <code>Fritim2026!</code></div>
+      <div style="font-size:11px;color:#888;margin-top:6px">⚠️ Pensez à changer votre mot de passe après la première connexion.</div>
     </div>
   </div>
 
@@ -273,11 +273,7 @@ function doLogin(){
   if(!ok)return;
 
   var COMPTES=[
-    {email:"marie.dupont@example.ch",pwd:"Fritim2026!",nom:"Marie Dupont",role:"Présidente"},
-    {email:"jean.martin@example.ch",pwd:"Fritim2026!",nom:"Jean Martin",role:"Trésorier"},
-    {email:"sophie.remy@example.ch",pwd:"Fritim2026!",nom:"Sophie Remy",role:"Responsable inscriptions"},
-    {email:"lara.blanc@example.ch",pwd:"Fritim2026!",nom:"Lara Blanc",role:"Responsable communication"},
-    {email:"paul.morel@example.ch",pwd:"Fritim2026!",nom:"Paul Morel",role:"Contact prestataires"}
+    {email:"karine_rebelo@hotmail.fr",pwd:"Fritim2026!",nom:"Karine Rebelo",role:"Présidente"}
   ];
 
   var compte=null;
