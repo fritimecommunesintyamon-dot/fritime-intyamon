@@ -417,6 +417,7 @@ function renderDet(){
       <div style="display:flex;gap:8px">
         ${e.statut==='actif'?`<button class="btn btn-sm btn-danger" onclick="openBan(${e.id})">Bannir</button>`:`<button class="btn btn-sm" onclick="debannir(${e.id})">Réactiver</button>`}
         <button class="btn btn-sm" onclick="addPart(${e.id})">+ 1 participation</button>
+        <button class=\"btn btn-sm\" style=\"color:#791f1f;border-color:#f4c0c0\" onclick=\"deleteEnfant(${e.id})\">🗑 Supprimer</button>
       </div>
       <div style="display:flex;gap:8px">
         <button class="btn btn-sm" onclick="openEdit(${e.id})">Modifier</button>
@@ -432,6 +433,20 @@ function confirmBan(){
   closeBan();if(selId===banId)renderDet();render();
 }
 function debannir(id){enfants=enfants.map(e=>e.id===id?{...e,statut:'actif',banMotif:''}:e);renderDet();render();}
+function deleteEnfant(id){
+  const e=enfants.find(x=>x.id===id);
+  if(!e)return;
+  const hasInsc=inscriptions.filter(i=>i.enfantId===id).length;
+  let msg=`Supprimer définitivement ${e.prenom} ${e.nom} ?`;
+  if(hasInsc>0) msg+=`\n\nAttention : cet enfant est inscrit à ${hasInsc} activité(s). Ses inscriptions seront aussi supprimées.`;
+  msg+='\n\nCette action est irréversible.';
+  if(confirm(msg)){
+    enfants=enfants.filter(x=>x.id!==id);
+    inscriptions=inscriptions.filter(i=>i.enfantId!==id);
+    closeDetail();
+    render();
+  }
+}
 function addPart(id){enfants=enfants.map(e=>e.id===id?{...e,parts:e.parts+1}:e);renderDet();render();}
 function runSelection(){
   const aid=parseInt(document.getElementById('sel-act').value);
@@ -503,9 +518,10 @@ render();
 </div>
 <script>
 (function(){
-var cp=window.location.pathname.split("/").pop();
-document.querySelectorAll("
-});
+  var p=window.location.pathname.split("/").pop();
+  document.querySelectorAll("#ft-sb a").forEach(function(a){
+    if(a.getAttribute("href")===p){a.className="on";}
+  });
 })();
 </script>
 </div>
