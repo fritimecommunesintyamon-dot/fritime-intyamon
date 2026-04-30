@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fri-Time Intyamon — Module Enfants</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#f5f5f3;color:#1a1a1a;font-size:14px}
+.container{max-width:960px;margin:0 auto;padding:1.5rem}
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem}
+h1{font-size:20px;font-weight:600}
+.subtitle{font-size:13px;color:#666;margin-top:2px}
+.btn{padding:7px 14px;border-radius:8px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:13px;font-family:inherit}
+.btn:hover{background:#f5f5f3}
+.btn-primary{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.btn-primary:hover{background:#333}
+.btn-sm{padding:4px 10px;font-size:12px}
+.btn-danger{color:#7a1f1f;border-color:#f4c0c0}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.5rem}
+.metric{background:#fff;border-radius:10px;padding:12px;border:1px solid #eee}
+.metric-val{font-size:24px;font-weight:600}
+.metric-lbl{font-size:11px;color:#888;margin-top:2px}
+.tabs{display:flex;border-bottom:1px solid #eee;margin-bottom:1.25rem}
+.tab{padding:8px 16px;font-size:13px;cursor:pointer;color:#888;border:none;border-bottom:2px solid transparent;margin-bottom:-1px;background:transparent;font-family:inherit}
+.tab.active{color:#1a1a1a;border-bottom-color:#1a1a1a;font-weight:500}
+.panel{display:none}.panel.active{display:block}
+.toolbar{display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap}
+.search{flex:1;min-width:160px;padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit}
+.filter-btn{padding:4px 12px;border-radius:20px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:12px;color:#666}
+.filter-btn.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.table-wrap{background:#fff;border:1px solid #eee;border-radius:12px;overflow:hidden}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:#888;border-bottom:1px solid #eee;background:#fafaf8;text-transform:uppercase;letter-spacing:.05em}
+td{padding:10px 14px;border-bottom:1px solid #eee;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafaf8;cursor:pointer}
+.badge{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500}
+.badge-actif{background:#eaf3de;color:#275a0a}
+.badge-banni{background:#fcebeb;color:#791f1f}
+.avatar{width:32px;height:32px;border-radius:50%;background:#e6f1fb;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#1a5fa0}
+.part-badge{display:inline-block;background:#f5f5f3;border-radius:8px;padding:3px 10px;font-size:13px;font-weight:600}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;align-items:flex-start;justify-content:center;padding:2rem 1rem;overflow-y:auto}
+.modal{background:#fff;border-radius:12px;border:1px solid #eee;padding:1.5rem;width:min(540px,100%)}
+.modal-title{font-size:16px;font-weight:600;margin-bottom:1.25rem;padding-bottom:1rem;border-bottom:1px solid #eee}
+.sec{font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.06em;margin:1rem 0 .75rem;padding-top:1rem;border-top:1px solid #eee}
+.fg{margin-bottom:.75rem}
+.fl{font-size:12px;color:#666;margin-bottom:4px;display:block}
+.fi{width:100%;padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mf{display:flex;justify-content:space-between;align-items:center;margin-top:1.25rem;padding-top:1rem;border-top:1px solid #eee}
+.dl{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px}
+.dv{font-size:13px;margin-bottom:10px}
+.algo-box{background:#f5f5f3;border-radius:10px;padding:1rem;margin-bottom:1rem}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.sel-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid #eee;font-size:13px}
+.sel-row:last-child{border-bottom:none}
+.rk{width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:600}
+.rk-sel{background:#1a1a1a;color:#fff}
+.rk-wait{background:#faeeda;color:#633806}
+.ban-box{background:#fcebeb;color:#791f1f;border-radius:8px;padding:10px 12px;font-size:13px;margin-bottom:10px}
+.note-box{background:#faeeda;color:#633806;padding:8px 10px;border-radius:8px;font-size:13px;margin-bottom:12px}
+
+
+}
+
+}
+</style>
+  <script src="fritime_data.js"></script>
+  <script src="fritime_sync.js"></script>
+  <script src="fritime_auth.js"></script>
+
+<style id="sidebar-css">
+.ft-wrap{display:flex;min-height:calc(100vh - 52px)}
+.ft-sb{width:210px;flex-shrink:0;background:#fff;border-right:1px solid #eee;
+  position:sticky;top:52px;height:calc(100vh - 52px);overflow-y:auto}
+.ft-sb a{display:flex;align-items:center;gap:9px;padding:9px 14px;font-size:13px;
+  color:#555;text-decoration:none;border-left:3px solid transparent}
+.ft-sb a:hover{background:#fafaf8;color:#1a1a1a}
+.ft-sb a.on{background:#f5f5f3;color:#1a1a1a;font-weight:600;border-left-color:#1a1a1a}
+.ft-sb-sec{padding:6px 14px 2px;font-size:10px;font-weight:700;color:#bbb;
+  text-transform:uppercase;letter-spacing:.08em;margin-top:6px}
+.ft-content{flex:1;min-width:0;overflow-x:hidden}
+@media(max-width:768px){.ft-sb{display:none!important}}
+</style>
+</head>
+<body class="ft-body-offset">
+<!-- SHARED NAV - Fri-Time Intyamon -->
+<style>
+.ft-topbar{background:#1a1a1a;color:#fff;padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:52px;position:fixed;top:0;left:0;right:0;z-index:1000}
+.ft-logo{font-size:15px;font-weight:700;letter-spacing:.05em;color:#fff;text-decoration:none;white-space:nowrap}
+.ft-topbar-right{display:flex;align-items:center;gap:12px}
+.ft-user-name{font-size:12px;opacity:.6;display:none}
+.ft-avatar{width:30px;height:30px;border-radius:50%;background:#333;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;cursor:pointer;position:relative}
+.ft-avatar-menu{display:none;position:absolute;top:36px;right:0;background:#fff;border:1px solid #eee;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.1);min-width:180px;z-index:100;overflow:hidden}
+.ft-avatar-menu.open{display:block}
+.ft-avatar-menu-item{padding:10px 14px;font-size:13px;color:#1a1a1a;cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .1s}
+.ft-avatar-menu-item:hover{background:#f5f5f3}
+.ft-avatar-menu-item.red{color:#791f1f}
+.ft-avatar-divider{height:1px;background:#eee;margin:4px 0}
+.ft-sidebar{position:fixed;top:52px;left:0;width:210px;height:calc(100vh - 52px);background:#fff;border-right:1px solid #eee;overflow-y:auto;z-index:999;transform:translateX(-100%);transition:transform .2s}
+.ft-sidebar.open{transform:translateX(0)}
+.ft-sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:998;top:52px}
+.ft-sidebar-overlay.open{display:block}
+.ft-nav-section{padding:6px 14px;font-size:10px;font-weight:700;color:#bbb;text-transform:uppercase;letter-spacing:.08em;margin-top:8px}
+.ft-nav-item{display:flex;align-items:center;gap:9px;padding:9px 14px;font-size:13px;color:#555;cursor:pointer;transition:all .1s;text-decoration:none;border-left:3px solid transparent;white-space:nowrap}
+.ft-nav-item:hover{background:#fafaf8;color:#1a1a1a}
+.ft-nav-item.active{background:#f5f5f3;color:#1a1a1a;font-weight:600;border-left-color:#1a1a1a}
+.ft-nav-ico{font-size:15px;flex-shrink:0;opacity:.7}
+.ft-nav-badge{margin-left:auto;font-size:10px;background:#fcebeb;color:#791f1f;padding:1px 6px;border-radius:20px;font-weight:700}
+.ft-nav-badge.green{background:#eaf3de;color:#275a0a}
+.ft-nav-badge.blue{background:#e6f1fb;color:#0c447c}
+.ft-menu-btn{background:none;border:none;color:#fff;cursor:pointer;font-size:20px;padding:4px 8px;display:flex;align-items:center;justify-content:center;opacity:.8}
+.ft-menu-btn:hover{opacity:1}
+.ft-body-offset{padding-top:52px}
+.ft-layout{display:flex;min-height:calc(100vh - 52px)}
+.ft-sidebar-desktop{width:210px;flex-shrink:0;background:#fff;border-right:1px solid #eee;position:sticky;top:52px;height:calc(100vh - 52px);overflow-y:auto;flex-shrink:0}
+.ft-main{flex:1;overflow-x:hidden;min-width:0}
+
+  .ft-user-name{display:none}
+  .ft-main{padding:1rem!important}
+}
+@media(min-width:769px){
+  .ft-sidebar{display:none!important}
+  .ft-sidebar-overlay{display:none!important}
+  .ft-menu-btn{display:none!important}
+  .ft-sidebar-desktop{display:block!important}
+}
+</style>
+
+<div class="ft-topbar">
+  <div style="display:flex;align-items:center;gap:10px">
+    <button class="ft-menu-btn" onclick="toggleSidebar()" id="ft-menu-btn">☰</button>
+    <a href="fritime_dashboard.html" class="ft-logo">Fri-Time Intyamon</a>
+  </div>
+  <div class="ft-topbar-right">
+    <span class="ft-user-name" id="ft-user-name">—</span>
+    <div class="ft-avatar" id="ft-avatar" onclick="toggleAvatarMenu()">
+      <span id="ft-avatar-initials">?</span>
+      <div class="ft-avatar-menu" id="ft-avatar-menu">
+        <div class="ft-avatar-menu-item" style="background:#f5f5f3;cursor:default">
+          <div>
+            <div style="font-weight:600;font-size:13px" id="ft-menu-name">—</div>
+            <div style="font-size:11px;color:#888" id="ft-menu-role">—</div>
+          </div>
+        </div>
+        <div class="ft-avatar-divider"></div>
+        <a href="fritime_dashboard.html" class="ft-avatar-menu-item">🏠 Tableau de bord</a>
+        <div class="ft-avatar-menu-item" onclick="doLogout()">🔒 Se déconnecter</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="ft-sidebar-overlay" id="ft-sidebar-overlay" onclick="toggleSidebar()"></div>
+
+<div class="ft-sidebar" id="ft-sidebar">
+  <div class="ft-nav-section">Principal</div>
+  <a class="ft-nav-item" href="fritime_dashboard.html" data-page="dashboard"><span class="ft-nav-ico">🏠</span> Tableau de bord</a>
+  <a class="ft-nav-item" href="fritime_activites.html" data-page="activites"><span class="ft-nav-ico">🎯</span> Activités</a>
+  <a class="ft-nav-item" href="fritime_inscriptions.html" data-page="inscriptions"><span class="ft-nav-ico">📋</span> Inscriptions</a>
+  <a class="ft-nav-item" href="fritime_enfants.html" data-page="enfants"><span class="ft-nav-ico">👦</span> Enfants</a>
+
+  <div class="ft-nav-section">Organisation</div>
+  <a class="ft-nav-item" href="fritime_taches.html" data-page="taches"><span class="ft-nav-ico">✅</span> Tâches</a>
+  <a class="ft-nav-item" href="fritime_comite.html" data-page="comite"><span class="ft-nav-ico">👥</span> Comité</a>
+  <a class="ft-nav-item" href="fritime_campagnes.html" data-page="campagnes"><span class="ft-nav-ico">📧</span> Campagnes</a>
+  <a class="ft-nav-item" href="fritime_sondages.html" data-page="sondages"><span class="ft-nav-ico">⭐</span> Sondages</a>
+
+  <div class="ft-nav-section">Finances & Partenaires</div>
+  <a class="ft-nav-item" href="fritime_budget.html" data-page="budget"><span class="ft-nav-ico">💰</span> Budget</a>
+  <a class="ft-nav-item" href="fritime_prestataires.html" data-page="prestataires"><span class="ft-nav-ico">🤝</span> Prestataires</a>
+
+  <div class="ft-nav-section">Contenu</div>
+  <a class="ft-nav-item" href="fritime_idees.html" data-page="idees"><span class="ft-nav-ico">💡</span> Banque d'idées</a>
+  <a class="ft-nav-item" href="fritime_documents.html" data-page="documents"><span class="ft-nav-ico">📁</span> Documents</a>
+
+  <div class="ft-nav-section">Sécurité</div>
+  <a class="ft-nav-item" href="fritime_incidents.html" data-page="incidents"><span class="ft-nav-ico">⚠️</span> Incidents</a>
+  <a class="ft-nav-item" href="fritime_urgences.html" data-page="urgences"><span class="ft-nav-ico">🚨</span> Urgences</a>
+  <a class="ft-nav-item" href="fritime_modifications.html" data-page="modifications"><span class="ft-nav-ico">🔄</span> Demandes</a>
+</div>
+
+<script>
+(function(){
+  // Auth check
+  const user = sessionStorage.getItem("ft_user");
+  const publicPages = ["fritime_login.html","fritime_inscription_publique.html","fritime_sondage_parent.html","","index.html"];
+  const currentPage = window.location.pathname.split("/").pop();
+  if(!user && !publicPages.includes(currentPage)){
+    window.location.href = "fritime_login.html";
+    return;
+  }
+  if(user){
+    const u = JSON.parse(user);
+    const ini = ((u.nom||"").split(" ").map(p=>p[0]||"").join("")).substring(0,2).toUpperCase();
+    document.getElementById("ft-avatar-initials").textContent = ini||"?";
+    document.getElementById("ft-user-name").textContent = u.nom||"";
+    document.getElementById("ft-menu-name").textContent = u.nom||"";
+    document.getElementById("ft-menu-role").textContent = u.role||"";
+    document.getElementById("ft-user-name").style.display = "block";
+  }
+
+  // Active nav item
+  document.querySelectorAll(".ft-nav-item[data-page]").forEach(function(el){
+    if(currentPage.includes(el.dataset.page)) el.classList.add("active");
+  });
+})();
+
+function toggleSidebar(){
+  document.getElementById("ft-sidebar").classList.toggle("open");
+  document.getElementById("ft-sidebar-overlay").classList.toggle("open");
+}
+function 
+toggleAvatarMenu(){
+  document.getElementById("ft-avatar-menu").classList.toggle("open");
+}
+document.addEventListener("click", function(e){
+  const menu = document.getElementById("ft-avatar-menu");
+  const avatar = document.getElementById("ft-avatar");
+  if(menu && !avatar.contains(e.target)) menu.classList.remove("open");
+});
+function doLogout(){
+  sessionStorage.removeItem("ft_user");
+  window.location.href = "fritime_login.html";
+}
+</script>
+
+
+<div class="ft-wrap">
+<div class="ft-sb" id="ft-sb">
+  <div class="ft-sb-sec">Principal</div>
+  <a href="fritime_dashboard.html">🏠 Tableau de bord</a>
+  <a href="fritime_activites.html">🎯 Activités</a>
+  <a href="fritime_inscriptions.html">📋 Inscriptions</a>
+  <a href="fritime_enfants.html">👦 Enfants</a>
+  <div class="ft-sb-sec">Organisation</div>
+  <a href="fritime_taches.html">✅ Tâches</a>
+  <a href="fritime_comite.html">👥 Comité</a>
+  <a href="fritime_campagnes.html">📧 Campagnes</a>
+  <a href="fritime_sondages.html">⭐ Sondages</a>
+  <div class="ft-sb-sec">Finances &amp; Partenaires</div>
+  <a href="fritime_budget.html">💰 Budget</a>
+  <a href="fritime_prestataires.html">🤝 Prestataires</a>
+  <div class="ft-sb-sec">Contenu</div>
+  <a href="fritime_idees.html">💡 Banque d'idées</a>
+  <a href="fritime_documents.html">📁 Documents</a>
+  <div class="ft-sb-sec">Sécurité</div>
+  <a href="fritime_incidents.html">⚠️ Incidents</a>
+  <a href="fritime_urgences.html">🚨 Urgences</a>
+  <a href="fritime_modifications.html">🔄 Demandes</a>
+</div>
+<div class="ft-content">
+<div class="container">
+<div class="header">
+  <div><h1>Enfants</h1><div class="subtitle">Participants et sélections — Fri-Time</div></div>
+  <button class="btn btn-primary" onclick="openCreate()">+ Nouvel enfant</button>
+</div>
+<div class="metrics" id="metrics"></div>
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('liste',this)">Liste des enfants</button>
+  <button class="tab" onclick="switchTab('selection',this)">Sélection par activité</button>
+</div>
+<div id="panel-liste" class="panel active">
+  <div class="toolbar">
+    <input class="search" id="search" placeholder="Rechercher un enfant..." oninput="render()" />
+    <button class="filter-btn active" onclick="setFilter('tous',this)">Tous</button>
+    <button class="filter-btn" onclick="setFilter('actif',this)">Actifs</button>
+    <button class="filter-btn" onclick="setFilter('banni',this)">Bannis</button>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Enfant</th><th>Âge</th><th>Commune</th><th>Participations</th><th>Activités confirmées</th><th>Statut</th></tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+</div>
+<div id="panel-selection" class="panel">
+  <div class="algo-box">
+    <div style="font-size:13px;font-weight:600;margin-bottom:8px">Algorithme de sélection</div>
+    <div style="font-size:12px;color:#555;line-height:1.8">
+      1. Priorité aux enfants ayant le moins de participations<br>
+      2. En cas d'égalité, ordre de préférence déclaré par les parents<br>
+      3. Léger facteur aléatoire pour diversifier les profils<br>
+      4. Enfants non retenus → liste d'attente automatique
+    </div>
+  </div>
+  <div class="fg" style="max-width:320px">
+    <label class="fl">Choisir une activité</label>
+    <select class="fi" id="sel-act" onchange="runSelection()">
+      <option value="">— Sélectionner —</option>
+      <option value="1">Atelier poterie (12 places, 6–12 ans)</option>
+      <option value="2">Sortie nature Lac Noir (20 places, 7–14 ans)</option>
+    </select>
+  </div>
+  <div id="sel-result" style="display:none">
+    <div class="grid2" style="margin-bottom:1rem">
+      <div><div style="font-size:13px;font-weight:600;margin-bottom:10px">Sélectionnés</div><div id="sel-in"></div></div>
+      <div><div style="font-size:13px;font-weight:600;margin-bottom:10px">Liste d'attente</div><div id="sel-wait"></div></div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-sm" onclick="runSelection()">Recalculer</button>
+      <button class="btn btn-sm btn-primary" onclick="alert('Sélection confirmée.')">Confirmer</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<div id="mCreate" class="overlay" onclick="if(event.target.id==='mCreate')closeCreate()">
+<div class="modal" onclick="event.stopPropagation()">
+  <div class="modal-title">Nouvel enfant</div>
+  <div class="fr"><div class="fg"><label class="fl">Prénom *</label><input class="fi" id="cp" /></div><div class="fg"><label class="fl">Nom *</label><input class="fi" id="cn" /></div></div>
+  <div class="fr">
+    <div class="fg"><label class="fl">Date de naissance</label><input class="fi" type="date" id="cd" onchange="calcAge()" /></div>
+    <div class="fg"><label class="fl">Âge (calculé)</label><input class="fi" id="ca" readonly style="background:#f5f5f3" /></div>
+  </div>
+  <div class="fg"><label class="fl">Commune / village</label><input class="fi" id="cc" placeholder="Ex: Bulle" /></div>
+  <div class="sec" style="border-top:none;padding-top:0;margin-top:.5rem">Parent / responsable</div>
+  <div class="fr"><div class="fg"><label class="fl">Prénom</label><input class="fi" id="cpp" /></div><div class="fg"><label class="fl">Nom</label><input class="fi" id="cpn" /></div></div>
+  <div class="fr"><div class="fg"><label class="fl">Email</label><input class="fi" type="email" id="cpe" /></div><div class="fg"><label class="fl">Téléphone</label><input class="fi" type="tel" id="cpt" /></div></div>
+  <div class="sec">Notes</div>
+  <div class="fg"><label class="fl">Allergies, besoins spéciaux...</label><textarea class="fi" id="cno" rows="2" style="resize:vertical"></textarea></div>
+  <div class="mf"><button class="btn" onclick="closeCreate()">Annuler</button><button class="btn btn-primary" onclick="saveCreate()">Enregistrer</button></div>
+</div>
+</div>
+
+<div id="mDetail" class="overlay" onclick="if(event.target.id==='mDetail')closeDetail()">
+<div class="modal" onclick="event.stopPropagation()"><div id="det"></div></div>
+</div>
+
+<div id="mBan" class="overlay" onclick="if(event.target.id==='mBan')closeBan()">
+<div class="modal" style="max-width:400px" onclick="event.stopPropagation()">
+  <div class="modal-title">Bannir cet enfant</div>
+  <div class="fg"><label class="fl">Motif obligatoire</label><textarea class="fi" id="ban-motif" rows="3" placeholder="Raison du bannissement..."></textarea></div>
+  <div class="mf"><button class="btn" onclick="closeBan()">Annuler</button><button class="btn btn-danger" onclick="confirmBan()">Confirmer le bannissement</button></div>
+</div>
+</div>
+
+<script>
+let enfants=[
+  {id:1,prenom:'Luca',nom:'Bernard',ddn:'2016-04-12',age:10,commune:'Bulle',pp:'Anne',pn:'Bernard',pe:'anne.bernard@gmail.com',pt:'+41 79 111 22 33',notes:'',parts:3,statut:'actif',banMotif:'',activitesConfirmees:['Atelier poterie']},
+  {id:2,prenom:'Emma',nom:'Favre',ddn:'2017-08-20',age:8,commune:'Intyamons',pp:'Paul',pn:'Favre',pe:'paul.favre@gmail.com',pt:'+41 79 222 33 44',notes:'Allergie aux arachides',parts:1,statut:'actif',banMotif:'',activitesConfirmees:[]},
+  {id:3,prenom:'Noah',nom:'Morel',ddn:'2015-01-05',age:11,commune:'Broc',pp:'Claire',pn:'Morel',pe:'claire.morel@gmail.com',pt:'+41 79 333 44 55',notes:'',parts:5,statut:'actif',banMotif:'',activitesConfirmees:['Sortie Lac Noir']},
+  {id:4,prenom:'Léa',nom:'Dupont',ddn:'2016-11-30',age:9,commune:'Bulle',pp:'Marc',pn:'Dupont',pe:'marc.dupont@gmail.com',pt:'+41 79 444 55 66',notes:'Asthme léger',parts:2,statut:'actif',banMotif:'',activitesConfirmees:[]},
+  {id:5,prenom:'Tom',nom:'Remy',ddn:'2014-06-14',age:11,commune:'Châtel-St-Denis',pp:'Sophie',pn:'Remy',pe:'sophie.remy@gmail.com',pt:'+41 79 555 66 77',notes:'',parts:0,statut:'actif',banMotif:'',activitesConfirmees:['Atelier poterie','Sortie Lac Noir']},
+  {id:6,prenom:'Zoe',nom:'Blanc',ddn:'2017-03-22',age:9,commune:'Bulle',pp:'Jean',pn:'Blanc',pe:'jean.blanc@gmail.com',pt:'+41 79 666 77 88',notes:'',parts:4,statut:'banni',banMotif:'Comportement inapproprié lors de la sortie du 15.03',activitesConfirmees:[]},
+];
+let nid=7,selId=null,banId=null,filtre='tous';
+const ACTS=[{id:1,nom:'Atelier poterie',places:12,amin:6,amax:12},{id:2,nom:'Sortie Lac Noir',places:20,amin:7,amax:14}];
+
+function calcAgeFrom(d){if(!d)return null;const t=new Date(),b=new Date(d);let a=t.getFullYear()-b.getFullYear();if(t.getMonth()-b.getMonth()<0||(t.getMonth()===b.getMonth()&&t.getDate()<b.getDate()))a--;return a;}
+function calcAge(){const a=calcAgeFrom(document.getElementById('cd').value);document.getElementById('ca').value=a!==null?a+' ans':'—';}
+function ini(e){return(e.prenom[0]||'')+(e.nom[0]||'');}
+
+function renderMetrics(){
+  const ac=enfants.filter(e=>e.statut==='actif').length,ba=enfants.filter(e=>e.statut==='banni').length;
+  const tot=enfants.reduce((s,e)=>s+e.parts,0),moy=ac?+(tot/ac).toFixed(1):0;
+  document.getElementById('metrics').innerHTML=[{val:enfants.length,lbl:'Total'},{val:ac,lbl:'Actifs'},{val:ba,lbl:'Bannis'},{val:moy,lbl:'Moy. part.'}].map(x=>`<div class="metric"><div class="metric-val">${x.val}</div><div class="metric-lbl">${x.lbl}</div></div>`).join('');
+}
+function getFiltered(){
+  const q=(document.getElementById('search')||{value:''}).value.toLowerCase();
+  return enfants.filter(e=>{
+    const mf=filtre==='tous'||(filtre==='actif'&&e.statut==='actif')||(filtre==='banni'&&e.statut==='banni');
+    const ms=!q||(e.prenom+' '+e.nom).toLowerCase().includes(q)||e.commune.toLowerCase().includes(q);
+    return mf&&ms;
+  });
+}
+function render(){
+  renderMetrics();
+  const rows=getFiltered(),tb=document.getElementById('tbody');
+  if(!rows.length){tb.innerHTML=`<tr><td colspan="5" style="text-align:center;padding:2rem;color:#888">Aucun enfant trouvé</td></tr>`;return;}
+  tb.innerHTML=rows.map(e=>`<tr onclick="openDetail(${e.id})" style="${e.statut==='banni'?'opacity:.55':''}">
+    <td><div style="display:flex;align-items:center;gap:10px"><div class="avatar">${ini(e)}</div><div><div style="font-weight:500">${e.prenom} ${e.nom}</div><div style="font-size:11px;color:#888">${e.pp} ${e.pn}</div></div></div></td>
+    <td>${e.age} ans</td><td>${e.commune}</td>
+    <td><span class="part-badge">${e.parts}</span></td>
+    <td>${(e.activitesConfirmees||[]).length?e.activitesConfirmees.map(a=>`<span style="display:inline-block;font-size:11px;padding:2px 7px;border-radius:20px;background:#e6f1fb;color:#0c447c;margin:1px">${a}</span>`).join(' '):'<span style="color:#bbb;font-size:12px">—</span>'}</td>
+    <td><span class="badge badge-${e.statut}">${e.statut==='actif'?'Actif':'Banni'}</span></td>
+  </tr>`).join('');
+}
+function setFilter(f,btn){filtre=f;document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');render();}
+function switchTab(n,btn){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));btn.classList.add('active');document.getElementById('panel-'+n).classList.add('active');}
+function openCreate(){document.getElementById('mCreate').style.display='flex';}
+function closeCreate(){document.getElementById('mCreate').style.display='none';['cp','cn','cd','ca','cc','cpp','cpn','cpe','cpt','cno'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});}
+function saveCreate(){
+  const p=document.getElementById('cp').value.trim(),n=document.getElementById('cn').value.trim();
+  if(!p||!n){alert('Prénom et nom obligatoires');return;}
+  const ddn=document.getElementById('cd').value;
+  enfants.push({id:nid++,prenom:p,nom:n,ddn,age:calcAgeFrom(ddn)||0,commune:document.getElementById('cc').value.trim(),pp:document.getElementById('cpp').value.trim(),pn:document.getElementById('cpn').value.trim(),pe:document.getElementById('cpe').value.trim(),pt:document.getElementById('cpt').value.trim(),notes:document.getElementById('cno').value.trim(),parts:0,statut:'actif',banMotif:'',activitesConfirmees:[]});
+  closeCreate();render();
+}
+function openDetail(id){selId=id;renderDet();document.getElementById('mDetail').style.display='flex';}
+function closeDetail(){document.getElementById('mDetail').style.display='none';}
+function renderDet(){
+  const e=enfants.find(x=>x.id===selId);if(!e)return;
+  document.getElementById('det').innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="avatar" style="width:44px;height:44px;font-size:16px">${ini(e)}</div>
+        <div><div style="font-size:15px;font-weight:600">${e.prenom} ${e.nom}</div><span class="badge badge-${e.statut}">${e.statut==='actif'?'Actif':'Banni'}</span></div>
+      </div>
+      <button class="btn btn-sm" onclick="closeDetail()">✕</button>
+    </div>
+    ${e.statut==='banni'?`<div class="ban-box">Banni : ${e.banMotif}</div>`:''}
+    <div class="grid2" style="margin-bottom:12px">
+      <div><div class="dl">Naissance</div><div class="dv">${e.ddn?e.ddn.split('-').reverse().join('.'):'—'}</div></div>
+      <div><div class="dl">Âge</div><div class="dv">${e.age} ans</div></div>
+      <div><div class="dl">Commune</div><div class="dv">${e.commune||'—'}</div></div>
+      <div><div class="dl">Participations</div><div class="dv"><span class="part-badge">${e.parts}</span></div></div>
+    </div>
+    <div style="background:#f5f5f3;border-radius:8px;padding:10px 12px;margin-bottom:12px">
+      <div class="dl">Parent / responsable</div>
+      <div style="font-weight:500;font-size:13px;margin-top:4px">${e.pp} ${e.pn}</div>
+      <div style="font-size:12px;color:#888;margin-top:2px">${e.pe||'—'} · ${e.pt||'—'}</div>
+    </div>
+    ${e.notes?`<div class="note-box">${e.notes}</div>`:''}
+    <div class="mf" style="flex-wrap:wrap;gap:8px">
+      <div style="display:flex;gap:8px">
+        ${e.statut==='actif'?`<button class="btn btn-sm btn-danger" onclick="openBan(${e.id})">Bannir</button>`:`<button class="btn btn-sm" onclick="debannir(${e.id})">Réactiver</button>`}
+        <button class="btn btn-sm" onclick="addPart(${e.id})">+ 1 participation</button>
+        <button class=\"btn btn-sm\" style=\"color:#791f1f;border-color:#f4c0c0\" onclick=\"deleteEnfant(${e.id})\">🗑 Supprimer</button>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-sm" onclick="openEdit(${e.id})">Modifier</button>
+        <button class="btn btn-sm btn-primary" onclick="closeDetail()">Fermer</button>
+      </div>
+    </div>`;
+}
+function openBan(id){banId=id;document.getElementById('ban-motif').value='';document.getElementById('mBan').style.display='flex';}
+function closeBan(){document.getElementById('mBan').style.display='none';}
+function confirmBan(){
+  const m=document.getElementById('ban-motif').value.trim();if(!m){alert('Motif obligatoire');return;}
+  enfants=enfants.map(e=>e.id===banId?{...e,statut:'banni',banMotif:m}:e);
+  closeBan();if(selId===banId)renderDet();render();
+}
+function debannir(id){enfants=enfants.map(e=>e.id===id?{...e,statut:'actif',banMotif:''}:e);renderDet();render();}
+function deleteEnfant(id){
+  var e=enfants.find(function(x){return x.id===id;});
+  if(!e)return;
+  var msg='Supprimer '+e.prenom+' '+e.nom+' ?\n\nCette action supprimera aussi ses inscriptions aux activités.\n\nCette action est irréversible.';
+  if(confirm(msg)){
+    enfants=enfants.filter(function(x){return x.id!==id;});
+    closeDetail();
+    render();
+  }
+}
+function addPart(id){enfants=enfants.map(e=>e.id===id?{...e,parts:e.parts+1}:e);renderDet();render();}
+function runSelection(){
+  const aid=parseInt(document.getElementById('sel-act').value);
+  if(!aid){document.getElementById('sel-result').style.display='none';return;}
+  const act=ACTS.find(a=>a.id===aid);
+  const elig=enfants.filter(e=>e.statut==='actif'&&e.age>=act.amin&&e.age<=act.amax);
+  const scored=elig.map(e=>({...e,score:e.parts+Math.random()*.4})).sort((a,b)=>a.score-b.score);
+  const sel=scored.slice(0,act.places),wait=scored.slice(act.places);
+  document.getElementById('sel-result').style.display='block';
+  const mkR=(arr,cls)=>arr.length?arr.map((e,i)=>`<div class="sel-row"><div style="display:flex;align-items:center;gap:8px"><span class="rk ${cls}">${i+1}</span>${e.prenom} ${e.nom}</div><span style="font-size:12px;color:#888">${e.parts} part.</span></div>`).join(''):`<div style="font-size:12px;color:#888;padding:8px 0">Aucun</div>`;
+  document.getElementById('sel-in').innerHTML=mkR(sel,'rk-sel');
+  document.getElementById('sel-wait').innerHTML=mkR(wait,'rk-wait');
+}
+function openEdit(id){selId=id;renderEdit();document.getElementById('mEdit').style.display='flex';}
+function closeEdit(){document.getElementById('mEdit').style.display='none';}
+function renderEdit(){
+  const e=enfants.find(x=>x.id===selId);if(!e)return;
+  document.getElementById('ep').value=e.prenom;
+  document.getElementById('en').value=e.nom;
+  document.getElementById('ed').value=e.ddn||'';
+  document.getElementById('ea').value=e.age?e.age+' ans':'';
+  document.getElementById('ec').value=e.commune||'';
+  document.getElementById('epp').value=e.pp||'';
+  document.getElementById('epn').value=e.pn||'';
+  document.getElementById('epe').value=e.pe||'';
+  document.getElementById('ept').value=e.pt||'';
+  document.getElementById('eno').value=e.notes||'';
+}
+function calcEditAge(){const a=calcAgeFrom(document.getElementById('ed').value);document.getElementById('ea').value=a!==null?a+' ans':'—';}
+function saveEdit(){
+  const p=document.getElementById('ep').value.trim(),n=document.getElementById('en').value.trim();
+  if(!p||!n){alert('Prénom et nom obligatoires');return;}
+  const ddn=document.getElementById('ed').value;
+  enfants=enfants.map(e=>e.id===selId?{...e,
+    prenom:p,nom:n,ddn,age:calcAgeFrom(ddn)||e.age,
+    commune:document.getElementById('ec').value.trim(),
+    pp:document.getElementById('epp').value.trim(),
+    pn:document.getElementById('epn').value.trim(),
+    pe:document.getElementById('epe').value.trim(),
+    pt:document.getElementById('ept').value.trim(),
+    notes:document.getElementById('eno').value.trim()
+  }:e);
+  closeEdit();renderDet();render();
+}
+render();
+</script>
+
+<div id="mEdit" class="overlay" onclick="if(event.target.id==='mEdit')closeEdit()">
+<div class="modal" onclick="event.stopPropagation()">
+  <div class="modal-title">Modifier les informations</div>
+  <div class="fr"><div class="fg"><label class="fl">Prénom *</label><input class="fi" id="ep" /></div><div class="fg"><label class="fl">Nom *</label><input class="fi" id="en" /></div></div>
+  <div class="fr">
+    <div class="fg"><label class="fl">Date de naissance</label><input class="fi" type="date" id="ed" onchange="calcEditAge()" /></div>
+    <div class="fg"><label class="fl">Âge (calculé)</label><input class="fi" id="ea" readonly style="background:#f5f5f3" /></div>
+  </div>
+  <div class="fg"><label class="fl">Commune / village</label><input class="fi" id="ec" /></div>
+  <div class="sec" style="border-top:none;padding-top:0;margin-top:.5rem">Parent / responsable</div>
+  <div class="fr"><div class="fg"><label class="fl">Prénom</label><input class="fi" id="epp" /></div><div class="fg"><label class="fl">Nom</label><input class="fi" id="epn" /></div></div>
+  <div class="fr"><div class="fg"><label class="fl">Email</label><input class="fi" type="email" id="epe" /></div><div class="fg"><label class="fl">Téléphone</label><input class="fi" type="tel" id="ept" /></div></div>
+  <div class="sec">Notes</div>
+  <div class="fg"><label class="fl">Allergies, besoins spéciaux...</label><textarea class="fi" id="eno" rows="2" style="resize:vertical"></textarea></div>
+  <div class="mf"><button class="btn" onclick="closeEdit()">Annuler</button><button class="btn btn-primary" onclick="saveEdit()">Enregistrer les modifications</button></div>
+</div>
+</div>
+
+
+
+</div>
+</div>
+<script>
+(function(){
+  var p=window.location.pathname.split("/").pop();
+  document.querySelectorAll("#ft-sb a").forEach(function(a){
+    if(a.getAttribute("href")===p){a.className="on";}
+  });
+})();
+</script>
+</div>
+</div>
+<script>
+(function(){
+  var p=window.location.pathname.split("/").pop();
+  document.querySelectorAll("#ft-sb a").forEach(function(a){
+    if(a.getAttribute("href")===p){a.className="on";}
+  });
+})();
+</script>
+</body>
+</html>
