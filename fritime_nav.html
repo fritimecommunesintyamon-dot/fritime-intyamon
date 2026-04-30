@@ -99,7 +99,7 @@
 (function(){
   // Auth check
   const user = sessionStorage.getItem("ft_user");
-  const publicPages = ["fritime_login.html","fritime_inscription_publique.html","fritime_sondage_parent.html"];
+  const publicPages = ["fritime_login.html","fritime_inscription_publique.html","fritime_sondage_parent.html","","index.html"];
   const currentPage = window.location.pathname.split("/").pop();
   if(!user && !publicPages.includes(currentPage)){
     window.location.href = "fritime_login.html";

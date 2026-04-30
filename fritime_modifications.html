@@ -181,8 +181,8 @@ textarea.fi{resize:vertical;min-height:80px}
 <script>
 (function(){
   // Auth check
-  const user = sessionStorage.getItem("ft-user");
-  const publicPages = ["fritime_login.html","fritime_inscription_publique.html","fritime_sondage_parent.html"];
+  const user = sessionStorage.getItem("ft_user");
+  const publicPages = ["fritime_login.html","fritime_inscription_publique.html","fritime_sondage_parent.html","","index.html"];
   const currentPage = window.location.pathname.split("/").pop();
   if(!user && !publicPages.includes(currentPage)){
     window.location.href = "fritime_login.html";
@@ -217,7 +217,7 @@ document.addEventListener("click", function(e){
   if(menu && !avatar.contains(e.target)) menu.classList.remove("open");
 });
 function doLogout(){
-  sessionStorage.removeItem("ft-user");
+  sessionStorage.removeItem("ft_user");
   window.location.href = "fritime_login.html";
 }
 </script>

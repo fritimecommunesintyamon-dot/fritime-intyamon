@@ -43,7 +43,8 @@ const FriAuth = {
     const user = this.getUser();
     if (!user) {
       // Non connecté → redirection login
-      window.location.href = "fritime_login.html";
+      const cp = window.location.pathname.split("/").pop();
+      if(cp !== "fritime_login.html") window.location.href = "fritime_login.html";
       return;
     }
 
