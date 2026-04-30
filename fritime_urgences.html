@@ -83,6 +83,9 @@ h1{font-size:20px;font-weight:600}
 }
 
 }
+
+.overlay-urg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1100;align-items:center;justify-content:center;padding:1rem}
+.modal-urg{background:#fff;border-radius:12px;padding:1.5rem;width:min(380px,100%)}
 </style>
   <script src="fritime_data.js"></script>
   <script src="fritime_sync.js"></script>
@@ -318,6 +321,10 @@ function doLogout(){
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.5rem">
   <div style="background:#fff;border:1.5px solid #eee;border-radius:12px;padding:1rem">
     <div style="font-size:12px;font-weight:700;color:#1a1a1a;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">📞 Comité Fri-Time</div>
+    <div style="display:flex;flex-direction:column;gap:6px" id="contacts-comite">
+      <!-- Chargé dynamiquement -->
+    </div>
+    <button onclick="openAddContact()" style="margin-top:8px;padding:5px 12px;background:#fff;border:1px dashed #aaa;border-radius:6px;cursor:pointer;font-size:12px;color:#555;width:100%">+ Ajouter un numéro</button>
     <div style="display:flex;flex-direction:column;gap:6px">
       <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:5px 8px;background:#f5f5f3;border-radius:6px">
         <div><span style="font-weight:600">Marie Dupont</span> <span style="color:#888;font-size:11px">Présidente</span></div>
@@ -818,9 +825,10 @@ document.querySelectorAll(".section-toggle")[0].classList.add("open");
 </div>
 <script>
 (function(){
-var cp=window.location.pathname.split("/").pop();
-document.querySelectorAll("
-});
+  var p=window.location.pathname.split("/").pop();
+  document.querySelectorAll("#ft-sb a").forEach(function(a){
+    if(a.getAttribute("href")===p){a.className="on";}
+  });
 })();
 </script>
 </div>
@@ -832,6 +840,90 @@ document.querySelectorAll("
     if(a.getAttribute("href")===p){a.className="on";}
   });
 })();
+
+function loadContacts(){
+  var contactsDiv = document.getElementById("contacts-comite");
+  if(!contactsDiv) return;
+  
+  // Load members from localStorage (from comite module)
+  var ftData = localStorage.getItem("ft_data");
+  var membres = [];
+  if(ftData){
+    try{ membres = JSON.parse(ftData).membres || []; } catch(e){}
+  }
+  // Fallback: use hardcoded Karine if no data
+  if(!membres.length){
+    membres = [{prenom:"Karine", nom:"Rebelo", role:"Présidente", tel:"", email:"karine_rebelo@hotmail.fr"}];
+  }
+  
+  // Load extra contacts
+  var extras = JSON.parse(localStorage.getItem("ft_urgence_contacts")||"[]");
+  
+  var html = membres.map(function(m){
+    var tel = m.tel || "";
+    var href = tel ? 'href="tel:'+tel.replace(/\s/g,"")+'"' : '';
+    return '<div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:5px 8px;background:#f5f5f3;border-radius:6px">' +
+      '<div><span style="font-weight:600">' + m.prenom + ' ' + m.nom + '</span> <span style="color:#888;font-size:11px">' + m.role + '</span></div>' +
+      (tel ? '<a '+href+' style="color:#0c447c;font-weight:600;text-decoration:none">📞 ' + tel + '</a>' : '<span style="color:#bbb;font-size:11px">Pas de tél.</span>') +
+    '</div>';
+  }).join("");
+  
+  html += extras.map(function(c, i){
+    return '<div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:5px 8px;background:#fff;border:1px solid #eee;border-radius:6px">' +
+      '<div><span style="font-weight:600">' + c.nom + '</span></div>' +
+      '<div style="display:flex;align-items:center;gap:6px">' +
+        '<a href="tel:'+c.tel.replace(/\s/g,"")+'" style="color:#0c447c;font-weight:600;text-decoration:none">📞 ' + c.tel + '</a>' +
+        '<button onclick="removeContact('+i+')" style="background:none;border:none;cursor:pointer;color:#bbb;font-size:14px;padding:0">✕</button>' +
+      '</div>' +
+    '</div>';
+  }).join("");
+  
+  contactsDiv.innerHTML = html || '<div style="font-size:12px;color:#bbb;padding:6px">Aucun contact enregistré</div>';
+}
+
+function openAddContact(){
+  document.getElementById("nc-nom").value="";
+  document.getElementById("nc-tel").value="";
+  document.getElementById("mAddContact").style.display="flex";
+}
+function closeMContact(){document.getElementById("mAddContact").style.display="none";}
+function saveContact(){
+  var nom=document.getElementById("nc-nom").value.trim();
+  var tel=document.getElementById("nc-tel").value.trim();
+  if(!nom||!tel){alert("Nom et téléphone obligatoires");return;}
+  var extras=JSON.parse(localStorage.getItem("ft_urgence_contacts")||"[]");
+  extras.push({nom:nom,tel:tel});
+  localStorage.setItem("ft_urgence_contacts",JSON.stringify(extras));
+  closeMContact();
+  loadContacts();
+}
+function removeContact(idx){
+  if(!confirm("Supprimer ce contact ?"))return;
+  var extras=JSON.parse(localStorage.getItem("ft_urgence_contacts")||"[]");
+  extras.splice(idx,1);
+  localStorage.setItem("ft_urgence_contacts",JSON.stringify(extras));
+  loadContacts();
+}
+
+// Load on startup
+document.addEventListener("DOMContentLoaded", function(){ loadContacts(); });
+
 </script>
+
+<!-- Modal ajouter contact -->
+<div id="mAddContact" class="overlay-urg" onclick="if(event.target.id==='mAddContact')closeMContact()">
+<div class="modal-urg" onclick="event.stopPropagation()">
+  <div style="font-size:15px;font-weight:600;margin-bottom:1rem;padding-bottom:1rem;border-bottom:1px solid #eee">Ajouter un numéro d'urgence</div>
+  <div style="margin-bottom:.75rem"><label style="font-size:12px;color:#666;display:block;margin-bottom:4px">Nom / Fonction *</label>
+    <input id="nc-nom" style="width:100%;padding:8px 10px;border:1.5px solid #eee;border-radius:8px;font-size:13px;font-family:inherit" placeholder="Ex: Médecin de garde, Responsable salle..." /></div>
+  <div style="margin-bottom:.75rem"><label style="font-size:12px;color:#666;display:block;margin-bottom:4px">Téléphone *</label>
+    <input id="nc-tel" type="tel" style="width:100%;padding:8px 10px;border:1.5px solid #eee;border-radius:8px;font-size:13px;font-family:inherit" placeholder="Ex: +41 79 000 00 00" /></div>
+  <div style="display:flex;justify-content:space-between;margin-top:1rem;padding-top:1rem;border-top:1px solid #eee">
+    <button onclick="closeMContact()" style="padding:7px 14px;border:1px solid #ddd;border-radius:8px;background:#fff;cursor:pointer;font-size:13px">Annuler</button>
+    <button onclick="saveContact()" style="padding:7px 14px;background:#1a1a1a;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500">Ajouter</button>
+  </div>
+</div>
+</div>
+
 </body>
 </html>
