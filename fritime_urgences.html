@@ -84,8 +84,6 @@ h1{font-size:20px;font-weight:600}
 
 }
 
-.overlay-urg{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.4);z-index:9999;padding:1rem}
-.modal-urg{background:#fff;border-radius:12px;padding:1.5rem;width:min(380px,100%);margin:auto;position:relative}
 </style>
   <script src="fritime_data.js"></script>
   <script src="fritime_sync.js"></script>
@@ -324,7 +322,21 @@ function doLogout(){
     <div style="display:flex;flex-direction:column;gap:6px" id="contacts-comite">
       <!-- Chargé dynamiquement -->
     </div>
-    <button onclick="openAddContact()" style="margin-top:8px;padding:5px 12px;background:#fff;border:1px dashed #aaa;border-radius:6px;cursor:pointer;font-size:12px;color:#555;width:100%">+ Ajouter un numéro</button>
+    <button onclick="toggleAddForm()" id="btn-add-contact" style="margin-top:8px;padding:5px 12px;background:#fff;border:1px dashed #aaa;border-radius:6px;cursor:pointer;font-size:12px;color:#555;width:100%">+ Ajouter un numéro</button>
+    <div id="add-contact-form" style="display:none;margin-top:6px;background:#f5f5f3;border-radius:8px;padding:10px 12px;border:1px solid #ddd">
+      <div style="margin-bottom:8px">
+        <label style="font-size:11px;color:#666;display:block;margin-bottom:3px">Nom / Fonction *</label>
+        <input id="nc-nom" style="width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:6px;font-size:13px;font-family:inherit" placeholder="Ex: Médecin de garde, Responsable salle..." />
+      </div>
+      <div style="margin-bottom:10px">
+        <label style="font-size:11px;color:#666;display:block;margin-bottom:3px">Téléphone *</label>
+        <input id="nc-tel" type="tel" style="width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:6px;font-size:13px;font-family:inherit" placeholder="+41 79 000 00 00" />
+      </div>
+      <div style="display:flex;gap:6px">
+        <button onclick="saveContact()" style="flex:1;padding:6px;background:#1a1a1a;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:500">✓ Enregistrer</button>
+        <button onclick="toggleAddForm()" style="padding:6px 10px;background:#fff;border:1px solid #ddd;border-radius:6px;cursor:pointer;font-size:12px">Annuler</button>
+      </div>
+    </div>
     <div style="display:flex;flex-direction:column;gap:6px">
       
     </div>
@@ -862,15 +874,20 @@ function loadContacts(){
   contactsDiv.innerHTML = html || '<div style="font-size:12px;color:#bbb;padding:6px">Aucun contact enregistré</div>';
 }
 
-function openAddContact(){
-  document.getElementById("nc-nom").value="";
-  document.getElementById("nc-tel").value="";
-  var m=document.getElementById("mAddContact");
-  m.style.display="flex";
-  m.style.alignItems="center";
-  m.style.justifyContent="center";
+function toggleAddForm(){
+  var form = document.getElementById("add-contact-form");
+  var btn = document.getElementById("btn-add-contact");
+  if(form.style.display === "none"){
+    form.style.display = "block";
+    document.getElementById("nc-nom").value = "";
+    document.getElementById("nc-tel").value = "";
+    document.getElementById("nc-nom").focus();
+    btn.textContent = "✕ Fermer";
+  } else {
+    form.style.display = "none";
+    btn.textContent = "+ Ajouter un numéro";
+  }
 }
-function closeMContact(){document.getElementById("mAddContact").style.display="none";}
 function saveContact(){
   var nom=document.getElementById("nc-nom").value.trim();
   var tel=document.getElementById("nc-tel").value.trim();
@@ -878,7 +895,7 @@ function saveContact(){
   var extras=JSON.parse(localStorage.getItem("ft_urgence_contacts")||"[]");
   extras.push({nom:nom,tel:tel});
   localStorage.setItem("ft_urgence_contacts",JSON.stringify(extras));
-  closeMContact();
+  toggleAddForm();
   loadContacts();
 }
 function removeContact(idx){
@@ -894,21 +911,6 @@ document.addEventListener("DOMContentLoaded", function(){ loadContacts(); });
 
 </script>
 
-
-<!-- Modal ajouter contact -->
-<div id="mAddContact" class="overlay-urg" onclick="if(event.target.id==='mAddContact')closeMContact()">
-<div class="modal-urg" onclick="event.stopPropagation()">
-  <div style="font-size:15px;font-weight:600;margin-bottom:1rem;padding-bottom:1rem;border-bottom:1px solid #eee">Ajouter un numéro d'urgence</div>
-  <div style="margin-bottom:.75rem"><label style="font-size:12px;color:#666;display:block;margin-bottom:4px">Nom / Fonction *</label>
-    <input id="nc-nom" style="width:100%;padding:8px 10px;border:1.5px solid #eee;border-radius:8px;font-size:13px;font-family:inherit" placeholder="Ex: Médecin de garde, Responsable salle..." /></div>
-  <div style="margin-bottom:.75rem"><label style="font-size:12px;color:#666;display:block;margin-bottom:4px">Téléphone *</label>
-    <input id="nc-tel" type="tel" style="width:100%;padding:8px 10px;border:1.5px solid #eee;border-radius:8px;font-size:13px;font-family:inherit" placeholder="Ex: +41 79 000 00 00" /></div>
-  <div style="display:flex;justify-content:space-between;margin-top:1rem;padding-top:1rem;border-top:1px solid #eee">
-    <button onclick="closeMContact()" style="padding:7px 14px;border:1px solid #ddd;border-radius:8px;background:#fff;cursor:pointer;font-size:13px">Annuler</button>
-    <button onclick="saveContact()" style="padding:7px 14px;background:#1a1a1a;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500">Ajouter</button>
-  </div>
-</div>
-</div>
 
 </body>
 </html>
