@@ -256,22 +256,49 @@ function doLogin(){
   const email=document.getElementById("l-email").value.trim();
   const pwd=document.getElementById("l-pwd").value;
   let ok=true;
-  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){document.getElementById("l-email").classList.add("error");document.getElementById("err-l-email").classList.add("on");ok=false;}
-  else{document.getElementById("l-email").classList.remove("error");document.getElementById("err-l-email").classList.remove("on");}
-  if(!pwd){document.getElementById("l-pwd").classList.add("error");document.getElementById("err-l-pwd").classList.add("on");ok=false;}
-  else{document.getElementById("l-pwd").classList.remove("error");document.getElementById("err-l-pwd").classList.remove("on");}
+  if(!email||email.indexOf("@")===-1){
+    document.getElementById("l-email").classList.add("error");
+    document.getElementById("err-l-email").classList.add("on");ok=false;
+  } else {
+    document.getElementById("l-email").classList.remove("error");
+    document.getElementById("err-l-email").classList.remove("on");
+  }
+  if(!pwd){
+    document.getElementById("l-pwd").classList.add("error");
+    document.getElementById("err-l-pwd").classList.add("on");ok=false;
+  } else {
+    document.getElementById("l-pwd").classList.remove("error");
+    document.getElementById("err-l-pwd").classList.remove("on");
+  }
   if(!ok)return;
 
-  const user = FriAuth.login(email, pwd);
-  if(!user){
+  var COMPTES=[
+    {email:"marie.dupont@example.ch",pwd:"Fritim2026!",nom:"Marie Dupont",role:"Présidente"},
+    {email:"jean.martin@example.ch",pwd:"Fritim2026!",nom:"Jean Martin",role:"Trésorier"},
+    {email:"sophie.remy@example.ch",pwd:"Fritim2026!",nom:"Sophie Remy",role:"Responsable inscriptions"},
+    {email:"lara.blanc@example.ch",pwd:"Fritim2026!",nom:"Lara Blanc",role:"Responsable communication"},
+    {email:"paul.morel@example.ch",pwd:"Fritim2026!",nom:"Paul Morel",role:"Contact prestataires"}
+  ];
+
+  var compte=null;
+  for(var i=0;i<COMPTES.length;i++){
+    if(COMPTES[i].email===email && COMPTES[i].pwd===pwd){compte=COMPTES[i];break;}
+  }
+
+  if(!compte){
     document.getElementById("login-err").classList.add("on");
     document.getElementById("login-ok").classList.remove("on");
     return;
   }
+
+  var user={nom:compte.nom,email:compte.email,role:compte.role,droits:compte.role==="Présidente"?"president":"comite",loginTime:Date.now()};
+  sessionStorage.setItem("ft_user",JSON.stringify(user));
+
   document.getElementById("login-err").classList.remove("on");
   document.getElementById("login-ok").classList.add("on");
-  document.getElementById("login-ok").textContent="Connexion réussie ! Bienvenue "+user.nom+" — redirection en cours...";
-  setTimeout(()=>{window.location.href="fritime_dashboard.html";},1200);
+  document.getElementById("login-ok").textContent="Connexion réussie ! Bienvenue "+compte.nom;
+
+  setTimeout(function(){window.location.href="fritime_dashboard.html";},800);
 }
 
 function doRegister(){
@@ -326,7 +353,7 @@ document.addEventListener("keydown",function(e){
 });
 
 // Vérifier si déjà connecté
-const user=sessionStorage.getItem("ft-user");
+const user=sessionStorage.getItem("ft_user");
 if(user&&window.location.href.includes("login")){
   // Already logged in — could redirect automatically
 }
