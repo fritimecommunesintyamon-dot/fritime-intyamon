@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fri-Time Intyamon — Demandes de modification</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#f5f5f3;color:#1a1a1a;font-size:14px}
+.container{max-width:960px;margin:0 auto;padding:1.5rem}
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem}
+h1{font-size:20px;font-weight:600}
+.subtitle{font-size:13px;color:#666;margin-top:2px}
+.btn{padding:7px 14px;border-radius:8px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:13px;font-family:inherit;transition:background .15s}
+.btn:hover{background:#f5f5f3}
+.btn-primary{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.btn-primary:hover{background:#333}
+.btn-sm{padding:4px 10px;font-size:12px}
+.btn-danger{color:#7a1f1f;border-color:#f4c0c0}
+.btn-danger:hover{background:#fcebeb}
+.btn-success{background:#eaf3de;color:#275a0a;border-color:#c0dd97}
+.btn-success:hover{background:#d5ecbf}
+/* Info box */
+.info-box{border-radius:10px;padding:12px 16px;font-size:13px;margin-bottom:1.25rem;line-height:1.6}
+.info-box.bleu{background:#e6f1fb;color:#0c447c;border-left:3px solid #0c447c}
+.info-box.jaune{background:#faeeda;color:#633806;border-left:3px solid #ef9f27}
+/* Tabs */
+.tabs{display:flex;border-bottom:1px solid #eee;margin-bottom:1.25rem}
+.tab{padding:8px 16px;font-size:13px;cursor:pointer;color:#888;border:none;border-bottom:2px solid transparent;margin-bottom:-1px;background:transparent;font-family:inherit;display:flex;align-items:center;gap:6px}
+.tab.active{color:#1a1a1a;border-bottom-color:#1a1a1a;font-weight:500}
+.tab-count{font-size:11px;background:#f5f5f3;color:#888;padding:1px 7px;border-radius:20px}
+.tab.active .tab-count{background:#1a1a1a;color:#fff}
+/* Metrics */
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.25rem}
+.metric{background:#fff;border-radius:10px;padding:12px;border:1px solid #eee;text-align:center}
+.metric-val{font-size:22px;font-weight:600}
+.metric-lbl{font-size:11px;color:#888;margin-top:2px}
+/* Cards */
+.demand-card{background:#fff;border:1px solid #eee;border-radius:12px;padding:1.25rem;margin-bottom:10px;transition:border-color .15s}
+.demand-card:hover{border-color:#ccc}
+.demand-card.urgente{border-left:3px solid #791f1f}
+.card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;gap:10px}
+.card-title{font-size:14px;font-weight:600;flex:1;line-height:1.3}
+.card-badges{display:flex;gap:6px;flex-wrap:wrap;flex-shrink:0}
+.badge{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500;white-space:nowrap}
+.badge-en-attente{background:#faeeda;color:#633806}
+.badge-approuvee{background:#eaf3de;color:#275a0a}
+.badge-refusee{background:#fcebeb;color:#791f1f}
+.badge-statut{background:#e6f1fb;color:#0c447c}
+.badge-suppression{background:#fcebeb;color:#791f1f}
+.badge-notif{background:#f5f5f3;color:#666}
+.card-desc{font-size:13px;color:#555;line-height:1.6;margin-bottom:10px}
+.card-meta{font-size:12px;color:#888;display:flex;gap:12px;flex-wrap:wrap}
+.card-actions{display:flex;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid #eee;flex-wrap:wrap;align-items:center}
+.validateur-badge{font-size:11px;padding:3px 10px;border-radius:20px;background:#eaf3de;color:#275a0a;font-weight:500}
+.refus-reason{background:#fcebeb;border-radius:8px;padding:8px 12px;font-size:12px;color:#791f1f;margin-top:8px}
+/* Notif section */
+.notif-item{background:#fff;border:1px solid #eee;border-radius:10px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:flex-start;gap:12px}
+.notif-ico{font-size:20px;flex-shrink:0;margin-top:2px}
+.notif-content{flex:1}
+.notif-title{font-size:13px;font-weight:500;margin-bottom:2px}
+.notif-sub{font-size:12px;color:#888;line-height:1.5}
+.notif-date{font-size:11px;color:#bbb;margin-top:4px}
+.notif-item.non-lu{border-left:3px solid #1a1a1a}
+/* Modal */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;align-items:flex-start;justify-content:center;padding:2rem 1rem;overflow-y:auto}
+.modal{background:#fff;border-radius:12px;border:1px solid #eee;padding:1.5rem;width:min(560px,100%)}
+.modal-title{font-size:16px;font-weight:600;margin-bottom:1.25rem;padding-bottom:1rem;border-bottom:1px solid #eee}
+.fg{margin-bottom:.75rem}
+.fl{font-size:12px;color:#666;margin-bottom:4px;display:block}
+.fi{width:100%;padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit}
+.fi:focus{outline:none;border-color:#aaa}
+textarea.fi{resize:vertical;min-height:80px}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mf{display:flex;justify-content:space-between;align-items:center;margin-top:1.25rem;padding-top:1rem;border-top:1px solid #eee}
+.sec{font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.06em;margin:1rem 0 .75rem;padding-top:1rem;border-top:1px solid #eee}
+.empty{text-align:center;padding:2.5rem;color:#888;font-size:13px}
+</style>
+  <script src="fritime_data.js"></script>
+  <script src="fritime_sync.js"></script>
+  <script src="fritime_auth.js"></script>
+</head>
+<body class="ft-body-offset">
+<!-- SHARED NAV - Fri-Time Intyamon -->
+<style>
+.ft-topbar{background:#1a1a1a;color:#fff;padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:52px;position:fixed;top:0;left:0;right:0;z-index:1000}
+.ft-logo{font-size:15px;font-weight:700;letter-spacing:.05em;color:#fff;text-decoration:none;white-space:nowrap}
+.ft-topbar-right{display:flex;align-items:center;gap:12px}
+.ft-user-name{font-size:12px;opacity:.6;display:none}
+.ft-avatar{width:30px;height:30px;border-radius:50%;background:#333;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;cursor:pointer;position:relative}
+.ft-avatar-menu{display:none;position:absolute;top:36px;right:0;background:#fff;border:1px solid #eee;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.1);min-width:180px;z-index:100;overflow:hidden}
+.ft-avatar-menu.open{display:block}
+.ft-avatar-menu-item{padding:10px 14px;font-size:13px;color:#1a1a1a;cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .1s}
+.ft-avatar-menu-item:hover{background:#f5f5f3}
+.ft-avatar-menu-item.red{color:#791f1f}
+.ft-avatar-divider{height:1px;background:#eee;margin:4px 0}
+.ft-sidebar{position:fixed;top:52px;left:0;width:210px;height:calc(100vh - 52px);background:#fff;border-right:1px solid #eee;overflow-y:auto;z-index:999;transform:translateX(-100%);transition:transform .2s}
+.ft-sidebar.open{transform:translateX(0)}
+.ft-sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:998;top:52px}
+.ft-sidebar-overlay.open{display:block}
+.ft-nav-section{padding:6px 14px;font-size:10px;font-weight:700;color:#bbb;text-transform:uppercase;letter-spacing:.08em;margin-top:8px}
+.ft-nav-item{display:flex;align-items:center;gap:9px;padding:9px 14px;font-size:13px;color:#555;cursor:pointer;transition:all .1s;text-decoration:none;border-left:3px solid transparent;white-space:nowrap}
+.ft-nav-item:hover{background:#fafaf8;color:#1a1a1a}
+.ft-nav-item.active{background:#f5f5f3;color:#1a1a1a;font-weight:600;border-left-color:#1a1a1a}
+.ft-nav-ico{font-size:15px;flex-shrink:0;opacity:.7}
+.ft-nav-badge{margin-left:auto;font-size:10px;background:#fcebeb;color:#791f1f;padding:1px 6px;border-radius:20px;font-weight:700}
+.ft-nav-badge.green{background:#eaf3de;color:#275a0a}
+.ft-nav-badge.blue{background:#e6f1fb;color:#0c447c}
+.ft-menu-btn{background:none;border:none;color:#fff;cursor:pointer;font-size:20px;padding:4px 8px;display:flex;align-items:center;justify-content:center;opacity:.8}
+.ft-menu-btn:hover{opacity:1}
+.ft-body-offset{padding-top:52px}
+.ft-layout{display:flex;min-height:calc(100vh - 52px)}
+.ft-sidebar-desktop{width:210px;flex-shrink:0;background:#fff;border-right:1px solid #eee;position:sticky;top:52px;height:calc(100vh - 52px);overflow-y:auto;flex-shrink:0}
+.ft-main{flex:1;overflow-x:hidden;min-width:0}
+@media(max-width:768px){
+  .ft-sidebar-desktop{display:none!important}
+  .ft-user-name{display:none}
+  .ft-main{padding:1rem!important}
+}
+@media(min-width:769px){
+  .ft-sidebar{display:none!important}
+  .ft-sidebar-overlay{display:none!important}
+  .ft-menu-btn{display:none!important}
+  .ft-sidebar-desktop{display:block!important}
+}
+</style>
+
+<div class="ft-topbar">
+  <div style="display:flex;align-items:center;gap:10px">
+    <button class="ft-menu-btn" onclick="toggleSidebar()" id="ft-menu-btn">☰</button>
+    <a href="fritime_dashboard.html" class="ft-logo">Fri-Time Intyamon</a>
+  </div>
+  <div class="ft-topbar-right">
+    <span class="ft-user-name" id="ft-user-name">—</span>
+    <div class="ft-avatar" id="ft-avatar" onclick="toggleAvatarMenu()">
+      <span id="ft-avatar-initials">?</span>
+      <div class="ft-avatar-menu" id="ft-avatar-menu">
+        <div class="ft-avatar-menu-item" style="background:#f5f5f3;cursor:default">
+          <div>
+            <div style="font-weight:600;font-size:13px" id="ft-menu-name">—</div>
+            <div style="font-size:11px;color:#888" id="ft-menu-role">—</div>
+          </div>
+        </div>
+        <div class="ft-avatar-divider"></div>
+        <a href="fritime_dashboard.html" class="ft-avatar-menu-item">🏠 Tableau de bord</a>
+        <div class="ft-avatar-menu-item" onclick="doLogout()">🔒 Se déconnecter</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="ft-sidebar-overlay" id="ft-sidebar-overlay" onclick="toggleSidebar()"></div>
+
+<div class="ft-sidebar" id="ft-sidebar">
+  <div class="ft-nav-section">Principal</div>
+  <a class="ft-nav-item" href="fritime_dashboard.html" data-page="dashboard"><span class="ft-nav-ico">🏠</span> Tableau de bord</a>
+  <a class="ft-nav-item" href="fritime_activites.html" data-page="activites"><span class="ft-nav-ico">🎯</span> Activités</a>
+  <a class="ft-nav-item" href="fritime_inscriptions.html" data-page="inscriptions"><span class="ft-nav-ico">📋</span> Inscriptions</a>
+  <a class="ft-nav-item" href="fritime_enfants.html" data-page="enfants"><span class="ft-nav-ico">👦</span> Enfants</a>
+
+  <div class="ft-nav-section">Organisation</div>
+  <a class="ft-nav-item" href="fritime_taches.html" data-page="taches"><span class="ft-nav-ico">✅</span> Tâches</a>
+  <a class="ft-nav-item" href="fritime_comite.html" data-page="comite"><span class="ft-nav-ico">👥</span> Comité</a>
+  <a class="ft-nav-item" href="fritime_campagnes.html" data-page="campagnes"><span class="ft-nav-ico">📧</span> Campagnes</a>
+  <a class="ft-nav-item" href="fritime_sondages.html" data-page="sondages"><span class="ft-nav-ico">⭐</span> Sondages</a>
+
+  <div class="ft-nav-section">Finances & Partenaires</div>
+  <a class="ft-nav-item" href="fritime_budget.html" data-page="budget"><span class="ft-nav-ico">💰</span> Budget</a>
+  <a class="ft-nav-item" href="fritime_prestataires.html" data-page="prestataires"><span class="ft-nav-ico">🤝</span> Prestataires</a>
+
+  <div class="ft-nav-section">Contenu</div>
+  <a class="ft-nav-item" href="fritime_idees.html" data-page="idees"><span class="ft-nav-ico">💡</span> Banque d'idées</a>
+  <a class="ft-nav-item" href="fritime_documents.html" data-page="documents"><span class="ft-nav-ico">📁</span> Documents</a>
+
+  <div class="ft-nav-section">Sécurité</div>
+  <a class="ft-nav-item" href="fritime_incidents.html" data-page="incidents"><span class="ft-nav-ico">⚠️</span> Incidents</a>
+  <a class="ft-nav-item" href="fritime_urgences.html" data-page="urgences"><span class="ft-nav-ico">🚨</span> Urgences</a>
+  <a class="ft-nav-item" href="fritime_modifications.html" data-page="modifications"><span class="ft-nav-ico">🔄</span> Demandes</a>
+</div>
+
+<script>
+(function(){
+  // Auth check
+  const user = sessionStorage.getItem("ft-user");
+  const publicPages = ["fritime_login.html","fritime_inscription_publique.html","fritime_sondage_parent.html"];
+  const currentPage = window.location.pathname.split("/").pop();
+  if(!user && !publicPages.includes(currentPage)){
+    window.location.href = "fritime_login.html";
+    return;
+  }
+  if(user){
+    const u = JSON.parse(user);
+    const ini = ((u.nom||"").split(" ").map(p=>p[0]||"").join("")).substring(0,2).toUpperCase();
+    document.getElementById("ft-avatar-initials").textContent = ini||"?";
+    document.getElementById("ft-user-name").textContent = u.nom||"";
+    document.getElementById("ft-menu-name").textContent = u.nom||"";
+    document.getElementById("ft-menu-role").textContent = u.role||"";
+    document.getElementById("ft-user-name").style.display = "block";
+  }
+
+  // Active nav item
+  document.querySelectorAll(".ft-nav-item[data-page]").forEach(function(el){
+    if(currentPage.includes(el.dataset.page)) el.classList.add("active");
+  });
+})();
+
+function toggleSidebar(){
+  document.getElementById("ft-sidebar").classList.toggle("open");
+  document.getElementById("ft-sidebar-overlay").classList.toggle("open");
+}
+function toggleAvatarMenu(){
+  document.getElementById("ft-avatar-menu").classList.toggle("open");
+}
+document.addEventListener("click", function(e){
+  const menu = document.getElementById("ft-avatar-menu");
+  const avatar = document.getElementById("ft-avatar");
+  if(menu && !avatar.contains(e.target)) menu.classList.remove("open");
+});
+function doLogout(){
+  sessionStorage.removeItem("ft-user");
+  window.location.href = "fritime_login.html";
+}
+</script>
+
+<div class="container">
+
+<div class="header">
+  <div><h1>Demandes de modification</h1><div class="subtitle">Validations et notifications — Fri-Time</div></div>
+  <button class="btn btn-primary" onclick="openCreate()">+ Nouvelle demande</button>
+</div>
+
+<div class="info-box bleu">
+  <strong>Demandes de validation</strong> — requises pour : changer le statut d'une activité · supprimer des données.<br>
+  <strong>Notifications simples</strong> — envoyées automatiquement à la présidente, vice-présidente et responsable des activités pour toute autre modification importante.
+</div>
+
+<div class="metrics" id="metrics"></div>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('demandes',this)">Demandes <span class="tab-count" id="count-dem">0</span></button>
+  <button class="tab" onclick="switchTab('notifications',this)">Notifications <span class="tab-count" id="count-notif">0</span></button>
+</div>
+
+<div id="panel-demandes"></div>
+<div id="panel-notifications" style="display:none"></div>
+
+</div>
+
+<!-- Modal créer demande -->
+<div id="mCreate" class="overlay" onclick="if(event.target.id==='mCreate')closeMCreate()">
+<div class="modal" onclick="event.stopPropagation()">
+  <div class="modal-title">Nouvelle demande de modification</div>
+
+  <div class="fg"><label class="fl">Type de demande *</label>
+    <select class="fi" id="d-type" onchange="updateTypeInfo()">
+      <option value="">— Choisir —</option>
+      <optgroup label="Demandes requérant validation">
+        <option value="statut-activite">Changement de statut d'activité</option>
+        <option value="suppression">Suppression de données</option>
+      </optgroup>
+    </select>
+  </div>
+
+  <div id="type-info" style="display:none" class="info-box jaune" style="margin-bottom:.75rem"></div>
+
+  <div class="fg" id="activite-field" style="display:none">
+    <label class="fl">Activité concernée</label>
+    <select class="fi" id="d-activite">
+      <option value="">— Choisir —</option>
+      <option>Atelier poterie</option>
+      <option>Sortie nature Lac Noir</option>
+      <option>Cours de cirque</option>
+    </select>
+  </div>
+
+  <div class="fg" id="statut-field" style="display:none">
+    <label class="fl">Nouveau statut demandé</label>
+    <select class="fi" id="d-nouveau-statut">
+      <option value="approuvee">Approuvée (par le comité)</option>
+      <option value="planifiee">Planifiée</option>
+      <option value="validee">Validée (par le service Fri-Time)</option>
+      <option value="annulee">Annulée</option>
+    </select>
+  </div>
+
+  <div class="fg" id="suppression-field" style="display:none">
+    <label class="fl">Élément à supprimer</label>
+    <input class="fi" id="d-element" placeholder="Ex: Fiche de l'enfant Luca Bernard, Budget activité ski..." />
+  </div>
+
+  <div class="fg"><label class="fl">Demandé par *</label>
+    <select class="fi" id="d-demandeur">
+      <option value="">— Choisir —</option>
+      <option>Marie Dupont</option><option>Jean Martin</option>
+      <option>Sophie Remy</option><option>Lara Blanc</option>
+      <option>Paul Morel</option><option>Ana Favre</option>
+    </select>
+  </div>
+
+  <div class="fg"><label class="fl">Justification *</label>
+    <textarea class="fi" id="d-justification" placeholder="Expliquez la raison de cette demande..."></textarea>
+  </div>
+
+  <div class="fg">
+    <label class="fl">Urgence</label>
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:#f5f5f3;border-radius:8px">
+      <input type="checkbox" id="d-urgente" style="width:16px;height:16px;cursor:pointer" />
+      <label for="d-urgente" style="font-size:13px;cursor:pointer">Marquer comme urgente</label>
+    </div>
+  </div>
+
+  <div class="mf">
+    <button class="btn" onclick="closeMCreate()">Annuler</button>
+    <button class="btn btn-primary" onclick="saveDemande()">Soumettre la demande</button>
+  </div>
+</div>
+</div>
+
+<!-- Modal refus -->
+<div id="mRefus" class="overlay" onclick="if(event.target.id==='mRefus')closeMRefus()">
+<div class="modal" style="max-width:420px" onclick="event.stopPropagation()">
+  <div class="modal-title">Refuser la demande</div>
+  <div class="fg"><label class="fl">Motif du refus *</label>
+    <textarea class="fi" id="refus-motif" rows="3" placeholder="Expliquez la raison du refus..."></textarea>
+  </div>
+  <div class="mf">
+    <button class="btn" onclick="closeMRefus()">Annuler</button>
+    <button class="btn btn-danger" onclick="confirmRefus()">Confirmer le refus</button>
+  </div>
+</div>
+</div>
+
+<script>
+let currentTab="demandes";
+let refusTargetId=null;
+
+let demandes=[
+  {id:1,type:"statut-activite",activite:"Cours de cirque",nouveauStatut:"approuvee",element:"",demandeur:"Sophie Remy",justification:"Le prestataire a confirmé sa disponibilité et le lieu est réservé. L'activité peut passer au statut Approuvée.",urgente:false,statut:"en-attente",validateur:null,dateCreation:"2026-05-10",dateDecision:null,refusMotif:""},
+  {id:2,type:"suppression",activite:"",nouveauStatut:"",element:"Inscription de Zoe Blanc à l'atelier poterie",demandeur:"Jean Martin",justification:"Zoe Blanc est bannie de l'association suite à un incident. Son inscription doit être supprimée.",urgente:true,statut:"en-attente",validateur:null,dateCreation:"2026-05-12",dateDecision:null,refusMotif:""},
+  {id:3,type:"statut-activite",activite:"Sortie nature Lac Noir",nouveauStatut:"annulee",element:"",demandeur:"Paul Morel",justification:"Le prestataire a annulé au dernier moment. L'activité doit être annulée.",urgente:true,statut:"approuvee",validateur:"Marie Dupont",dateCreation:"2026-04-20",dateDecision:"2026-04-21",refusMotif:""},
+  {id:4,type:"statut-activite",activite:"Atelier poterie",nouveauStatut:"validee",element:"",demandeur:"Lara Blanc",justification:"L'activité a été soumise au service Fri-Time et validée par leurs soins.",urgente:false,statut:"refusee",validateur:"Marie Dupont",dateCreation:"2026-03-15",dateDecision:"2026-03-16",refusMotif:"L'activité n'est pas encore complètement planifiée. Merci de compléter les informations du prestataire avant."},
+];
+let nDem=5;
+
+let notifications=[
+  {id:1,ico:"📅",titre:"Date modifiée — Atelier poterie",contenu:"Sophie Remy a modifié la date de l'activité du 15 mai au 20 mai 2026.",auteur:"Sophie Remy",date:"2026-05-08",lu:false},
+  {id:2,ico:"💰",titre:"Budget modifié — Sortie Lac Noir",contenu:"Jean Martin a mis à jour le coût réel de l'activité : 625 CHF (vs 600 CHF prévu).",auteur:"Jean Martin",date:"2026-04-22",lu:false},
+  {id:3,ico:"👤",titre:"Nouveau membre du comité",contenu:"Ana Favre a été ajoutée comme remplaçante de Sophie Remy.",auteur:"Marie Dupont",date:"2026-03-01",lu:true},
+  {id:4,ico:"📋",titre:"Prestataire modifié — Cours de cirque",contenu:"Paul Morel a mis à jour les informations du prestataire Cirque en.",auteur:"Paul Morel",date:"2026-02-14",lu:true},
+];
+
+const TYPE_LABELS={"statut-activite":"Changement de statut","suppression":"Suppression de données"};
+const TYPE_INFOS={"statut-activite":"Cette demande sera soumise à la présidente ou son remplaçant pour validation avant d'être appliquée.","suppression":"Toute suppression de données est irréversible. La présidente doit valider cette action."};
+const STATUT_LABELS={"approuvee":"Approuvée (comité)","planifiee":"Planifiée","validee":"Validée (Fri-Time)","annulee":"Annulée"};
+
+function fmtDate(d){if(!d)return"—";const[y,m,j]=d.split("-");return`${j}.${m}.${y}`;}
+
+function renderMetrics(){
+  const attente=demandes.filter(d=>d.statut==="en-attente").length;
+  const urgentes=demandes.filter(d=>d.urgente&&d.statut==="en-attente").length;
+  const approuvees=demandes.filter(d=>d.statut==="approuvee").length;
+  const notifNonLu=notifications.filter(n=>!n.lu).length;
+  document.getElementById("metrics").innerHTML=[
+    {val:attente,lbl:"En attente",color:attente?"#633806":"inherit"},
+    {val:urgentes,lbl:"Urgentes",color:urgentes?"#791f1f":"inherit"},
+    {val:approuvees,lbl:"Approuvées"},
+    {val:notifNonLu,lbl:"Notif. non lues",color:notifNonLu?"#0c447c":"inherit"},
+  ].map(x=>`<div class="metric"><div class="metric-val" style="color:${x.color||"inherit"}">${x.val}</div><div class="metric-lbl">${x.lbl}</div></div>`).join("");
+  document.getElementById("count-dem").textContent=demandes.length;
+  document.getElementById("count-notif").textContent=notifications.length;
+}
+
+function renderDemandes(){
+  const p=document.getElementById("panel-demandes");
+  const sorted=[...demandes].sort((a,b)=>{
+    if(a.urgente&&!b.urgente)return-1;
+    if(!a.urgente&&b.urgente)return 1;
+    if(a.statut==="en-attente"&&b.statut!=="en-attente")return-1;
+    if(a.statut!=="en-attente"&&b.statut==="en-attente")return 1;
+    return b.dateCreation.localeCompare(a.dateCreation);
+  });
+  if(!sorted.length){p.innerHTML=`<div class="empty">Aucune demande</div>`;return;}
+  p.innerHTML=sorted.map(d=>`
+    <div class="demand-card${d.urgente&&d.statut==="en-attente"?" urgente":""}">
+      <div class="card-top">
+        <div>
+          <div class="card-title">
+            ${d.urgente&&d.statut==="en-attente"?`<span style="color:#791f1f;font-size:12px;margin-right:6px">🚨 URGENT</span>`:""}
+            ${d.type==="statut-activite"?`Statut "${d.activite}" → <span style="font-weight:700">${STATUT_LABELS[d.nouveauStatut]||d.nouveauStatut}</span>`:`Suppression : ${d.element}`}
+          </div>
+          <div style="font-size:12px;color:#888;margin-top:3px">Soumis par ${d.demandeur} le ${fmtDate(d.dateCreation)}</div>
+        </div>
+        <div class="card-badges">
+          <span class="badge badge-${d.type==="suppression"?"suppression":"statut"}">${TYPE_LABELS[d.type]}</span>
+          <span class="badge badge-${d.statut.replace("-","-")}">${d.statut==="en-attente"?"En attente":d.statut==="approuvee"?"Approuvée":"Refusée"}</span>
+        </div>
+      </div>
+      <div class="card-desc">${d.justification}</div>
+      ${d.refusMotif?`<div class="refus-reason">Motif du refus : ${d.refusMotif}</div>`:""}
+      ${d.validateur?`<div style="font-size:12px;color:#888;margin-top:4px">${d.statut==="approuvee"?"✓":"✗"} ${d.statut==="approuvee"?"Approuvée":"Refusée"} par ${d.validateur} le ${fmtDate(d.dateDecision)}</div>`:""}
+      ${d.statut==="en-attente"?`<div class="card-actions">
+        <div style="font-size:12px;color:#888;flex:1">En attente de validation par la présidente ou son remplaçant</div>
+        <button class="btn btn-success btn-sm" onclick="approuver(${d.id})">✓ Approuver</button>
+        <button class="btn btn-danger btn-sm" onclick="openRefus(${d.id})">✗ Refuser</button>
+      </div>`:""}
+    </div>`).join("");
+}
+
+function renderNotifications(){
+  const p=document.getElementById("panel-notifications");
+  if(!notifications.length){p.innerHTML=`<div class="empty">Aucune notification</div>`;return;}
+  p.innerHTML=`
+    <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
+      <button class="btn btn-sm" onclick="marquerToutLu()">Tout marquer comme lu</button>
+    </div>`+
+  notifications.map(n=>`
+    <div class="notif-item${n.lu?"":" non-lu"}">
+      <span class="notif-ico">${n.ico}</span>
+      <div class="notif-content">
+        <div class="notif-title">${n.titre}${!n.lu?` <span style="font-size:10px;background:#1a1a1a;color:#fff;padding:1px 6px;border-radius:20px;font-weight:600;vertical-align:middle">Nouveau</span>`:""}</div>
+        <div class="notif-sub">${n.contenu}</div>
+        <div class="notif-date">Par ${n.auteur} · ${fmtDate(n.date)}</div>
+      </div>
+      ${!n.lu?`<button class="btn btn-sm" onclick="marquerLu(${n.id})" style="flex-shrink:0;font-size:11px">Lu</button>`:""}
+    </div>`).join("");
+}
+
+function approuver(id){
+  if(!confirm("Approuver cette demande ? L'action sera appliquée immédiatement."))return;
+  demandes=demandes.map(d=>d.id===id?{...d,statut:"approuvee",validateur:"Marie Dupont",dateDecision:new Date().toISOString().split("T")[0]}:d);
+  renderAll();
+}
+
+function openRefus(id){refusTargetId=id;document.getElementById("refus-motif").value="";document.getElementById("mRefus").style.display="flex";}
+function closeMRefus(){document.getElementById("mRefus").style.display="none";}
+function confirmRefus(){
+  const motif=document.getElementById("refus-motif").value.trim();
+  if(!motif){alert("Le motif est obligatoire.");return;}
+  demandes=demandes.map(d=>d.id===refusTargetId?{...d,statut:"refusee",validateur:"Marie Dupont",dateDecision:new Date().toISOString().split("T")[0],refusMotif:motif}:d);
+  closeMRefus();renderAll();
+}
+
+function marquerLu(id){notifications=notifications.map(n=>n.id===id?{...n,lu:true}:n);renderAll();}
+function marquerToutLu(){notifications=notifications.map(n=>({...n,lu:true}));renderAll();}
+
+function switchTab(name,btn){
+  currentTab=name;
+  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+  btn.classList.add("active");
+  document.getElementById("panel-demandes").style.display=name==="demandes"?"block":"none";
+  document.getElementById("panel-notifications").style.display=name==="notifications"?"block":"none";
+}
+
+function updateTypeInfo(){
+  const v=document.getElementById("d-type").value;
+  const info=document.getElementById("type-info");
+  const actField=document.getElementById("activite-field");
+  const statutField=document.getElementById("statut-field");
+  const suppField=document.getElementById("suppression-field");
+  if(v){
+    info.textContent=TYPE_INFOS[v]||"";
+    info.style.display="block";
+    actField.style.display=v==="statut-activite"?"block":"none";
+    statutField.style.display=v==="statut-activite"?"block":"none";
+    suppField.style.display=v==="suppression"?"block":"none";
+  } else {
+    info.style.display="none";
+    actField.style.display="none";
+    statutField.style.display="none";
+    suppField.style.display="none";
+  }
+}
+
+function openCreate(){
+  ["d-type","d-activite","d-nouveau-statut","d-demandeur","d-element"].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.selectedIndex=0;
+  });
+  document.getElementById("d-justification").value="";
+  document.getElementById("d-urgente").checked=false;
+  document.getElementById("type-info").style.display="none";
+  ["activite-field","statut-field","suppression-field"].forEach(id=>document.getElementById(id).style.display="none");
+  document.getElementById("mCreate").style.display="flex";
+}
+function closeMCreate(){document.getElementById("mCreate").style.display="none";}
+
+function saveDemande(){
+  const type=document.getElementById("d-type").value;
+  const demandeur=document.getElementById("d-demandeur").value;
+  const justification=document.getElementById("d-justification").value.trim();
+  if(!type||!demandeur||!justification){alert("Type, demandeur et justification sont obligatoires.");return;}
+  demandes.push({
+    id:nDem++,type,
+    activite:document.getElementById("d-activite").value||"",
+    nouveauStatut:document.getElementById("d-nouveau-statut").value||"",
+    element:document.getElementById("d-element").value.trim()||"",
+    demandeur,justification,
+    urgente:document.getElementById("d-urgente").checked,
+    statut:"en-attente",validateur:null,
+    dateCreation:new Date().toISOString().split("T")[0],
+    dateDecision:null,refusMotif:""
+  });
+  closeMCreate();renderAll();
+}
+
+function renderAll(){renderMetrics();renderDemandes();renderNotifications();}
+renderAll();
+</script>
+</body>
+</html>

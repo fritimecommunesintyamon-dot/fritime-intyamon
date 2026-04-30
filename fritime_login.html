@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Connexion — Fri-Time Intyamon</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#f5f5f3;color:#1a1a1a;font-size:14px;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.5rem}
+
+.logo-wrap{text-align:center;margin-bottom:2rem}
+.logo{font-size:28px;font-weight:800;letter-spacing:.05em;color:#1a1a1a}
+.logo-sub{font-size:13px;color:#888;margin-top:4px}
+
+.card{background:#fff;border:1px solid #eee;border-radius:16px;padding:2rem;width:min(420px,100%);box-shadow:0 4px 24px rgba(0,0,0,.06)}
+
+.tabs{display:flex;border-bottom:1px solid #eee;margin-bottom:1.5rem;gap:0}
+.tab{flex:1;padding:10px;text-align:center;font-size:13px;cursor:pointer;color:#888;border:none;border-bottom:2px solid transparent;margin-bottom:-1px;background:transparent;font-family:inherit;font-weight:500;transition:all .15s}
+.tab.active{color:#1a1a1a;border-bottom-color:#1a1a1a}
+
+.panel{display:none}.panel.active{display:block}
+
+.fg{margin-bottom:1rem}
+.fl{font-size:12px;color:#666;margin-bottom:5px;display:block;font-weight:500}
+.fi{width:100%;padding:10px 12px;border:1.5px solid #eee;border-radius:9px;font-size:14px;font-family:inherit;transition:border-color .15s;color:#1a1a1a}
+.fi:focus{outline:none;border-color:#1a1a1a}
+.fi.error{border-color:#c0392b}
+.err{font-size:11px;color:#c0392b;margin-top:4px;display:none}
+.err.on{display:block}
+
+.btn-submit{width:100%;padding:13px;background:#1a1a1a;color:#fff;border:none;border-radius:9px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:background .15s;margin-top:.5rem}
+.btn-submit:hover{background:#333}
+.btn-submit:disabled{background:#ccc;cursor:not-allowed}
+
+.divider{display:flex;align-items:center;gap:10px;margin:1.25rem 0;color:#bbb;font-size:12px}
+.divider::before,.divider::after{content:"";flex:1;height:1px;background:#eee}
+
+.info-box{border-radius:8px;padding:10px 14px;font-size:12px;line-height:1.6;margin-bottom:1rem}
+.ib-vert{background:#eaf3de;color:#275a0a;border-left:3px solid #275a0a}
+.ib-bleu{background:#e6f1fb;color:#0c447c;border-left:3px solid #0c447c}
+.ib-rouge{background:#fcebeb;color:#791f1f;border-left:3px solid #791f1f}
+
+.global-err{background:#fcebeb;border:1px solid #f7c1c1;border-radius:8px;padding:10px 14px;font-size:13px;color:#791f1f;margin-bottom:1rem;display:none}
+.global-err.on{display:block}
+.global-ok{background:#eaf3de;border:1px solid #c0dd97;border-radius:8px;padding:10px 14px;font-size:13px;color:#275a0a;margin-bottom:1rem;display:none}
+.global-ok.on{display:block}
+
+.forgot-link{font-size:12px;color:#888;text-align:center;margin-top:12px;cursor:pointer;display:block}
+.forgot-link:hover{color:#1a1a1a;text-decoration:underline}
+
+.strength-bar{height:4px;border-radius:20px;background:#eee;overflow:hidden;margin-top:5px}
+.strength-fill{height:4px;border-radius:20px;transition:all .3s}
+.strength-label{font-size:11px;margin-top:3px}
+
+.pwd-wrap{position:relative}
+.pwd-toggle{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:16px;color:#aaa;padding:0}
+
+.footer-note{text-align:center;font-size:12px;color:#bbb;margin-top:1.5rem;max-width:420px}
+
+/* État succès */
+.success-state{display:none;text-align:center;padding:1rem 0}
+.success-ico{font-size:48px;margin-bottom:1rem}
+.success-title{font-size:18px;font-weight:700;margin-bottom:6px}
+.success-sub{font-size:13px;color:#666;line-height:1.6;margin-bottom:1.5rem}
+
+/* Membres existants (demo) */
+.members-demo{background:#f5f5f3;border-radius:8px;padding:10px 12px;font-size:12px;color:#888;margin-top:1rem}
+.members-demo strong{color:#555;display:block;margin-bottom:4px}
+.member-row{display:flex;align-items:center;gap:6px;padding:2px 0}
+</style>
+  <script src="fritime_data.js"></script>
+  <script src="fritime_auth.js"></script>
+</head>
+<body>
+
+<div class="logo-wrap">
+  <div class="logo">Fri-Time Intyamon</div>
+  <div class="logo-sub">Espace privé du comité — Intyamon</div>
+</div>
+
+<div class="card">
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('login',this)">Se connecter</button>
+    <button class="tab" onclick="switchTab('register',this)">Créer un accès</button>
+  </div>
+
+  <!-- Connexion -->
+  <div class="panel active" id="panel-login">
+    <div class="global-err" id="login-err">Email ou mot de passe incorrect. Veuillez réessayer.</div>
+    <div class="global-ok" id="login-ok">Connexion réussie ! Redirection en cours...</div>
+
+    <div class="fg">
+      <label class="fl">Adresse email</label>
+      <input class="fi" type="email" id="l-email" placeholder="votre@email.ch" autocomplete="email" />
+      <div class="err" id="err-l-email">Email invalide</div>
+    </div>
+    <div class="fg">
+      <label class="fl">Mot de passe</label>
+      <div class="pwd-wrap">
+        <input class="fi" type="password" id="l-pwd" placeholder="••••••••" autocomplete="current-password" />
+        <button class="pwd-toggle" onclick="togglePwd('l-pwd',this)" type="button">👁</button>
+      </div>
+      <div class="err" id="err-l-pwd">Mot de passe requis</div>
+    </div>
+
+    <button class="btn-submit" onclick="doLogin()">Se connecter</button>
+    <a class="forgot-link" onclick="showForgot()">Mot de passe oublié ?</a>
+
+    <div class="members-demo">
+      <strong>Comptes de démonstration :</strong>
+      <div class="member-row">👤 marie.dupont@example.ch · mdp : <code>Fritim2026!</code></div>
+      <div class="member-row">👤 jean.martin@example.ch · mdp : <code>Fritim2026!</code></div>
+    </div>
+  </div>
+
+  <!-- Création de compte -->
+  <div class="panel" id="panel-register">
+    <div class="info-box ib-bleu">Seuls les membres du comité peuvent créer un accès. Votre demande sera validée par la présidente avant activation.</div>
+    <div class="global-err" id="reg-err"></div>
+    <div class="global-ok" id="reg-ok"></div>
+
+    <div id="reg-form">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="fg">
+          <label class="fl">Prénom *</label>
+          <input class="fi" id="r-prenom" />
+          <div class="err" id="err-r-prenom">Obligatoire</div>
+        </div>
+        <div class="fg">
+          <label class="fl">Nom *</label>
+          <input class="fi" id="r-nom" />
+          <div class="err" id="err-r-nom">Obligatoire</div>
+        </div>
+      </div>
+      <div class="fg">
+        <label class="fl">Adresse email *</label>
+        <input class="fi" type="email" id="r-email" placeholder="votre@email.ch" />
+        <div class="err" id="err-r-email">Email invalide</div>
+      </div>
+      <div class="fg">
+        <label class="fl">Rôle dans le comité *</label>
+        <select class="fi" id="r-role">
+          <option value="">— Choisir votre rôle —</option>
+          <option>Présidente</option><option>Vice-présidente</option>
+          <option>Trésorière</option><option>Secrétaire</option>
+          <option>Responsable activités</option><option>Responsable communication</option>
+          <option>Responsable inscriptions</option><option>Contact prestataires</option>
+          <option>Membre</option>
+        </select>
+        <div class="err" id="err-r-role">Obligatoire</div>
+      </div>
+      <div class="fg">
+        <label class="fl">Mot de passe *</label>
+        <div class="pwd-wrap">
+          <input class="fi" type="password" id="r-pwd" placeholder="Min. 8 caractères" oninput="checkStrength(this.value)" autocomplete="new-password" />
+          <button class="pwd-toggle" onclick="togglePwd('r-pwd',this)" type="button">👁</button>
+        </div>
+        <div class="strength-bar"><div class="strength-fill" id="str-bar" style="width:0%"></div></div>
+        <div class="strength-label" id="str-label" style="color:#bbb">—</div>
+        <div class="err" id="err-r-pwd">Min. 8 caractères, 1 majuscule, 1 chiffre</div>
+      </div>
+      <div class="fg">
+        <label class="fl">Confirmer le mot de passe *</label>
+        <div class="pwd-wrap">
+          <input class="fi" type="password" id="r-pwd2" placeholder="Répétez le mot de passe" autocomplete="new-password" />
+          <button class="pwd-toggle" onclick="togglePwd('r-pwd2',this)" type="button">👁</button>
+        </div>
+        <div class="err" id="err-r-pwd2">Les mots de passe ne correspondent pas</div>
+      </div>
+
+      <button class="btn-submit" onclick="doRegister()">Envoyer ma demande d'accès</button>
+    </div>
+
+    <div class="success-state" id="reg-success">
+      <div class="success-ico">📬</div>
+      <div class="success-title">Demande envoyée !</div>
+      <div class="success-sub">Votre demande d'accès a été transmise à la présidente du comité. Vous recevrez un email dès que votre compte sera activé.</div>
+      <div class="info-box ib-bleu" style="text-align:left">Un email de confirmation a été envoyé à <strong id="reg-email-confirm">—</strong>. Si vous ne le recevez pas, vérifiez vos spams ou contactez le comité.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Récupération mot de passe -->
+<div id="forgot-card" style="display:none;background:#fff;border:1px solid #eee;border-radius:16px;padding:2rem;width:min(420px,100%);box-shadow:0 4px 24px rgba(0,0,0,.06);margin-top:0">
+  <div style="font-size:15px;font-weight:600;margin-bottom:.5rem">Réinitialiser votre mot de passe</div>
+  <div style="font-size:13px;color:#888;margin-bottom:1.25rem;line-height:1.5">Entrez votre adresse email. Vous recevrez un lien pour réinitialiser votre mot de passe.</div>
+  <div class="global-err" id="forgot-err"></div>
+  <div class="global-ok" id="forgot-ok"></div>
+  <div class="fg">
+    <label class="fl">Adresse email</label>
+    <input class="fi" type="email" id="f-email" placeholder="votre@email.ch" />
+    <div class="err" id="err-f-email">Email invalide</div>
+  </div>
+  <button class="btn-submit" onclick="doForgot()">Envoyer le lien</button>
+  <a class="forgot-link" onclick="hideForgot()" style="margin-top:10px">← Retour à la connexion</a>
+</div>
+
+<div class="footer-note">
+  🔒 Accès réservé aux membres du comité Fri-Time.<br>
+  Pour toute question : <a href="mailto:fritimecommunesintyamon@gmail.com" style="color:#888">fritimecommunesintyamon@gmail.com</a>
+</div>
+
+<script>
+// Comptes de démo
+const MEMBRES=[
+  {email:"marie.dupont@example.ch",pwd:"Fritim2026!",nom:"Marie Dupont",role:"Présidente"},
+  {email:"jean.martin@example.ch",pwd:"Fritim2026!",nom:"Jean Martin",role:"Trésorier"},
+  {email:"sophie.remy@example.ch",pwd:"Fritim2026!",nom:"Sophie Remy",role:"Responsable inscriptions"},
+  {email:"lara.blanc@example.ch",pwd:"Fritim2026!",nom:"Lara Blanc",role:"Responsable communication"},
+  {email:"paul.morel@example.ch",pwd:"Fritim2026!",nom:"Paul Morel",role:"Contact prestataires"},
+];
+
+function switchTab(name,btn){
+  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+  document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
+  btn.classList.add("active");
+  document.getElementById("panel-"+name).classList.add("active");
+  document.getElementById("forgot-card").style.display="none";
+  document.querySelector(".card").style.display="block";
+}
+
+function togglePwd(id,btn){
+  const fi=document.getElementById(id);
+  fi.type=fi.type==="password"?"text":"password";
+  btn.textContent=fi.type==="password"?"👁":"🙈";
+}
+
+function checkStrength(pwd){
+  let score=0;
+  if(pwd.length>=8)score++;
+  if(/[A-Z]/.test(pwd))score++;
+  if(/[0-9]/.test(pwd))score++;
+  if(/[^A-Za-z0-9]/.test(pwd))score++;
+  const bar=document.getElementById("str-bar");
+  const lbl=document.getElementById("str-label");
+  const configs=[
+    {w:"25%",bg:"#791f1f",txt:"Faible",col:"#791f1f"},
+    {w:"50%",bg:"#ef9f27",txt:"Moyen",col:"#ef9f27"},
+    {w:"75%",bg:"#0c447c",txt:"Bon",col:"#0c447c"},
+    {w:"100%",bg:"#275a0a",txt:"Très fort",col:"#275a0a"},
+  ];
+  if(!pwd){bar.style.width="0%";lbl.textContent="—";lbl.style.color="#bbb";return;}
+  const c=configs[Math.min(score-1,3)]||configs[0];
+  bar.style.width=c.w;bar.style.background=c.bg;
+  lbl.textContent=c.txt;lbl.style.color=c.col;
+}
+
+function chkField(id,eid,condition){
+  const ok=condition(document.getElementById(id).value.trim());
+  document.getElementById(id).classList.toggle("error",!ok);
+  document.getElementById(eid).classList.toggle("on",!ok);
+  return ok;
+}
+
+function doLogin(){
+  const email=document.getElementById("l-email").value.trim();
+  const pwd=document.getElementById("l-pwd").value;
+  let ok=true;
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){document.getElementById("l-email").classList.add("error");document.getElementById("err-l-email").classList.add("on");ok=false;}
+  else{document.getElementById("l-email").classList.remove("error");document.getElementById("err-l-email").classList.remove("on");}
+  if(!pwd){document.getElementById("l-pwd").classList.add("error");document.getElementById("err-l-pwd").classList.add("on");ok=false;}
+  else{document.getElementById("l-pwd").classList.remove("error");document.getElementById("err-l-pwd").classList.remove("on");}
+  if(!ok)return;
+
+  const user = FriAuth.login(email, pwd);
+  if(!user){
+    document.getElementById("login-err").classList.add("on");
+    document.getElementById("login-ok").classList.remove("on");
+    return;
+  }
+  document.getElementById("login-err").classList.remove("on");
+  document.getElementById("login-ok").classList.add("on");
+  document.getElementById("login-ok").textContent="Connexion réussie ! Bienvenue "+user.nom+" — redirection en cours...";
+  setTimeout(()=>{window.location.href="fritime_dashboard.html";},1200);
+}
+
+function doRegister(){
+  let ok=true;
+  ok=chkField("r-prenom","err-r-prenom",v=>!!v)&&ok;
+  ok=chkField("r-nom","err-r-nom",v=>!!v)&&ok;
+  ok=chkField("r-email","err-r-email",v=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v))&&ok;
+  ok=chkField("r-role","err-r-role",v=>!!v)&&ok;
+  const pwd=document.getElementById("r-pwd").value;
+  const pwd2=document.getElementById("r-pwd2").value;
+  const pwdOk=pwd.length>=8&&/[A-Z]/.test(pwd)&&/[0-9]/.test(pwd);
+  document.getElementById("r-pwd").classList.toggle("error",!pwdOk);
+  document.getElementById("err-r-pwd").classList.toggle("on",!pwdOk);
+  if(!pwdOk)ok=false;
+  const pwd2Ok=pwd===pwd2&&pwd2.length>0;
+  document.getElementById("r-pwd2").classList.toggle("error",!pwd2Ok);
+  document.getElementById("err-r-pwd2").classList.toggle("on",!pwd2Ok);
+  if(!pwd2Ok)ok=false;
+  if(!ok)return;
+
+  const email=document.getElementById("r-email").value.trim();
+  document.getElementById("reg-email-confirm").textContent=email;
+  document.getElementById("reg-form").style.display="none";
+  document.getElementById("reg-success").style.display="block";
+}
+
+function showForgot(){
+  document.querySelector(".card").style.display="none";
+  document.getElementById("forgot-card").style.display="block";
+}
+function hideForgot(){
+  document.querySelector(".card").style.display="block";
+  document.getElementById("forgot-card").style.display="none";
+}
+function doForgot(){
+  const email=document.getElementById("f-email").value.trim();
+  const ok=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  document.getElementById("f-email").classList.toggle("error",!ok);
+  document.getElementById("err-f-email").classList.toggle("on",!ok);
+  if(!ok)return;
+  document.getElementById("forgot-ok").textContent="Un lien de réinitialisation a été envoyé à "+email+" si ce compte existe.";
+  document.getElementById("forgot-ok").classList.add("on");
+  document.getElementById("forgot-err").classList.remove("on");
+}
+
+// Entrée clavier
+document.addEventListener("keydown",function(e){
+  if(e.key==="Enter"){
+    if(document.getElementById("panel-login").classList.contains("active"))doLogin();
+    else if(document.getElementById("panel-register").classList.contains("active"))doRegister();
+  }
+});
+
+// Vérifier si déjà connecté
+const user=sessionStorage.getItem("ft-user");
+if(user&&window.location.href.includes("login")){
+  // Already logged in — could redirect automatically
+}
+</script>
+</body>
+</html>

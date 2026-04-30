@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fri-Time Intyamon — Budget</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#f5f5f3;color:#1a1a1a;font-size:14px}
+.container{max-width:980px;margin:0 auto;padding:1.5rem}
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem}
+h1{font-size:20px;font-weight:600}
+.subtitle{font-size:13px;color:#666;margin-top:2px}
+.btn{padding:7px 14px;border-radius:8px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:13px;font-family:inherit;transition:background .15s}
+.btn:hover{background:#f5f5f3}
+.btn-primary{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.btn-primary:hover{background:#333}
+.btn-sm{padding:4px 10px;font-size:12px}
+.btn-danger{color:#7a1f1f;border-color:#f4c0c0}
+.tabs{display:flex;border-bottom:1px solid #eee;margin-bottom:1.5rem}
+.tab{padding:8px 18px;font-size:13px;cursor:pointer;color:#888;border:none;border-bottom:2px solid transparent;margin-bottom:-1px;background:transparent;font-family:inherit}
+.tab.active{color:#1a1a1a;border-bottom-color:#1a1a1a;font-weight:500}
+.panel{display:none}.panel.active{display:block}
+/* Cards */
+.cards-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:1.5rem}
+.card-stat{background:#fff;border-radius:10px;padding:14px;border:1px solid #eee}
+.card-stat-val{font-size:22px;font-weight:600;margin-bottom:2px}
+.card-stat-lbl{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.05em}
+.card-stat-sub{font-size:12px;color:#aaa;margin-top:4px}
+.positive{color:#275a0a}
+.negative{color:#791f1f}
+.neutral{color:#633806}
+/* Section */
+.section{background:#fff;border:1px solid #eee;border-radius:12px;margin-bottom:1.25rem;overflow:hidden}
+.section-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #eee;background:#fafaf8}
+.section-title{font-size:13px;font-weight:600}
+.section-sub{font-size:12px;color:#888}
+/* Table */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{padding:9px 14px;text-align:left;font-size:11px;font-weight:600;color:#888;border-bottom:1px solid #eee;text-transform:uppercase;letter-spacing:.05em}
+th.right{text-align:right}
+td{padding:9px 14px;border-bottom:1px solid #eee;vertical-align:middle}
+td.right{text-align:right;font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:none}
+tr.total-row td{font-weight:600;background:#fafaf8}
+/* Progress bar */
+.prog-wrap{background:#eee;border-radius:20px;height:6px;width:100%;margin-top:4px}
+.prog-bar{height:6px;border-radius:20px;transition:width .3s}
+.prog-green{background:#639922}
+.prog-amber{background:#ef9f27}
+.prog-red{background:#e24b4a}
+/* Badge */
+.badge{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500}
+.badge-prevu{background:#e6f1fb;color:#0c447c}
+.badge-reel{background:#faeeda;color:#633806}
+.badge-realise{background:#eaf3de;color:#275a0a}
+.badge-commune{background:#f1efea;color:#444}
+.badge-familles{background:#e1f5ee;color:#085041}
+.badge-mixte{background:#faeeda;color:#633806}
+/* Modal */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;align-items:flex-start;justify-content:center;padding:2rem 1rem;overflow-y:auto}
+.modal{background:#fff;border-radius:12px;border:1px solid #eee;padding:1.5rem;width:min(560px,100%)}
+.modal-title{font-size:16px;font-weight:600;margin-bottom:1.25rem;padding-bottom:1rem;border-bottom:1px solid #eee}
+.sec{font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.06em;margin:1rem 0 .75rem;padding-top:1rem;border-top:1px solid #eee}
+.fg{margin-bottom:.75rem}
+.fl{font-size:12px;color:#666;margin-bottom:4px;display:block}
+.fi{width:100%;padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit}
+.fi:focus{outline:none;border-color:#aaa}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mf{display:flex;justify-content:space-between;align-items:center;margin-top:1.25rem;padding-top:1rem;border-top:1px solid #eee}
+.annee-select{padding:5px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit;background:#fff}
+.solde-box{padding:16px;text-align:center;border-radius:10px;margin-bottom:1.5rem}
+</style>
+  <script src="fritime_data.js"></script>
+  <script src="fritime_sync.js"></script>
+  <script src="fritime_auth.js"></script>
+</head>
+<body class="ft-body-offset">
+<!-- SHARED NAV - Fri-Time Intyamon -->
+<style>
+.ft-topbar{background:#1a1a1a;color:#fff;padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:52px;position:fixed;top:0;left:0;right:0;z-index:1000}
+.ft-logo{font-size:15px;font-weight:700;letter-spacing:.05em;color:#fff;text-decoration:none;white-space:nowrap}
+.ft-topbar-right{display:flex;align-items:center;gap:12px}
+.ft-user-name{font-size:12px;opacity:.6;display:none}
+.ft-avatar{width:30px;height:30px;border-radius:50%;background:#333;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;cursor:pointer;position:relative}
+.ft-avatar-menu{display:none;position:absolute;top:36px;right:0;background:#fff;border:1px solid #eee;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.1);min-width:180px;z-index:100;overflow:hidden}
+.ft-avatar-menu.open{display:block}
+.ft-avatar-menu-item{padding:10px 14px;font-size:13px;color:#1a1a1a;cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .1s}
+.ft-avatar-menu-item:hover{background:#f5f5f3}
+.ft-avatar-menu-item.red{color:#791f1f}
+.ft-avatar-divider{height:1px;background:#eee;margin:4px 0}
+.ft-sidebar{position:fixed;top:52px;left:0;width:210px;height:calc(100vh - 52px);background:#fff;border-right:1px solid #eee;overflow-y:auto;z-index:999;transform:translateX(-100%);transition:transform .2s}
+.ft-sidebar.open{transform:translateX(0)}
+.ft-sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:998;top:52px}
+.ft-sidebar-overlay.open{display:block}
+.ft-nav-section{padding:6px 14px;font-size:10px;font-weight:700;color:#bbb;text-transform:uppercase;letter-spacing:.08em;margin-top:8px}
+.ft-nav-item{display:flex;align-items:center;gap:9px;padding:9px 14px;font-size:13px;color:#555;cursor:pointer;transition:all .1s;text-decoration:none;border-left:3px solid transparent;white-space:nowrap}
+.ft-nav-item:hover{background:#fafaf8;color:#1a1a1a}
+.ft-nav-item.active{background:#f5f5f3;color:#1a1a1a;font-weight:600;border-left-color:#1a1a1a}
+.ft-nav-ico{font-size:15px;flex-shrink:0;opacity:.7}
+.ft-nav-badge{margin-left:auto;font-size:10px;background:#fcebeb;color:#791f1f;padding:1px 6px;border-radius:20px;font-weight:700}
+.ft-nav-badge.green{background:#eaf3de;color:#275a0a}
+.ft-nav-badge.blue{background:#e6f1fb;color:#0c447c}
+.ft-menu-btn{background:none;border:none;color:#fff;cursor:pointer;font-size:20px;padding:4px 8px;display:flex;align-items:center;justify-content:center;opacity:.8}
+.ft-menu-btn:hover{opacity:1}
+.ft-body-offset{padding-top:52px}
+.ft-layout{display:flex;min-height:calc(100vh - 52px)}
+.ft-sidebar-desktop{width:210px;flex-shrink:0;background:#fff;border-right:1px solid #eee;position:sticky;top:52px;height:calc(100vh - 52px);overflow-y:auto;flex-shrink:0}
+.ft-main{flex:1;overflow-x:hidden;min-width:0}
+@media(max-width:768px){
+  .ft-sidebar-desktop{display:none!important}
+  .ft-user-name{display:none}
+  .ft-main{padding:1rem!important}
+}
+@media(min-width:769px){
+  .ft-sidebar{display:none!important}
+  .ft-sidebar-overlay{display:none!important}
+  .ft-menu-btn{display:none!important}
+  .ft-sidebar-desktop{display:block!important}
+}
+</style>
+
+<div class="ft-topbar">
+  <div style="display:flex;align-items:center;gap:10px">
+    <button class="ft-menu-btn" onclick="toggleSidebar()" id="ft-menu-btn">☰</button>
+    <a href="fritime_dashboard.html" class="ft-logo">Fri-Time Intyamon</a>
+  </div>
+  <div class="ft-topbar-right">
+    <span class="ft-user-name" id="ft-user-name">—</span>
+    <div class="ft-avatar" id="ft-avatar" onclick="toggleAvatarMenu()">
+      <span id="ft-avatar-initials">?</span>
+      <div class="ft-avatar-menu" id="ft-avatar-menu">
+        <div class="ft-avatar-menu-item" style="background:#f5f5f3;cursor:default">
+          <div>
+            <div style="font-weight:600;font-size:13px" id="ft-menu-name">—</div>
+            <div style="font-size:11px;color:#888" id="ft-menu-role">—</div>
+          </div>
+        </div>
+        <div class="ft-avatar-divider"></div>
+        <a href="fritime_dashboard.html" class="ft-avatar-menu-item">🏠 Tableau de bord</a>
+        <div class="ft-avatar-menu-item" onclick="doLogout()">🔒 Se déconnecter</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="ft-sidebar-overlay" id="ft-sidebar-overlay" onclick="toggleSidebar()"></div>
+
+<div class="ft-sidebar" id="ft-sidebar">
+  <div class="ft-nav-section">Principal</div>
+  <a class="ft-nav-item" href="fritime_dashboard.html" data-page="dashboard"><span class="ft-nav-ico">🏠</span> Tableau de bord</a>
+  <a class="ft-nav-item" href="fritime_activites.html" data-page="activites"><span class="ft-nav-ico">🎯</span> Activités</a>
+  <a class="ft-nav-item" href="fritime_inscriptions.html" data-page="inscriptions"><span class="ft-nav-ico">📋</span> Inscriptions</a>
+  <a class="ft-nav-item" href="fritime_enfants.html" data-page="enfants"><span class="ft-nav-ico">👦</span> Enfants</a>
+
+  <div class="ft-nav-section">Organisation</div>
+  <a class="ft-nav-item" href="fritime_taches.html" data-page="taches"><span class="ft-nav-ico">✅</span> Tâches</a>
+  <a class="ft-nav-item" href="fritime_comite.html" data-page="comite"><span class="ft-nav-ico">👥</span> Comité</a>
+  <a class="ft-nav-item" href="fritime_campagnes.html" data-page="campagnes"><span class="ft-nav-ico">📧</span> Campagnes</a>
+  <a class="ft-nav-item" href="fritime_sondages.html" data-page="sondages"><span class="ft-nav-ico">⭐</span> Sondages</a>
+
+  <div class="ft-nav-section">Finances & Partenaires</div>
+  <a class="ft-nav-item" href="fritime_budget.html" data-page="budget"><span class="ft-nav-ico">💰</span> Budget</a>
+  <a class="ft-nav-item" href="fritime_prestataires.html" data-page="prestataires"><span class="ft-nav-ico">🤝</span> Prestataires</a>
+
+  <div class="ft-nav-section">Contenu</div>
+  <a class="ft-nav-item" href="fritime_idees.html" data-page="idees"><span class="ft-nav-ico">💡</span> Banque d'idées</a>
+  <a class="ft-nav-item" href="fritime_documents.html" data-page="documents"><span class="ft-nav-ico">📁</span> Documents</a>
+
+  <div class="ft-nav-section">Sécurité</div>
+  <a class="ft-nav-item" href="fritime_incidents.html" data-page="incidents"><span class="ft-nav-ico">⚠️</span> Incidents</a>
+  <a class="ft-nav-item" href="fritime_urgences.html" data-page="urgences"><span class="ft-nav-ico">🚨</span> Urgences</a>
+  <a class="ft-nav-item" href="fritime_modifications.html" data-page="modifications"><span class="ft-nav-ico">🔄</span> Demandes</a>
+</div>
+
+<script>
+(function(){
+  // Auth check
+  const user = sessionStorage.getItem("ft-user");
+  const publicPages = ["fritime_login.html","fritime_inscription_publique.html","fritime_sondage_parent.html"];
+  const currentPage = window.location.pathname.split("/").pop();
+  if(!user && !publicPages.includes(currentPage)){
+    window.location.href = "fritime_login.html";
+    return;
+  }
+  if(user){
+    const u = JSON.parse(user);
+    const ini = ((u.nom||"").split(" ").map(p=>p[0]||"").join("")).substring(0,2).toUpperCase();
+    document.getElementById("ft-avatar-initials").textContent = ini||"?";
+    document.getElementById("ft-user-name").textContent = u.nom||"";
+    document.getElementById("ft-menu-name").textContent = u.nom||"";
+    document.getElementById("ft-menu-role").textContent = u.role||"";
+    document.getElementById("ft-user-name").style.display = "block";
+  }
+
+  // Active nav item
+  document.querySelectorAll(".ft-nav-item[data-page]").forEach(function(el){
+    if(currentPage.includes(el.dataset.page)) el.classList.add("active");
+  });
+})();
+
+function toggleSidebar(){
+  document.getElementById("ft-sidebar").classList.toggle("open");
+  document.getElementById("ft-sidebar-overlay").classList.toggle("open");
+}
+function toggleAvatarMenu(){
+  document.getElementById("ft-avatar-menu").classList.toggle("open");
+}
+document.addEventListener("click", function(e){
+  const menu = document.getElementById("ft-avatar-menu");
+  const avatar = document.getElementById("ft-avatar");
+  if(menu && !avatar.contains(e.target)) menu.classList.remove("open");
+});
+function doLogout(){
+  sessionStorage.removeItem("ft-user");
+  window.location.href = "fritime_login.html";
+}
+</script>
+
+<div class="container">
+
+<div class="header">
+  <div>
+    <h1>Budget</h1>
+    <div class="subtitle">Suivi financier — Fri-Time</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px">
+    <select class="annee-select" id="annee-select" onchange="renderAll()">
+      <option value="2025-2026">Année 2025–2026</option>
+      <option value="2026-2027">Année 2026–2027</option>
+    </select>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('global',this)">Vue globale</button>
+  <button class="tab" onclick="switchTab('activites',this)">Par activité</button>
+  <button class="tab" onclick="switchTab('entrees',this)">Entrées</button>
+  <button class="tab" onclick="switchTab('depenses',this)">Dépenses</button>
+</div>
+
+<!-- VUE GLOBALE -->
+<div id="panel-global" class="panel active">
+  <div id="solde-box"></div>
+  <div class="cards-row" id="cards-global"></div>
+  <div class="section">
+    <div class="section-header">
+      <span class="section-title">Récapitulatif</span>
+      <span class="section-sub" id="recap-annee"></span>
+    </div>
+    <table>
+      <thead><tr><th>Catégorie</th><th class="right">Prévisionnel</th><th class="right">Réel</th><th class="right">Écart</th><th>Réalisé</th></tr></thead>
+      <tbody id="recap-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- PAR ACTIVITÉ -->
+<div id="panel-activites" class="panel">
+  <div style="display:flex;justify-content:flex-end;margin-bottom:1rem">
+    <button class="btn btn-primary btn-sm" onclick="openDepense()">+ Dépense activité</button>
+  </div>
+  <div class="section">
+    <div class="section-header"><span class="section-title">Dépenses par activité</span></div>
+    <table>
+      <thead><tr><th>Activité</th><th class="right">Prévisionnel</th><th class="right">Réel</th><th class="right">Réalisé</th><th>Type</th><th>Facturé à</th><th>Avancement</th></tr></thead>
+      <tbody id="act-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ENTRÉES -->
+<div id="panel-entrees" class="panel">
+  <div style="display:flex;justify-content:flex-end;margin-bottom:1rem">
+    <button class="btn btn-primary btn-sm" onclick="openEntree()">+ Entrée</button>
+  </div>
+  <div class="cards-row" id="cards-entrees"></div>
+  <div class="section">
+    <div class="section-header"><span class="section-title">Détail des entrées</span></div>
+    <table>
+      <thead><tr><th>Source</th><th>Description</th><th class="right">Montant prévu</th><th class="right">Montant reçu</th><th>Statut</th><th></th></tr></thead>
+      <tbody id="entrees-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- DÉPENSES -->
+<div id="panel-depenses" class="panel">
+  <div style="display:flex;justify-content:flex-end;margin-bottom:1rem">
+    <button class="btn btn-primary btn-sm" onclick="openDepense()">+ Dépense</button>
+  </div>
+  <div class="section">
+    <div class="section-header"><span class="section-title">Toutes les dépenses</span></div>
+    <table>
+      <thead><tr><th>Description</th><th>Activité</th><th class="right">Prévisionnel</th><th class="right">Réel</th><th class="right">Réalisé</th><th>Facturé à</th><th></th></tr></thead>
+      <tbody id="dep-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+</div>
+
+<!-- Modal entrée -->
+<div id="mEntree" class="overlay" onclick="if(event.target.id==='mEntree')closeMEntree()">
+<div class="modal" onclick="event.stopPropagation()">
+  <div class="modal-title" id="entree-modal-title">Nouvelle entrée</div>
+  <div class="fr">
+    <div class="fg"><label class="fl">Source</label>
+      <select class="fi" id="e-source">
+        <option value="Subvention">Subvention</option>
+        <option value="Commune">Commune</option>
+        <option value="Don">Don</option>
+        <option value="Recherche de fonds">Recherche de fonds</option>
+        <option value="Autre">Autre</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">Statut</label>
+      <select class="fi" id="e-statut">
+        <option value="prevu">Prévu</option>
+        <option value="recu">Reçu</option>
+        <option value="partiel">Partiel</option>
+      </select>
+    </div>
+  </div>
+  <div class="fg"><label class="fl">Description</label><input class="fi" id="e-desc" placeholder="Ex: Subvention cantonale 2025-2026" /></div>
+  <div class="fr">
+    <div class="fg"><label class="fl">Montant prévu (CHF)</label><input class="fi" type="number" id="e-prevu" min="0" step="0.05" placeholder="0.00" /></div>
+    <div class="fg"><label class="fl">Montant reçu (CHF)</label><input class="fi" type="number" id="e-recu" min="0" step="0.05" placeholder="0.00" /></div>
+  </div>
+  <div class="fg"><label class="fl">Année</label>
+    <select class="fi" id="e-annee">
+      <option value="2025-2026">2025–2026</option>
+      <option value="2026-2027">2026–2027</option>
+    </select>
+  </div>
+  <div class="fg"><label class="fl">Notes</label><input class="fi" id="e-notes" placeholder="Remarques..." /></div>
+  <div class="mf">
+    <div><button class="btn btn-danger btn-sm" id="e-del-btn" style="display:none" onclick="deleteEntree()">Supprimer</button></div>
+    <div style="display:flex;gap:8px"><button class="btn" onclick="closeMEntree()">Annuler</button><button class="btn btn-primary" onclick="saveEntree()">Enregistrer</button></div>
+  </div>
+</div>
+</div>
+
+<!-- Modal dépense -->
+<div id="mDepense" class="overlay" onclick="if(event.target.id==='mDepense')closeMDepense()">
+<div class="modal" onclick="event.stopPropagation()">
+  <div class="modal-title" id="dep-modal-title">Nouvelle dépense</div>
+  <div class="fg"><label class="fl">Description</label><input class="fi" id="d-desc" placeholder="Ex: Prestataire atelier poterie" /></div>
+  <div class="fg"><label class="fl">Activité liée (optionnel)</label>
+    <select class="fi" id="d-activite">
+      <option value="">— Aucune (frais généraux) —</option>
+      <option value="Atelier poterie">Atelier poterie</option>
+      <option value="Sortie nature Lac Noir">Sortie nature Lac Noir</option>
+      <option value="Cours de cirque">Cours de cirque</option>
+    </select>
+  </div>
+  <div class="fr">
+    <div class="fg"><label class="fl">Coût prévisionnel (CHF)</label><input class="fi" type="number" id="d-prevu" min="0" step="0.05" placeholder="0.00" /></div>
+    <div class="fg"><label class="fl">Coût réel (CHF)</label><input class="fi" type="number" id="d-reel" min="0" step="0.05" placeholder="0.00" /></div>
+  </div>
+  <div class="fr">
+    <div class="fg"><label class="fl">Coût réalisé / payé (CHF)</label><input class="fi" type="number" id="d-realise" min="0" step="0.05" placeholder="0.00" /></div>
+    <div class="fg"><label class="fl">Type de coût</label>
+      <select class="fi" id="d-type">
+        <option value="global">Global</option>
+        <option value="enfant">Par enfant</option>
+      </select>
+    </div>
+  </div>
+  <div class="fr">
+    <div class="fg"><label class="fl">Facturé à</label>
+      <select class="fi" id="d-facture">
+        <option value="commune">Commune</option>
+        <option value="familles">Familles</option>
+        <option value="mixte">Mixte</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">Année</label>
+      <select class="fi" id="d-annee">
+        <option value="2025-2026">2025–2026</option>
+        <option value="2026-2027">2026–2027</option>
+      </select>
+    </div>
+  </div>
+  <div class="fg"><label class="fl">Notes</label><input class="fi" id="d-notes" placeholder="Remarques..." /></div>
+  <div class="mf">
+    <div><button class="btn btn-danger btn-sm" id="d-del-btn" style="display:none" onclick="deleteDepense()">Supprimer</button></div>
+    <div style="display:flex;gap:8px"><button class="btn" onclick="closeMDepense()">Annuler</button><button class="btn btn-primary" onclick="saveDepense()">Enregistrer</button></div>
+  </div>
+</div>
+</div>
+
+<script>
+function chf(n){return (Math.round((n||0)*100)/100).toLocaleString("fr-CH",{minimumFractionDigits:2,maximumFractionDigits:2})+" CHF";}
+function pct(a,b){if(!b)return "—";return Math.round(a/b*100)+"%";}
+function progCls(p){if(p>=100)return "prog-red";if(p>=75)return "prog-amber";return "prog-green";}
+
+let entrees=[
+  {id:1,source:"Subvention",desc:"Subvention cantonale",prevu:5000,recu:5000,statut:"recu",annee:"2025-2026",notes:""},
+  {id:2,source:"Commune",desc:"Participation commune de Bulle",prevu:2000,recu:1500,statut:"partiel",annee:"2025-2026",notes:"Solde attendu en juin"},
+  {id:3,source:"Don",desc:"Don association parents",prevu:500,recu:500,statut:"recu",annee:"2025-2026",notes:""},
+  {id:4,source:"Recherche de fonds",desc:"Vente de gâteaux fête du village",prevu:300,recu:0,statut:"prevu",annee:"2025-2026",notes:"Prévu en mai 2026"},
+];
+let depenses=[
+  {id:1,desc:"Atelier poterie — Atelier Terracotta",activite:"Atelier poterie",prevu:180,reel:180,realise:180,type:"global",facture:"commune",annee:"2025-2026",notes:""},
+  {id:2,desc:"Sortie Lac Noir — Guide Pro Rando",activite:"Sortie nature Lac Noir",prevu:625,reel:625,realise:0,type:"enfant",facture:"familles",annee:"2025-2026",notes:"25 CHF x 25 enfants"},
+  {id:3,desc:"Cours de cirque — prestataire TBD",activite:"Cours de cirque",prevu:400,reel:0,realise:0,type:"global",facture:"commune",annee:"2025-2026",notes:""},
+  {id:4,desc:"Frais administratifs",activite:"",prevu:200,reel:150,realise:150,type:"global",facture:"commune",annee:"2025-2026",notes:""},
+  {id:5,desc:"Matériel divers",activite:"",prevu:100,reel:0,realise:0,type:"global",facture:"commune",annee:"2025-2026",notes:""},
+];
+let nEntree=5,nDepense=6,editEntreeId=null,editDepenseId=null;
+
+function getAnnee(){return document.getElementById("annee-select").value;}
+
+function switchTab(name,btn){
+  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+  document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
+  btn.classList.add("active");
+  document.getElementById("panel-"+name).classList.add("active");
+}
+
+function renderAll(){
+  renderGlobal();
+  renderActivites();
+  renderEntrees();
+  renderDepenses();
+}
+
+function renderGlobal(){
+  const annee=getAnnee();
+  const E=entrees.filter(e=>e.annee===annee);
+  const D=depenses.filter(d=>d.annee===annee);
+  const totalEntreesPrevu=E.reduce((s,e)=>s+(e.prevu||0),0);
+  const totalEntreesRecu=E.reduce((s,e)=>s+(e.recu||0),0);
+  const totalDepPrevu=D.reduce((s,d)=>s+(d.prevu||0),0);
+  const totalDepReel=D.reduce((s,d)=>s+(d.reel||0),0);
+  const totalDepRealise=D.reduce((s,d)=>s+(d.realise||0),0);
+  const soldePrevu=totalEntreesPrevu-totalDepPrevu;
+  const soldeReel=totalEntreesRecu-totalDepRealise;
+
+  // Solde box
+  const sBox=document.getElementById("solde-box");
+  const isPos=soldeReel>=0;
+  sBox.innerHTML=`<div class="solde-box" style="background:${isPos?"#eaf3de":"#fcebeb"}">
+    <div style="font-size:11px;color:${isPos?"#275a0a":"#791f1f"};text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Solde disponible (réel)</div>
+    <div style="font-size:32px;font-weight:700;color:${isPos?"#275a0a":"#791f1f"}">${chf(soldeReel)}</div>
+    <div style="font-size:12px;color:${isPos?"#3b6d11":"#a32d2d"};margin-top:4px">Prévisionnel : ${chf(soldePrevu)}</div>
+  </div>`;
+
+  // Cards
+  document.getElementById("cards-global").innerHTML=[
+    {val:chf(totalEntreesPrevu),lbl:"Entrées prévues",sub:chf(totalEntreesRecu)+" reçus"},
+    {val:chf(totalDepPrevu),lbl:"Dépenses prévues",sub:chf(totalDepReel)+" réel"},
+    {val:chf(totalDepRealise),lbl:"Dépenses réalisées",sub:pct(totalDepRealise,totalDepPrevu)+" du budget"},
+    {val:pct(totalDepRealise,totalEntreesRecu),lbl:"Budget consommé",sub:"sur entrées reçues"},
+  ].map(x=>`<div class="card-stat"><div class="card-stat-val">${x.val}</div><div class="card-stat-lbl">${x.lbl}</div><div class="card-stat-sub">${x.sub}</div></div>`).join("");
+
+  // Recap table
+  document.getElementById("recap-annee").textContent=annee;
+  const sources=["Subvention","Commune","Don","Recherche de fonds","Autre"];
+  const rows=sources.map(s=>{
+    const items=E.filter(e=>e.source===s);
+    if(!items.length)return "";
+    const p=items.reduce((a,e)=>a+(e.prevu||0),0);
+    const r=items.reduce((a,e)=>a+(e.recu||0),0);
+    const ecart=r-p;
+    return `<tr><td>${s}</td><td class="right">${chf(p)}</td><td class="right">${chf(r)}</td>
+      <td class="right ${ecart>=0?"positive":"negative"}">${ecart>=0?"+":""}${chf(ecart)}</td><td>—</td></tr>`;
+  }).filter(Boolean);
+
+  const depRow=`<tr><td>Dépenses totales</td><td class="right negative">${chf(totalDepPrevu)}</td>
+    <td class="right negative">${chf(totalDepReel)}</td>
+    <td class="right ${soldePrevu>=0?"positive":"negative"}">${chf(soldePrevu>=0?soldePrevu:soldePrevu)}</td>
+    <td><div class="prog-wrap"><div class="prog-bar ${progCls(Math.round(totalDepRealise/totalDepPrevu*100))}" style="width:${Math.min(100,Math.round(totalDepRealise/(totalDepPrevu||1)*100))}%"></div></div>
+    <span style="font-size:11px;color:#888">${pct(totalDepRealise,totalDepPrevu)}</span></td></tr>`;
+
+  const totalRow=`<tr class="total-row"><td>SOLDE</td><td class="right ${soldePrevu>=0?"positive":"negative"}">${chf(soldePrevu)}</td>
+    <td class="right ${soldeReel>=0?"positive":"negative"}">${chf(soldeReel)}</td><td></td><td></td></tr>`;
+
+  document.getElementById("recap-tbody").innerHTML=rows.join("")+depRow+totalRow;
+}
+
+function renderActivites(){
+  const annee=getAnnee();
+  const D=depenses.filter(d=>d.annee===annee&&d.activite);
+  const acts=[...new Set(D.map(d=>d.activite))];
+  const tbody=document.getElementById("act-tbody");
+  if(!acts.length){tbody.innerHTML=`<tr><td colspan="7" style="text-align:center;padding:2rem;color:#888">Aucune dépense par activité</td></tr>`;return;}
+  tbody.innerHTML=acts.map(act=>{
+    const items=D.filter(d=>d.activite===act);
+    const p=items.reduce((s,d)=>s+(d.prevu||0),0);
+    const r=items.reduce((s,d)=>s+(d.reel||0),0);
+    const rl=items.reduce((s,d)=>s+(d.realise||0),0);
+    const pctVal=Math.min(100,Math.round(rl/(p||1)*100));
+    const factures=[...new Set(items.map(d=>d.facture))];
+    const types=[...new Set(items.map(d=>d.type))];
+    return `<tr>
+      <td style="font-weight:500">${act}</td>
+      <td class="right">${chf(p)}</td>
+      <td class="right">${chf(r)}</td>
+      <td class="right ${rl>0?"positive":""}">${chf(rl)}</td>
+      <td>${types.map(t=>`<span class="badge badge-prevu">${t==="enfant"?"Par enfant":"Global"}</span>`).join(" ")}</td>
+      <td>${factures.map(f=>`<span class="badge badge-${f}">${f==="commune"?"Commune":f==="familles"?"Familles":"Mixte"}</span>`).join(" ")}</td>
+      <td style="min-width:100px"><div class="prog-wrap"><div class="prog-bar ${progCls(pctVal)}" style="width:${pctVal}%"></div></div>
+        <span style="font-size:11px;color:#888">${pctVal}%</span></td>
+    </tr>`;
+  }).join("");
+}
+
+function renderEntrees(){
+  const annee=getAnnee();
+  const E=entrees.filter(e=>e.annee===annee);
+  const sources={};
+  E.forEach(e=>{if(!sources[e.source])sources[e.source]={prevu:0,recu:0};sources[e.source].prevu+=e.prevu||0;sources[e.source].recu+=e.recu||0;});
+  document.getElementById("cards-entrees").innerHTML=Object.entries(sources).map(([s,v])=>`
+    <div class="card-stat">
+      <div class="card-stat-val">${chf(v.recu)}</div>
+      <div class="card-stat-lbl">${s}</div>
+      <div class="card-stat-sub">prévu : ${chf(v.prevu)}</div>
+    </div>`).join("");
+  const tbody=document.getElementById("entrees-tbody");
+  if(!E.length){tbody.innerHTML=`<tr><td colspan="6" style="text-align:center;padding:2rem;color:#888">Aucune entrée</td></tr>`;return;}
+  tbody.innerHTML=E.map(e=>`<tr>
+    <td><span class="badge badge-commune">${e.source}</span></td>
+    <td>${e.desc||"—"}</td>
+    <td class="right">${chf(e.prevu)}</td>
+    <td class="right ${e.recu>0?"positive":""}">${chf(e.recu)}</td>
+    <td><span class="badge ${e.statut==="recu"?"badge-realise":e.statut==="partiel"?"badge-reel":"badge-prevu"}">${e.statut==="recu"?"Reçu":e.statut==="partiel"?"Partiel":"Prévu"}</span></td>
+    <td style="display:flex;gap:6px"><button class="btn btn-sm" onclick="openEntreeEdit(${e.id})">Modifier</button><button class="btn btn-sm btn-danger" onclick="confirmDeleteEntree(${e.id})">Supprimer</button></td>
+  </tr>`).join("");
+}
+
+function renderDepenses(){
+  const annee=getAnnee();
+  const D=depenses.filter(d=>d.annee===annee);
+  const tbody=document.getElementById("dep-tbody");
+  if(!D.length){tbody.innerHTML=`<tr><td colspan="7" style="text-align:center;padding:2rem;color:#888">Aucune dépense</td></tr>`;return;}
+  const rows=D.map(d=>`<tr>
+    <td style="font-weight:500">${d.desc}</td>
+    <td style="color:#888;font-size:12px">${d.activite||"Frais généraux"}</td>
+    <td class="right">${chf(d.prevu)}</td>
+    <td class="right">${chf(d.reel)}</td>
+    <td class="right ${d.realise>0?"positive":""}">${chf(d.realise)}</td>
+    <td><span class="badge badge-${d.facture}">${d.facture==="commune"?"Commune":d.facture==="familles"?"Familles":"Mixte"}</span></td>
+    <td style="display:flex;gap:6px"><button class="btn btn-sm" onclick="openDepenseEdit(${d.id})">Modifier</button><button class="btn btn-sm btn-danger" onclick="confirmDeleteDepense(${d.id})">Supprimer</button></td>
+  </tr>`).join("");
+  const totP=D.reduce((s,d)=>s+(d.prevu||0),0);
+  const totR=D.reduce((s,d)=>s+(d.reel||0),0);
+  const totRl=D.reduce((s,d)=>s+(d.realise||0),0);
+  tbody.innerHTML=rows+`<tr class="total-row"><td colspan="2">Total</td><td class="right">${chf(totP)}</td><td class="right">${chf(totR)}</td><td class="right">${chf(totRl)}</td><td colspan="2"></td></tr>`;
+}
+
+// Entrée CRUD
+function openEntree(){
+  editEntreeId=null;
+  document.getElementById("entree-modal-title").textContent="Nouvelle entrée";
+  document.getElementById("e-del-btn").style.display="none";
+  ["e-desc","e-notes"].forEach(id=>document.getElementById(id).value="");
+  ["e-prevu","e-recu"].forEach(id=>document.getElementById(id).value="");
+  document.getElementById("e-source").selectedIndex=0;
+  document.getElementById("e-statut").selectedIndex=0;
+  document.getElementById("e-annee").value=getAnnee();
+  document.getElementById("mEntree").style.display="flex";
+}
+function openEntreeEdit(id){
+  editEntreeId=id;
+  const e=entrees.find(x=>x.id===id);
+  document.getElementById("entree-modal-title").textContent="Modifier l'entrée";
+  document.getElementById("e-del-btn").style.display="inline-block";
+  document.getElementById("e-source").value=e.source;
+  document.getElementById("e-statut").value=e.statut;
+  document.getElementById("e-desc").value=e.desc||"";
+  document.getElementById("e-prevu").value=e.prevu||"";
+  document.getElementById("e-recu").value=e.recu||"";
+  document.getElementById("e-annee").value=e.annee;
+  document.getElementById("e-notes").value=e.notes||"";
+  document.getElementById("mEntree").style.display="flex";
+}
+function closeMEntree(){document.getElementById("mEntree").style.display="none";}
+function saveEntree(){
+  const data={source:document.getElementById("e-source").value,desc:document.getElementById("e-desc").value.trim(),prevu:parseFloat(document.getElementById("e-prevu").value)||0,recu:parseFloat(document.getElementById("e-recu").value)||0,statut:document.getElementById("e-statut").value,annee:document.getElementById("e-annee").value,notes:document.getElementById("e-notes").value.trim()};
+  if(editEntreeId){entrees=entrees.map(e=>e.id===editEntreeId?{...e,...data}:e);}
+  else{entrees.push({id:nEntree++,...data});}
+  closeMEntree();renderAll();
+}
+function deleteEntree(){if(confirm("Supprimer cette entrée ?")){entrees=entrees.filter(e=>e.id!==editEntreeId);closeMEntree();renderAll();}}
+
+// Dépense CRUD
+function openDepense(){
+  editDepenseId=null;
+  document.getElementById("dep-modal-title").textContent="Nouvelle dépense";
+  document.getElementById("d-del-btn").style.display="none";
+  ["d-desc","d-notes"].forEach(id=>document.getElementById(id).value="");
+  ["d-prevu","d-reel","d-realise"].forEach(id=>document.getElementById(id).value="");
+  document.getElementById("d-activite").selectedIndex=0;
+  document.getElementById("d-type").selectedIndex=0;
+  document.getElementById("d-facture").selectedIndex=0;
+  document.getElementById("d-annee").value=getAnnee();
+  document.getElementById("mDepense").style.display="flex";
+}
+function openDepenseEdit(id){
+  editDepenseId=id;
+  const d=depenses.find(x=>x.id===id);
+  document.getElementById("dep-modal-title").textContent="Modifier la dépense";
+  document.getElementById("d-del-btn").style.display="inline-block";
+  document.getElementById("d-desc").value=d.desc||"";
+  document.getElementById("d-activite").value=d.activite||"";
+  document.getElementById("d-prevu").value=d.prevu||"";
+  document.getElementById("d-reel").value=d.reel||"";
+  document.getElementById("d-realise").value=d.realise||"";
+  document.getElementById("d-type").value=d.type;
+  document.getElementById("d-facture").value=d.facture;
+  document.getElementById("d-annee").value=d.annee;
+  document.getElementById("d-notes").value=d.notes||"";
+  document.getElementById("mDepense").style.display="flex";
+}
+function closeMDepense(){document.getElementById("mDepense").style.display="none";}
+function saveDepense(){
+  const data={desc:document.getElementById("d-desc").value.trim(),activite:document.getElementById("d-activite").value,prevu:parseFloat(document.getElementById("d-prevu").value)||0,reel:parseFloat(document.getElementById("d-reel").value)||0,realise:parseFloat(document.getElementById("d-realise").value)||0,type:document.getElementById("d-type").value,facture:document.getElementById("d-facture").value,annee:document.getElementById("d-annee").value,notes:document.getElementById("d-notes").value.trim()};
+  if(editDepenseId){depenses=depenses.map(d=>d.id===editDepenseId?{...d,...data}:d);}
+  else{depenses.push({id:nDepense++,...data});}
+  closeMDepense();renderAll();
+}
+function deleteDepense(){if(confirm("Supprimer cette dépense ?")){depenses=depenses.filter(d=>d.id!==editDepenseId);closeMDepense();renderAll();}}
+
+function confirmDeleteEntree(id){
+  const e=entrees.find(x=>x.id===id);
+  if(confirm("Supprimer l'entrée \""+e.desc+"\" ("+chf(e.prevu)+") ?")){
+    entrees=entrees.filter(x=>x.id!==id);
+    renderAll();
+  }
+}
+function confirmDeleteDepense(id){
+  const d=depenses.find(x=>x.id===id);
+  if(confirm("Supprimer la dépense \""+d.desc+"\" ("+chf(d.prevu)+") ?")){
+    depenses=depenses.filter(x=>x.id!==id);
+    renderAll();
+  }
+}
+renderAll();
+</script>
+</body>
+</html>

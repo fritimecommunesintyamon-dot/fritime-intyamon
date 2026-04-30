@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fri-Time Intyamon — Campagnes</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#f5f5f3;color:#1a1a1a;font-size:14px}
+.container{max-width:960px;margin:0 auto;padding:1.5rem}
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem}
+h1{font-size:20px;font-weight:600}
+.subtitle{font-size:13px;color:#666;margin-top:2px}
+.btn{padding:7px 14px;border-radius:8px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:13px;font-family:inherit;transition:background .15s}
+.btn:hover{background:#f5f5f3}
+.btn-primary{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.btn-primary:hover{background:#333}
+.btn-sm{padding:4px 10px;font-size:12px}
+.btn-danger{color:#7a1f1f;border-color:#f4c0c0}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.5rem}
+.metric{background:#fff;border-radius:10px;padding:12px;border:1px solid #eee;text-align:center}
+.metric-val{font-size:22px;font-weight:600}
+.metric-lbl{font-size:11px;color:#888;margin-top:2px}
+.badge{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500;white-space:nowrap}
+.badge-brouillon{background:#f5f5f3;color:#666}
+.badge-pret{background:#faeeda;color:#633806}
+.badge-envoye{background:#eaf3de;color:#275a0a}
+.badge-archive{background:#eee;color:#999}
+.campaign-card{background:#fff;border:1px solid #eee;border-radius:12px;padding:1.25rem;margin-bottom:10px;cursor:pointer;transition:border-color .15s}
+.campaign-card:hover{border-color:#ccc}
+.campaign-card.envoye{border-left:3px solid #275a0a}
+.card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px}
+.card-title{font-size:15px;font-weight:600;flex:1;margin-right:12px}
+.card-desc{font-size:13px;color:#555;margin-bottom:10px;line-height:1.5}
+.card-meta{font-size:12px;color:#888;display:flex;gap:12px;flex-wrap:wrap}
+.card-actions{display:flex;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid #eee;flex-wrap:wrap}
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.stat-box{background:#f5f5f3;border-radius:8px;padding:8px 10px;text-align:center}
+.stat-val{font-size:16px;font-weight:700}
+.stat-lbl{font-size:10px;color:#888;margin-top:1px}
+.prog-wrap{height:5px;background:#eee;border-radius:20px;overflow:hidden;margin-top:6px}
+.prog-bar{height:5px;border-radius:20px;background:#275a0a}
+.link-box{background:#f5f5f3;border-radius:8px;padding:10px 12px;font-size:12px;font-family:monospace;display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;word-break:break-all}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;align-items:flex-start;justify-content:center;padding:2rem 1rem;overflow-y:auto}
+.modal{background:#fff;border-radius:12px;border:1px solid #eee;padding:1.5rem;width:min(640px,100%)}
+.modal-title{font-size:16px;font-weight:600;margin-bottom:1.25rem;padding-bottom:1rem;border-bottom:1px solid #eee}
+.sec{font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.06em;margin:1rem 0 .75rem;padding-top:1rem;border-top:1px solid #eee}
+.sec-first{border-top:none;padding-top:0;margin-top:0}
+.fg{margin-bottom:.75rem}
+.fl{font-size:12px;color:#666;margin-bottom:4px;display:block}
+.fi{width:100%;padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit}
+.fi:focus{outline:none;border-color:#aaa}
+textarea.fi{resize:vertical;min-height:80px}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mf{display:flex;justify-content:space-between;align-items:center;margin-top:1.25rem;padding-top:1rem;border-top:1px solid #eee}
+.act-check{display:flex;align-items:center;gap:8px;padding:7px 10px;border:1px solid #eee;border-radius:7px;margin-bottom:5px;font-size:13px;background:#fff;cursor:pointer}
+.act-check:hover{background:#fafaf8}
+.act-check input{width:15px;height:15px;cursor:pointer}
+.preview-box{background:#fafaf8;border:1px solid #eee;border-radius:10px;padding:1rem;font-size:13px;line-height:1.7;margin-bottom:1rem}
+.preview-box strong{color:#1a1a1a}
+.info-box{border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:1rem;line-height:1.5}
+.info-box.bleu{background:#e6f1fb;color:#0c447c}
+.info-box.vert{background:#eaf3de;color:#275a0a}
+.empty{text-align:center;padding:2.5rem;color:#888;font-size:13px}
+</style>
+  <script src="fritime_data.js"></script>
+  <script src="fritime_sync.js"></script>
+  <script src="fritime_auth.js"></script>
+</head>
+<body class="ft-body-offset">
+<!-- SHARED NAV - Fri-Time Intyamon -->
+<style>
+.ft-topbar{background:#1a1a1a;color:#fff;padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:52px;position:fixed;top:0;left:0;right:0;z-index:1000}
+.ft-logo{font-size:15px;font-weight:700;letter-spacing:.05em;color:#fff;text-decoration:none;white-space:nowrap}
+.ft-topbar-right{display:flex;align-items:center;gap:12px}
+.ft-user-name{font-size:12px;opacity:.6;display:none}
+.ft-avatar{width:30px;height:30px;border-radius:50%;background:#333;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;cursor:pointer;position:relative}
+.ft-avatar-menu{display:none;position:absolute;top:36px;right:0;background:#fff;border:1px solid #eee;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.1);min-width:180px;z-index:100;overflow:hidden}
+.ft-avatar-menu.open{display:block}
+.ft-avatar-menu-item{padding:10px 14px;font-size:13px;color:#1a1a1a;cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .1s}
+.ft-avatar-menu-item:hover{background:#f5f5f3}
+.ft-avatar-menu-item.red{color:#791f1f}
+.ft-avatar-divider{height:1px;background:#eee;margin:4px 0}
+.ft-sidebar{position:fixed;top:52px;left:0;width:210px;height:calc(100vh - 52px);background:#fff;border-right:1px solid #eee;overflow-y:auto;z-index:999;transform:translateX(-100%);transition:transform .2s}
+.ft-sidebar.open{transform:translateX(0)}
+.ft-sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:998;top:52px}
+.ft-sidebar-overlay.open{display:block}
+.ft-nav-section{padding:6px 14px;font-size:10px;font-weight:700;color:#bbb;text-transform:uppercase;letter-spacing:.08em;margin-top:8px}
+.ft-nav-item{display:flex;align-items:center;gap:9px;padding:9px 14px;font-size:13px;color:#555;cursor:pointer;transition:all .1s;text-decoration:none;border-left:3px solid transparent;white-space:nowrap}
+.ft-nav-item:hover{background:#fafaf8;color:#1a1a1a}
+.ft-nav-item.active{background:#f5f5f3;color:#1a1a1a;font-weight:600;border-left-color:#1a1a1a}
+.ft-nav-ico{font-size:15px;flex-shrink:0;opacity:.7}
+.ft-nav-badge{margin-left:auto;font-size:10px;background:#fcebeb;color:#791f1f;padding:1px 6px;border-radius:20px;font-weight:700}
+.ft-nav-badge.green{background:#eaf3de;color:#275a0a}
+.ft-nav-badge.blue{background:#e6f1fb;color:#0c447c}
+.ft-menu-btn{background:none;border:none;color:#fff;cursor:pointer;font-size:20px;padding:4px 8px;display:flex;align-items:center;justify-content:center;opacity:.8}
+.ft-menu-btn:hover{opacity:1}
+.ft-body-offset{padding-top:52px}
+.ft-layout{display:flex;min-height:calc(100vh - 52px)}
+.ft-sidebar-desktop{width:210px;flex-shrink:0;background:#fff;border-right:1px solid #eee;position:sticky;top:52px;height:calc(100vh - 52px);overflow-y:auto;flex-shrink:0}
+.ft-main{flex:1;overflow-x:hidden;min-width:0}
+@media(max-width:768px){
+  .ft-sidebar-desktop{display:none!important}
+  .ft-user-name{display:none}
+  .ft-main{padding:1rem!important}
+}
+@media(min-width:769px){
+  .ft-sidebar{display:none!important}
+  .ft-sidebar-overlay{display:none!important}
+  .ft-menu-btn{display:none!important}
+  .ft-sidebar-desktop{display:block!important}
+}
+</style>
+
+<div class="ft-topbar">
+  <div style="display:flex;align-items:center;gap:10px">
+    <button class="ft-menu-btn" onclick="toggleSidebar()" id="ft-menu-btn">☰</button>
+    <a href="fritime_dashboard.html" class="ft-logo">Fri-Time Intyamon</a>
+  </div>
+  <div class="ft-topbar-right">
+    <span class="ft-user-name" id="ft-user-name">—</span>
+    <div class="ft-avatar" id="ft-avatar" onclick="toggleAvatarMenu()">
+      <span id="ft-avatar-initials">?</span>
+      <div class="ft-avatar-menu" id="ft-avatar-menu">
+        <div class="ft-avatar-menu-item" style="background:#f5f5f3;cursor:default">
+          <div>
+            <div style="font-weight:600;font-size:13px" id="ft-menu-name">—</div>
+            <div style="font-size:11px;color:#888" id="ft-menu-role">—</div>
+          </div>
+        </div>
+        <div class="ft-avatar-divider"></div>
+        <a href="fritime_dashboard.html" class="ft-avatar-menu-item">🏠 Tableau de bord</a>
+        <div class="ft-avatar-menu-item" onclick="doLogout()">🔒 Se déconnecter</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="ft-sidebar-overlay" id="ft-sidebar-overlay" onclick="toggleSidebar()"></div>
+
+<div class="ft-sidebar" id="ft-sidebar">
+  <div class="ft-nav-section">Principal</div>
+  <a class="ft-nav-item" href="fritime_dashboard.html" data-page="dashboard"><span class="ft-nav-ico">🏠</span> Tableau de bord</a>
+  <a class="ft-nav-item" href="fritime_activites.html" data-page="activites"><span class="ft-nav-ico">🎯</span> Activités</a>
+  <a class="ft-nav-item" href="fritime_inscriptions.html" data-page="inscriptions"><span class="ft-nav-ico">📋</span> Inscriptions</a>
+  <a class="ft-nav-item" href="fritime_enfants.html" data-page="enfants"><span class="ft-nav-ico">👦</span> Enfants</a>
+
+  <div class="ft-nav-section">Organisation</div>
+  <a class="ft-nav-item" href="fritime_taches.html" data-page="taches"><span class="ft-nav-ico">✅</span> Tâches</a>
+  <a class="ft-nav-item" href="fritime_comite.html" data-page="comite"><span class="ft-nav-ico">👥</span> Comité</a>
+  <a class="ft-nav-item" href="fritime_campagnes.html" data-page="campagnes"><span class="ft-nav-ico">📧</span> Campagnes</a>
+  <a class="ft-nav-item" href="fritime_sondages.html" data-page="sondages"><span class="ft-nav-ico">⭐</span> Sondages</a>
+
+  <div class="ft-nav-section">Finances & Partenaires</div>
+  <a class="ft-nav-item" href="fritime_budget.html" data-page="budget"><span class="ft-nav-ico">💰</span> Budget</a>
+  <a class="ft-nav-item" href="fritime_prestataires.html" data-page="prestataires"><span class="ft-nav-ico">🤝</span> Prestataires</a>
+
+  <div class="ft-nav-section">Contenu</div>
+  <a class="ft-nav-item" href="fritime_idees.html" data-page="idees"><span class="ft-nav-ico">💡</span> Banque d'idées</a>
+  <a class="ft-nav-item" href="fritime_documents.html" data-page="documents"><span class="ft-nav-ico">📁</span> Documents</a>
+
+  <div class="ft-nav-section">Sécurité</div>
+  <a class="ft-nav-item" href="fritime_incidents.html" data-page="incidents"><span class="ft-nav-ico">⚠️</span> Incidents</a>
+  <a class="ft-nav-item" href="fritime_urgences.html" data-page="urgences"><span class="ft-nav-ico">🚨</span> Urgences</a>
+  <a class="ft-nav-item" href="fritime_modifications.html" data-page="modifications"><span class="ft-nav-ico">🔄</span> Demandes</a>
+</div>
+
+<script>
+(function(){
+  // Auth check
+  const user = sessionStorage.getItem("ft-user");
+  const publicPages = ["fritime_login.html","fritime_inscription_publique.html","fritime_sondage_parent.html"];
+  const currentPage = window.location.pathname.split("/").pop();
+  if(!user && !publicPages.includes(currentPage)){
+    window.location.href = "fritime_login.html";
+    return;
+  }
+  if(user){
+    const u = JSON.parse(user);
+    const ini = ((u.nom||"").split(" ").map(p=>p[0]||"").join("")).substring(0,2).toUpperCase();
+    document.getElementById("ft-avatar-initials").textContent = ini||"?";
+    document.getElementById("ft-user-name").textContent = u.nom||"";
+    document.getElementById("ft-menu-name").textContent = u.nom||"";
+    document.getElementById("ft-menu-role").textContent = u.role||"";
+    document.getElementById("ft-user-name").style.display = "block";
+  }
+
+  // Active nav item
+  document.querySelectorAll(".ft-nav-item[data-page]").forEach(function(el){
+    if(currentPage.includes(el.dataset.page)) el.classList.add("active");
+  });
+})();
+
+function toggleSidebar(){
+  document.getElementById("ft-sidebar").classList.toggle("open");
+  document.getElementById("ft-sidebar-overlay").classList.toggle("open");
+}
+function toggleAvatarMenu(){
+  document.getElementById("ft-avatar-menu").classList.toggle("open");
+}
+document.addEventListener("click", function(e){
+  const menu = document.getElementById("ft-avatar-menu");
+  const avatar = document.getElementById("ft-avatar");
+  if(menu && !avatar.contains(e.target)) menu.classList.remove("open");
+});
+function doLogout(){
+  sessionStorage.removeItem("ft-user");
+  window.location.href = "fritime_login.html";
+}
+</script>
+
+<div class="container">
+
+<div class="header">
+  <div><h1>Campagnes</h1><div class="subtitle">Annonces et formulaires d'inscription — Fri-Time</div></div>
+  <button class="btn btn-primary" onclick="openCreate()">+ Nouvelle campagne</button>
+</div>
+
+<div class="info-box bleu">
+  Le lien généré pour chaque campagne est transmis par l'école à tous les élèves (~470). Les familles remplissent le formulaire directement en ligne. Les inscriptions arrivent automatiquement dans le module Inscriptions.
+</div>
+
+<div class="metrics" id="metrics"></div>
+<div id="campaigns-list"></div>
+
+</div>
+
+<!-- Modal créer / modifier campagne -->
+<div id="mCreate" class="overlay" onclick="if(event.target.id==='mCreate')closeMCreate()">
+<div class="modal" onclick="event.stopPropagation()">
+  <div class="modal-title" id="create-title">Nouvelle campagne</div>
+
+  <div class="sec sec-first">Informations</div>
+  <div class="fg"><label class="fl">Titre de la campagne *</label>
+    <input class="fi" id="c-titre" placeholder="Ex: Inscription activités printemps 2026" />
+  </div>
+  <div class="fg"><label class="fl">Type</label>
+    <select class="fi" id="c-type">
+      <option value="inscription">Formulaire d'inscription</option>
+      <option value="annonce">Annonce d'activités</option>
+      <option value="bilan">Bilan semestriel</option>
+      <option value="mixte">Mixte (annonce + inscription)</option>
+    </select>
+  </div>
+  <div class="fr">
+    <div class="fg"><label class="fl">Période</label><input class="fi" id="c-periode" placeholder="Ex: Printemps 2026" /></div>
+    <div class="fg"><label class="fl">Date limite inscription</label><input class="fi" type="date" id="c-deadline" /></div>
+  </div>
+  <div class="fg"><label class="fl">Message d'introduction</label>
+    <textarea class="fi" id="c-message" rows="3" placeholder="Bonjour, nous avons le plaisir de vous annoncer..."></textarea>
+  </div>
+
+  <div class="sec">Activités incluses</div>
+  <div id="activites-checkboxes"></div>
+
+  <div class="sec">Aperçu du lien</div>
+  <div class="fg">
+    <label class="fl">Le lien suivant sera transmis à l'école pour diffusion</label>
+    <div class="link-box">
+      <span id="preview-link">https://fritimegruyere.ch/inscription?id=XXX</span>
+      <button class="btn btn-sm" onclick="copyLink()">📋 Copier</button>
+    </div>
+  </div>
+
+  <div class="mf">
+    <button class="btn btn-danger btn-sm" id="c-del-btn" style="display:none" onclick="deleteCampaign()">Supprimer</button>
+    <div style="display:flex;gap:8px">
+      <button class="btn" onclick="closeMCreate()">Annuler</button>
+      <button class="btn" onclick="saveCampaign('brouillon')">Sauvegarder</button>
+      <button class="btn btn-primary" onclick="saveCampaign('pret')">✓ Marquer comme prêt</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- Modal résultats / détail -->
+<div id="mDetail" class="overlay" onclick="if(event.target.id==='mDetail')closeMDetail()">
+<div class="modal" onclick="event.stopPropagation()"><div id="detail-content"></div></div>
+</div>
+
+<!-- Modal confirmation envoi -->
+<div id="mEnvoi" class="overlay" onclick="if(event.target.id==='mEnvoi')closeMEnvoi()">
+<div class="modal" style="max-width:460px" onclick="event.stopPropagation()">
+  <div class="modal-title">Confirmer l'envoi à l'école</div>
+  <div class="info-box vert">Le lien du formulaire sera copié et prêt à être transmis à l'administration scolaire. L'école se charge de la diffusion aux ~470 élèves.</div>
+  <div class="fg"><label class="fl">Email de l'école</label>
+    <input class="fi" id="envoi-email" placeholder="secretariat@ecole-bulle.ch" />
+  </div>
+  <div class="fg"><label class="fl">Message d'accompagnement</label>
+    <textarea class="fi" id="envoi-message" rows="3">Bonjour,
+
+Veuillez transmettre ce lien aux familles de vos élèves pour les inscriptions aux activités Fri-Time.
+
+Merci de votre collaboration,
+Le comité Fri-Time</textarea>
+  </div>
+  <div class="mf">
+    <button class="btn" onclick="closeMEnvoi()">Annuler</button>
+    <button class="btn btn-primary" onclick="confirmEnvoi()">📧 Confirmer l'envoi</button>
+  </div>
+</div>
+</div>
+
+<script>
+let editCampaignId=null;
+let envoiTargetId=null;
+
+const ACTIVITES_DISPO=[
+  {id:1,nom:"Atelier poterie",date:"2026-05-20",places:12},
+  {id:2,nom:"Sortie nature Lac Noir",date:"2026-06-14",places:20},
+  {id:3,nom:"Cours de cirque",date:"2026-07-08",places:15},
+  {id:4,nom:"Cuisine du monde",date:"2026-05-30",places:10},
+];
+
+let campaigns=[
+  {id:1,titre:"Inscriptions printemps 2026",type:"inscription",periode:"Printemps 2026",deadline:"2026-04-15",message:"Bonjour, nous avons le plaisir de vous proposer nos activités du printemps. Inscrivez vos enfants en complétant le formulaire ci-dessous.",activites:[1,2,3],statut:"envoye",dateEnvoi:"2026-03-01",reponses:[
+    {nom:"Famille Bernard",enfant:"Luca",age:10,commune:"Bulle",prefs:[1,2],email:"anne.bernard@gmail.com",date:"2026-03-02"},
+    {nom:"Famille Favre",enfant:"Emma",age:8,commune:"Intyamons",prefs:[2,1],email:"paul.favre@gmail.com",date:"2026-03-03"},
+    {nom:"Famille Morel",enfant:"Noah",age:11,commune:"Broc",prefs:[1,3],email:"claire.morel@gmail.com",date:"2026-03-05"},
+    {nom:"Famille Dupont",enfant:"Léa",age:9,commune:"Bulle",prefs:[2],email:"marc.dupont@gmail.com",date:"2026-03-07"},
+    {nom:"Famille Remy",enfant:"Tom",age:11,commune:"Châtel-St-Denis",prefs:[1,2,3],email:"sophie.remy@gmail.com",date:"2026-03-10"},
+  ]},
+  {id:2,titre:"Bilan hiver 2025-2026",type:"bilan",periode:"Hiver 2025-2026",deadline:null,message:"Chers parents, voici le bilan de nos activités du semestre d'hiver. Merci pour votre confiance.",activites:[],statut:"pret",dateEnvoi:null,reponses:[]},
+  {id:3,titre:"Inscriptions automne 2026",type:"mixte",periode:"Automne 2026",deadline:"2026-08-31",message:"",activites:[4],statut:"brouillon",dateEnvoi:null,reponses:[]},
+];
+let nCamp=4;
+
+const TYPE_LABELS={inscription:"Formulaire d'inscription",annonce:"Annonce",bilan:"Bilan semestriel",mixte:"Mixte"};
+function fmtDate(d){if(!d)return"—";const[y,m,j]=d.split("-");return`${j}.${m}.${y}`;}
+
+function renderMetrics(){
+  document.getElementById("metrics").innerHTML=[
+    {val:campaigns.length,lbl:"Total campagnes"},
+    {val:campaigns.filter(c=>c.statut==="envoye").length,lbl:"Envoyées"},
+    {val:campaigns.reduce((s,c)=>s+c.reponses.length,0),lbl:"Inscriptions reçues"},
+    {val:campaigns.filter(c=>c.statut==="pret").length,lbl:"Prêtes à envoyer"},
+  ].map(x=>`<div class="metric"><div class="metric-val">${x.val}</div><div class="metric-lbl">${x.lbl}</div></div>`).join("");
+}
+
+function renderCampaigns(){
+  const list=document.getElementById("campaigns-list");
+  if(!campaigns.length){list.innerHTML=`<div class="empty">Aucune campagne créée</div>`;return;}
+  list.innerHTML=[...campaigns].sort((a,b)=>b.id-a.id).map(c=>`
+    <div class="campaign-card${c.statut==="envoye"?" envoye":""}" onclick="openDetail(${c.id})">
+      <div class="card-top">
+        <div>
+          <div class="card-title">${c.titre}</div>
+          <div style="font-size:12px;color:#888;margin-top:2px">${TYPE_LABELS[c.type]} · ${c.periode||"—"}</div>
+        </div>
+        <span class="badge badge-${c.statut}">${c.statut==="brouillon"?"Brouillon":c.statut==="pret"?"Prêt à envoyer":c.statut==="envoye"?"Envoyé":"Archivé"}</span>
+      </div>
+      ${c.message?`<div class="card-desc">${c.message.substring(0,120)}${c.message.length>120?"…":""}</div>`:""}
+      <div class="card-meta">
+        ${c.deadline?`<span>📅 Limite : ${fmtDate(c.deadline)}</span>`:""}
+        ${c.activites.length?`<span>🎯 ${c.activites.length} activité(s)</span>`:""}
+        ${c.dateEnvoi?`<span>📧 Envoyé le ${fmtDate(c.dateEnvoi)}</span>`:""}
+      </div>
+      ${c.statut==="envoye"?`
+        <div class="stats-row">
+          <div class="stat-box"><div class="stat-val">${c.reponses.length}</div><div class="stat-lbl">Inscriptions</div></div>
+          <div class="stat-box"><div class="stat-val">${[...new Set(c.reponses.map(r=>r.commune))].length}</div><div class="stat-lbl">Communes</div></div>
+          <div class="stat-box"><div class="stat-val">${c.activites.map(aid=>c.reponses.filter(r=>r.prefs.includes(aid)).length).join(" · ")||"—"}</div><div class="stat-lbl">Demandes/act.</div></div>
+        </div>`:""}
+      <div class="card-actions">
+        ${c.statut==="brouillon"||c.statut==="pret"?`<button class="btn btn-sm btn-primary" onclick="event.stopPropagation();openEnvoi(${c.id})">📧 Envoyer à l'école</button>`:""}
+        ${c.statut!=="envoye"?`<button class="btn btn-sm" onclick="event.stopPropagation();openEdit(${c.id})">Modifier</button>`:""}
+        <button class="btn btn-sm" onclick="event.stopPropagation();openDetail(${c.id})">Voir détails</button>
+        ${c.statut==="envoye"?`<button class="btn btn-sm" onclick="event.stopPropagation();copyFormLink(${c.id})">🔗 Copier le lien</button>`:""}
+      </div>
+    </div>`).join("");
+}
+
+function renderActivitesCheckboxes(selectedIds){
+  document.getElementById("activites-checkboxes").innerHTML=ACTIVITES_DISPO.map(a=>`
+    <label class="act-check">
+      <input type="checkbox" value="${a.id}" ${selectedIds.includes(a.id)?"checked":""} />
+      <span>${a.nom} — ${fmtDate(a.date)} (${a.places} places)</span>
+    </label>`).join("");
+}
+
+function getSelectedActivites(){
+  return Array.from(document.querySelectorAll("#activites-checkboxes input:checked")).map(el=>parseInt(el.value));
+}
+
+function openCreate(){
+  editCampaignId=null;
+  document.getElementById("create-title").textContent="Nouvelle campagne";
+  document.getElementById("c-del-btn").style.display="none";
+  document.getElementById("c-titre").value="";
+  document.getElementById("c-type").value="inscription";
+  document.getElementById("c-periode").value="";
+  document.getElementById("c-deadline").value="";
+  document.getElementById("c-message").value="";
+  document.getElementById("preview-link").textContent="https://fritimegruyere.ch/inscription?id=NOUVEAU";
+  renderActivitesCheckboxes([]);
+  document.getElementById("mCreate").style.display="flex";
+}
+
+function openEdit(id){
+  editCampaignId=id;
+  const c=campaigns.find(x=>x.id===id);if(!c)return;
+  document.getElementById("create-title").textContent="Modifier la campagne";
+  document.getElementById("c-del-btn").style.display="inline-block";
+  document.getElementById("c-titre").value=c.titre;
+  document.getElementById("c-type").value=c.type;
+  document.getElementById("c-periode").value=c.periode||"";
+  document.getElementById("c-deadline").value=c.deadline||"";
+  document.getElementById("c-message").value=c.message||"";
+  document.getElementById("preview-link").textContent=`https://fritimegruyere.ch/inscription?id=${id}`;
+  renderActivitesCheckboxes(c.activites);
+  document.getElementById("mCreate").style.display="flex";
+}
+
+function closeMCreate(){document.getElementById("mCreate").style.display="none";}
+
+function saveCampaign(statut){
+  const titre=document.getElementById("c-titre").value.trim();
+  if(!titre){alert("Le titre est obligatoire");return;}
+  const data={titre,type:document.getElementById("c-type").value,periode:document.getElementById("c-periode").value.trim(),deadline:document.getElementById("c-deadline").value,message:document.getElementById("c-message").value.trim(),activites:getSelectedActivites(),statut};
+  if(editCampaignId){campaigns=campaigns.map(c=>c.id===editCampaignId?{...c,...data}:c);}
+  else{campaigns.push({id:nCamp++,...data,dateEnvoi:null,reponses:[]});}
+  closeMCreate();renderAll();
+}
+
+function deleteCampaign(){
+  if(confirm("Supprimer cette campagne ?")){campaigns=campaigns.filter(c=>c.id!==editCampaignId);closeMCreate();renderAll();}
+}
+
+function copyLink(){
+  const txt=document.getElementById("preview-link").textContent;
+  navigator.clipboard.writeText(txt).then(()=>alert("Lien copié !")).catch(()=>alert("Lien : "+txt));
+}
+function copyFormLink(id){
+  const txt=`https://fritimegruyere.ch/inscription?id=${id}`;
+  navigator.clipboard.writeText(txt).then(()=>alert("Lien copié !")).catch(()=>alert("Lien : "+txt));
+}
+
+function openEnvoi(id){envoiTargetId=id;document.getElementById("mEnvoi").style.display="flex";}
+function closeMEnvoi(){document.getElementById("mEnvoi").style.display="none";}
+function confirmEnvoi(){
+  campaigns=campaigns.map(c=>c.id===envoiTargetId?{...c,statut:"envoye",dateEnvoi:new Date().toISOString().split("T")[0]}:c);
+  closeMEnvoi();renderAll();
+  alert("Campagne marquée comme envoyée. Copiez le lien et transmettez-le à l'école.");
+}
+
+function openDetail(id){
+  const c=campaigns.find(x=>x.id===id);if(!c)return;
+  const acts=c.activites.map(aid=>{
+    const a=ACTIVITES_DISPO.find(x=>x.id===aid);
+    const demandes=c.reponses.filter(r=>r.prefs.includes(aid)).length;
+    return a?`<tr><td style="padding:8px 12px;font-size:13px">${a.nom}</td><td style="padding:8px 12px;font-size:13px">${fmtDate(a.date)}</td><td style="padding:8px 12px;font-size:13px;font-weight:600">${demandes}</td><td style="padding:8px 12px;font-size:13px">${a.places}</td></tr>`:"";
+  }).join("");
+
+  document.getElementById("detail-content").innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem">
+      <div>
+        <div style="font-size:16px;font-weight:600">${c.titre}</div>
+        <div style="font-size:12px;color:#888;margin-top:3px">${TYPE_LABELS[c.type]} · ${c.periode||"—"}</div>
+      </div>
+      <button class="btn btn-sm" onclick="closeMDetail()">✕</button>
+    </div>
+
+    ${c.reponses.length?`
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1.25rem">
+        <div class="stat-box"><div class="stat-val">${c.reponses.length}</div><div class="stat-lbl">Inscriptions totales</div></div>
+        <div class="stat-box"><div class="stat-val">${[...new Set(c.reponses.map(r=>r.commune))].length}</div><div class="stat-lbl">Communes représentées</div></div>
+        <div class="stat-box"><div class="stat-val">${fmtDate(c.deadline)||"—"}</div><div class="stat-lbl">Date limite</div></div>
+      </div>`:""}
+
+    ${acts?`
+      <div style="font-size:12px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Activités & demandes</div>
+      <div style="background:#f5f5f3;border-radius:8px;overflow:hidden;margin-bottom:1.25rem">
+        <table style="width:100%;border-collapse:collapse;font-size:13px">
+          <thead><tr style="background:#eee">
+            <th style="padding:8px 12px;text-align:left;font-size:11px;color:#888">Activité</th>
+            <th style="padding:8px 12px;text-align:left;font-size:11px;color:#888">Date</th>
+            <th style="padding:8px 12px;text-align:left;font-size:11px;color:#888">Demandes</th>
+            <th style="padding:8px 12px;text-align:left;font-size:11px;color:#888">Places</th>
+          </tr></thead>
+          <tbody>${acts}</tbody>
+        </table>
+      </div>`:""}
+
+    ${c.reponses.length?`
+      <div style="font-size:12px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Inscriptions reçues (${c.reponses.length})</div>
+      ${c.reponses.map(r=>`
+        <div style="background:#f5f5f3;border-radius:8px;padding:10px 12px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;font-size:13px">
+          <div>
+            <span style="font-weight:500">${r.enfant}</span>
+            <span style="color:#888;font-size:12px;margin-left:6px">${r.age} ans · ${r.commune}</span>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center">
+            <span style="font-size:11px;color:#888">${c.activites.filter(aid=>r.prefs.includes(aid)).length} choix</span>
+            <span style="font-size:11px;color:#bbb">${fmtDate(r.date)}</span>
+          </div>
+        </div>`).join("")}
+    `:`<div style="text-align:center;padding:1.5rem;color:#bbb;font-size:13px">Aucune inscription pour l'instant</div>`}
+
+    <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid #eee">
+      <div style="font-size:12px;color:#888;margin-bottom:6px">Lien du formulaire</div>
+      <div class="link-box">
+        <span>https://fritimegruyere.ch/inscription?id=${c.id}</span>
+        <button class="btn btn-sm" onclick="copyFormLink(${c.id})">📋 Copier</button>
+      </div>
+    </div>
+    <div class="mf"><div></div><button class="btn btn-primary btn-sm" onclick="closeMDetail()">Fermer</button></div>`;
+  document.getElementById("mDetail").style.display="flex";
+}
+function closeMDetail(){document.getElementById("mDetail").style.display="none";}
+
+function renderAll(){renderMetrics();renderCampaigns();}
+renderAll();
+</script>
+</body>
+</html>

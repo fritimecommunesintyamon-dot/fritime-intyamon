@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fri-Time Intyamon — Comité</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#f5f5f3;color:#1a1a1a;font-size:14px}
+.container{max-width:980px;margin:0 auto;padding:1.5rem}
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem}
+h1{font-size:20px;font-weight:600}
+.subtitle{font-size:13px;color:#666;margin-top:2px}
+.btn{padding:7px 14px;border-radius:8px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:13px;font-family:inherit;transition:background .15s}
+.btn:hover{background:#f5f5f3}
+.btn-primary{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.btn-primary:hover{background:#333}
+.btn-sm{padding:4px 10px;font-size:12px}
+.btn-danger{color:#7a1f1f;border-color:#f4c0c0}
+.btn-danger:hover{background:#fcebeb}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.5rem}
+.metric{background:#fff;border-radius:10px;padding:12px;border:1px solid #eee}
+.metric-val{font-size:22px;font-weight:600}
+.metric-lbl{font-size:11px;color:#888;margin-top:2px}
+.toolbar{display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap}
+.search{flex:1;min-width:160px;padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit}
+.filter-btn{padding:4px 12px;border-radius:20px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:12px;color:#666}
+.filter-btn.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.card{background:#fff;border:1px solid #eee;border-radius:12px;padding:1.25rem;cursor:pointer;transition:border-color .15s}
+.card:hover{border-color:#ccc}
+.card.inactif{opacity:.6}
+.card-top{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.avatar{width:44px;height:44px;border-radius:50%;background:#e6f1fb;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;color:#1a5fa0;flex-shrink:0}
+.card-name{font-size:15px;font-weight:600}
+.card-role{font-size:12px;color:#666;margin-top:2px}
+.badge{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500;white-space:nowrap}
+.badge-actif{background:#eaf3de;color:#275a0a}
+.badge-inactif{background:#eee;color:#666}
+.badge-remplacant{background:#faeeda;color:#633806}
+.badge-role{background:#e6f1fb;color:#0c447c;font-size:11px;padding:2px 8px;border-radius:20px}
+.card-meta{font-size:12px;color:#888;display:flex;flex-direction:column;gap:3px}
+.task-mini{font-size:11px;padding:3px 8px;background:#fafaf8;border:1px solid #eee;border-radius:6px;margin-top:3px;display:flex;justify-content:space-between}
+.task-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:3px}
+.dot-ouverte{background:#888}
+.dot-assignee{background:#378add}
+.dot-encours{background:#ef9f27}
+.dot-terminee{background:#639922}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;align-items:flex-start;justify-content:center;padding:2rem 1rem;overflow-y:auto}
+.modal{background:#fff;border-radius:12px;border:1px solid #eee;padding:1.5rem;width:min(600px,100%)}
+.modal-title{font-size:16px;font-weight:600;margin-bottom:1.25rem;padding-bottom:1rem;border-bottom:1px solid #eee}
+.sec{font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.06em;margin:1rem 0 .75rem;padding-top:1rem;border-top:1px solid #eee}
+.fg{margin-bottom:.75rem}
+.fl{font-size:12px;color:#666;margin-bottom:4px;display:block}
+.fi{width:100%;padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit}
+.fi:focus{outline:none;border-color:#aaa}
+textarea.fi{resize:vertical;min-height:60px}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mf{display:flex;justify-content:space-between;align-items:center;margin-top:1.25rem;padding-top:1rem;border-top:1px solid #eee}
+.dl{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px}
+.dv{font-size:13px;margin-bottom:10px}
+.resp-item{display:flex;align-items:flex-start;gap:8px;padding:8px 10px;background:#fafaf8;border-radius:8px;margin-bottom:6px;font-size:13px}
+.resp-item-del{background:none;border:none;cursor:pointer;color:#bbb;font-size:16px;line-height:1;margin-left:auto;padding:0 2px}
+.resp-item-del:hover{color:#791f1f}
+.tache-det{display:flex;align-items:center;gap:8px;padding:7px 10px;background:#fafaf8;border:1px solid #eee;border-radius:8px;margin-bottom:6px;font-size:13px}
+.status-pill{font-size:11px;padding:2px 7px;border-radius:20px;font-weight:500}
+.sp-ouverte{background:#f1efea;color:#444}
+.sp-assignee{background:#e6f1fb;color:#0c447c}
+.sp-encours{background:#faeeda;color:#633806}
+.sp-terminee{background:#eaf3de;color:#275a0a}
+.sp-archivee{background:#eee;color:#666}
+.add-resp-row{display:flex;gap:6px;margin-top:6px}
+</style>
+  <script src="fritime_data.js"></script>
+  <script src="fritime_sync.js"></script>
+  <script src="fritime_auth.js"></script>
+</head>
+<body class="ft-body-offset">
+<!-- SHARED NAV - Fri-Time Intyamon -->
+<style>
+.ft-topbar{background:#1a1a1a;color:#fff;padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:52px;position:fixed;top:0;left:0;right:0;z-index:1000}
+.ft-logo{font-size:15px;font-weight:700;letter-spacing:.05em;color:#fff;text-decoration:none;white-space:nowrap}
+.ft-topbar-right{display:flex;align-items:center;gap:12px}
+.ft-user-name{font-size:12px;opacity:.6;display:none}
+.ft-avatar{width:30px;height:30px;border-radius:50%;background:#333;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;cursor:pointer;position:relative}
+.ft-avatar-menu{display:none;position:absolute;top:36px;right:0;background:#fff;border:1px solid #eee;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.1);min-width:180px;z-index:100;overflow:hidden}
+.ft-avatar-menu.open{display:block}
+.ft-avatar-menu-item{padding:10px 14px;font-size:13px;color:#1a1a1a;cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .1s}
+.ft-avatar-menu-item:hover{background:#f5f5f3}
+.ft-avatar-menu-item.red{color:#791f1f}
+.ft-avatar-divider{height:1px;background:#eee;margin:4px 0}
+.ft-sidebar{position:fixed;top:52px;left:0;width:210px;height:calc(100vh - 52px);background:#fff;border-right:1px solid #eee;overflow-y:auto;z-index:999;transform:translateX(-100%);transition:transform .2s}
+.ft-sidebar.open{transform:translateX(0)}
+.ft-sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:998;top:52px}
+.ft-sidebar-overlay.open{display:block}
+.ft-nav-section{padding:6px 14px;font-size:10px;font-weight:700;color:#bbb;text-transform:uppercase;letter-spacing:.08em;margin-top:8px}
+.ft-nav-item{display:flex;align-items:center;gap:9px;padding:9px 14px;font-size:13px;color:#555;cursor:pointer;transition:all .1s;text-decoration:none;border-left:3px solid transparent;white-space:nowrap}
+.ft-nav-item:hover{background:#fafaf8;color:#1a1a1a}
+.ft-nav-item.active{background:#f5f5f3;color:#1a1a1a;font-weight:600;border-left-color:#1a1a1a}
+.ft-nav-ico{font-size:15px;flex-shrink:0;opacity:.7}
+.ft-nav-badge{margin-left:auto;font-size:10px;background:#fcebeb;color:#791f1f;padding:1px 6px;border-radius:20px;font-weight:700}
+.ft-nav-badge.green{background:#eaf3de;color:#275a0a}
+.ft-nav-badge.blue{background:#e6f1fb;color:#0c447c}
+.ft-menu-btn{background:none;border:none;color:#fff;cursor:pointer;font-size:20px;padding:4px 8px;display:flex;align-items:center;justify-content:center;opacity:.8}
+.ft-menu-btn:hover{opacity:1}
+.ft-body-offset{padding-top:52px}
+.ft-layout{display:flex;min-height:calc(100vh - 52px)}
+.ft-sidebar-desktop{width:210px;flex-shrink:0;background:#fff;border-right:1px solid #eee;position:sticky;top:52px;height:calc(100vh - 52px);overflow-y:auto;flex-shrink:0}
+.ft-main{flex:1;overflow-x:hidden;min-width:0}
+@media(max-width:768px){
+  .ft-sidebar-desktop{display:none!important}
+  .ft-user-name{display:none}
+  .ft-main{padding:1rem!important}
+}
+@media(min-width:769px){
+  .ft-sidebar{display:none!important}
+  .ft-sidebar-overlay{display:none!important}
+  .ft-menu-btn{display:none!important}
+  .ft-sidebar-desktop{display:block!important}
+}
+</style>
+
+<div class="ft-topbar">
+  <div style="display:flex;align-items:center;gap:10px">
+    <button class="ft-menu-btn" onclick="toggleSidebar()" id="ft-menu-btn">☰</button>
+    <a href="fritime_dashboard.html" class="ft-logo">Fri-Time Intyamon</a>
+  </div>
+  <div class="ft-topbar-right">
+    <span class="ft-user-name" id="ft-user-name">—</span>
+    <div class="ft-avatar" id="ft-avatar" onclick="toggleAvatarMenu()">
+      <span id="ft-avatar-initials">?</span>
+      <div class="ft-avatar-menu" id="ft-avatar-menu">
+        <div class="ft-avatar-menu-item" style="background:#f5f5f3;cursor:default">
+          <div>
+            <div style="font-weight:600;font-size:13px" id="ft-menu-name">—</div>
+            <div style="font-size:11px;color:#888" id="ft-menu-role">—</div>
+          </div>
+        </div>
+        <div class="ft-avatar-divider"></div>
+        <a href="fritime_dashboard.html" class="ft-avatar-menu-item">🏠 Tableau de bord</a>
+        <div class="ft-avatar-menu-item" onclick="doLogout()">🔒 Se déconnecter</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="ft-sidebar-overlay" id="ft-sidebar-overlay" onclick="toggleSidebar()"></div>
+
+<div class="ft-sidebar" id="ft-sidebar">
+  <div class="ft-nav-section">Principal</div>
+  <a class="ft-nav-item" href="fritime_dashboard.html" data-page="dashboard"><span class="ft-nav-ico">🏠</span> Tableau de bord</a>
+  <a class="ft-nav-item" href="fritime_activites.html" data-page="activites"><span class="ft-nav-ico">🎯</span> Activités</a>
+  <a class="ft-nav-item" href="fritime_inscriptions.html" data-page="inscriptions"><span class="ft-nav-ico">📋</span> Inscriptions</a>
+  <a class="ft-nav-item" href="fritime_enfants.html" data-page="enfants"><span class="ft-nav-ico">👦</span> Enfants</a>
+
+  <div class="ft-nav-section">Organisation</div>
+  <a class="ft-nav-item" href="fritime_taches.html" data-page="taches"><span class="ft-nav-ico">✅</span> Tâches</a>
+  <a class="ft-nav-item" href="fritime_comite.html" data-page="comite"><span class="ft-nav-ico">👥</span> Comité</a>
+  <a class="ft-nav-item" href="fritime_campagnes.html" data-page="campagnes"><span class="ft-nav-ico">📧</span> Campagnes</a>
+  <a class="ft-nav-item" href="fritime_sondages.html" data-page="sondages"><span class="ft-nav-ico">⭐</span> Sondages</a>
+
+  <div class="ft-nav-section">Finances & Partenaires</div>
+  <a class="ft-nav-item" href="fritime_budget.html" data-page="budget"><span class="ft-nav-ico">💰</span> Budget</a>
+  <a class="ft-nav-item" href="fritime_prestataires.html" data-page="prestataires"><span class="ft-nav-ico">🤝</span> Prestataires</a>
+
+  <div class="ft-nav-section">Contenu</div>
+  <a class="ft-nav-item" href="fritime_idees.html" data-page="idees"><span class="ft-nav-ico">💡</span> Banque d'idées</a>
+  <a class="ft-nav-item" href="fritime_documents.html" data-page="documents"><span class="ft-nav-ico">📁</span> Documents</a>
+
+  <div class="ft-nav-section">Sécurité</div>
+  <a class="ft-nav-item" href="fritime_incidents.html" data-page="incidents"><span class="ft-nav-ico">⚠️</span> Incidents</a>
+  <a class="ft-nav-item" href="fritime_urgences.html" data-page="urgences"><span class="ft-nav-ico">🚨</span> Urgences</a>
+  <a class="ft-nav-item" href="fritime_modifications.html" data-page="modifications"><span class="ft-nav-ico">🔄</span> Demandes</a>
+</div>
+
+<script>
+(function(){
+  // Auth check
+  const user = sessionStorage.getItem("ft-user");
+  const publicPages = ["fritime_login.html","fritime_inscription_publique.html","fritime_sondage_parent.html"];
+  const currentPage = window.location.pathname.split("/").pop();
+  if(!user && !publicPages.includes(currentPage)){
+    window.location.href = "fritime_login.html";
+    return;
+  }
+  if(user){
+    const u = JSON.parse(user);
+    const ini = ((u.nom||"").split(" ").map(p=>p[0]||"").join("")).substring(0,2).toUpperCase();
+    document.getElementById("ft-avatar-initials").textContent = ini||"?";
+    document.getElementById("ft-user-name").textContent = u.nom||"";
+    document.getElementById("ft-menu-name").textContent = u.nom||"";
+    document.getElementById("ft-menu-role").textContent = u.role||"";
+    document.getElementById("ft-user-name").style.display = "block";
+  }
+
+  // Active nav item
+  document.querySelectorAll(".ft-nav-item[data-page]").forEach(function(el){
+    if(currentPage.includes(el.dataset.page)) el.classList.add("active");
+  });
+})();
+
+function toggleSidebar(){
+  document.getElementById("ft-sidebar").classList.toggle("open");
+  document.getElementById("ft-sidebar-overlay").classList.toggle("open");
+}
+function toggleAvatarMenu(){
+  document.getElementById("ft-avatar-menu").classList.toggle("open");
+}
+document.addEventListener("click", function(e){
+  const menu = document.getElementById("ft-avatar-menu");
+  const avatar = document.getElementById("ft-avatar");
+  if(menu && !avatar.contains(e.target)) menu.classList.remove("open");
+});
+function doLogout(){
+  sessionStorage.removeItem("ft-user");
+  window.location.href = "fritime_login.html";
+}
+</script>
+
+<div class="container">
+
+<div class="header">
+  <div><h1>Comité</h1><div class="subtitle">Membres, rôles et responsabilités — Fri-Time</div></div>
+  <button class="btn btn-primary" onclick="openCreate()">+ Nouveau membre</button>
+</div>
+
+<div class="metrics" id="metrics"></div>
+
+<div class="toolbar">
+  <input class="search" id="search" placeholder="Rechercher un membre..." oninput="render()" />
+  <button class="filter-btn active" onclick="setFilter('tous',this)">Tous</button>
+  <button class="filter-btn" onclick="setFilter('actif',this)">Actifs</button>
+  <button class="filter-btn" onclick="setFilter('inactif',this)">Inactifs</button>
+  <button class="filter-btn" onclick="setFilter('remplacant',this)">Remplaçants</button>
+</div>
+
+<div class="grid" id="grid"></div>
+
+</div>
+
+<!-- Modal création -->
+<div id="mCreate" class="overlay" onclick="if(event.target.id==='mCreate')closeCreate()">
+<div class="modal" onclick="event.stopPropagation()">
+  <div class="modal-title">Nouveau membre du comité</div>
+  <div class="fr">
+    <div class="fg"><label class="fl">Prénom *</label><input class="fi" id="cp" /></div>
+    <div class="fg"><label class="fl">Nom *</label><input class="fi" id="cn" /></div>
+  </div>
+  <div class="fr">
+    <div class="fg"><label class="fl">Rôle *</label>
+      <div style="display:flex;gap:6px">
+        <select class="fi" id="cr" style="flex:1"></select>
+        <button class="btn btn-sm" onclick="toggleNewRole('cr-new')" type="button">+</button>
+      </div>
+      <div id="cr-new" style="display:none;margin-top:6px;display:none">
+        <div style="display:flex;gap:6px">
+          <input class="fi" id="cr-new-val" placeholder="Nouveau rôle..." style="flex:1" />
+          <button class="btn btn-sm" onclick="addNewRole('cr')" type="button">OK</button>
+        </div>
+      </div>
+    </div>
+    <div class="fg"><label class="fl">Statut</label>
+      <select class="fi" id="cs">
+        <option value="actif">Actif</option>
+        <option value="inactif">Inactif</option>
+        <option value="remplacant">Remplaçant</option>
+      </select>
+    </div>
+  </div>
+  <div class="fr">
+    <div class="fg"><label class="fl">Email</label><input class="fi" type="email" id="ce" /></div>
+    <div class="fg"><label class="fl">Téléphone</label><input class="fi" type="tel" id="ct" /></div>
+  </div>
+  <div class="fr">
+    <div class="fg"><label class="fl">Commune</label><input class="fi" id="cc" placeholder="Ex: Bulle" /></div>
+    <div class="fg"><label class="fl">Date d'entrée</label><input class="fi" type="date" id="cde" /></div>
+  </div>
+  <div class="fr">
+    <div class="fg"><label class="fl">Fin d\'engagement (facultatif)</label><input class="fi" type="date" id="cfe" /></div>
+    <div class="fg"><label class="fl">Suppléant de</label>
+      <select class="fi" id="csu"><option value="">— Aucun —</option></select>
+    </div>
+  </div>
+  <div class="fg"><label class="fl">Notes</label><textarea class="fi" id="cno" placeholder="Informations complémentaires..."></textarea></div>
+  <div class="mf">
+    <button class="btn" onclick="closeCreate()">Annuler</button>
+    <button class="btn btn-primary" onclick="saveCreate()">Enregistrer</button>
+  </div>
+</div>
+</div>
+
+<!-- Modal détail -->
+<div id="mDetail" class="overlay" onclick="if(event.target.id==='mDetail')closeDetail()">
+<div class="modal" onclick="event.stopPropagation()"><div id="det"></div></div>
+</div>
+
+<!-- Modal édition -->
+<div id="mEdit" class="overlay" onclick="if(event.target.id==='mEdit')closeEdit()">
+<div class="modal" onclick="event.stopPropagation()">
+  <div class="modal-title">Modifier le membre</div>
+  <div class="fr">
+    <div class="fg"><label class="fl">Prénom *</label><input class="fi" id="ep" /></div>
+    <div class="fg"><label class="fl">Nom *</label><input class="fi" id="en" /></div>
+  </div>
+  <div class="fr">
+    <div class="fg"><label class="fl">Rôle *</label>
+      <div style="display:flex;gap:6px">
+        <select class="fi" id="er" style="flex:1"></select>
+        <button class="btn btn-sm" onclick="toggleNewRole('er-new')" type="button">+</button>
+      </div>
+      <div id="er-new" style="display:none">
+        <div style="display:flex;gap:6px;margin-top:6px">
+          <input class="fi" id="er-new-val" placeholder="Nouveau rôle..." style="flex:1" />
+          <button class="btn btn-sm" onclick="addNewRole('er')" type="button">OK</button>
+        </div>
+      </div>
+    </div>
+    <div class="fg"><label class="fl">Statut</label>
+      <select class="fi" id="es">
+        <option value="actif">Actif</option>
+        <option value="inactif">Inactif</option>
+        <option value="remplacant">Remplaçant</option>
+      </select>
+    </div>
+  </div>
+  <div class="fr">
+    <div class="fg"><label class="fl">Email</label><input class="fi" type="email" id="ee" /></div>
+    <div class="fg"><label class="fl">Téléphone</label><input class="fi" type="tel" id="ett" /></div>
+  </div>
+  <div class="fr">
+    <div class="fg"><label class="fl">Commune</label><input class="fi" id="ec" /></div>
+    <div class="fg"><label class="fl">Date d'entrée</label><input class="fi" type="date" id="ede" /></div>
+  </div>
+  <div class="fr">
+    <div class="fg"><label class="fl">Fin d\'engagement</label><input class="fi" type="date" id="efe" /></div>
+    <div class="fg"><label class="fl">Suppléant de</label>
+      <select class="fi" id="esu"><option value="">— Aucun —</option></select>
+    </div>
+  </div>
+  <div class="fg"><label class="fl">Notes</label><textarea class="fi" id="eno"></textarea></div>
+
+  <div class="sec" style="margin-top:.5rem">Responsabilités permanentes</div>
+  <div id="edit-resps"></div>
+  <div class="add-resp-row">
+    <input class="fi" id="new-resp" placeholder="Ex: Gérer les inscriptions chaque semestre..." style="flex:1" />
+    <button class="btn btn-sm" onclick="addResp()">Ajouter</button>
+  </div>
+
+  <div class="mf">
+    <button class="btn btn-danger btn-sm" onclick="deleteMember()">Supprimer</button>
+    <div style="display:flex;gap:8px">
+      <button class="btn" onclick="closeEdit()">Annuler</button>
+      <button class="btn btn-primary" onclick="saveEdit()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+let ROLES=['Présidente','Vice-présidente','Trésorière','Secrétaire','Responsable activités','Responsable communication','Responsable inscriptions','Contact prestataires','Membre'];
+
+// Responsabilités permanentes globales : une seule personne par responsabilité + suppléant
+let responsabilites=[
+  {id:1,titre:"Représenter l'association auprès de la commune",titulaireId:1,suppleantId:2},
+  {id:2,titre:"Valider les activités avant envoi au service Fri-Time",titulaireId:1,suppleantId:null},
+  {id:3,titre:"Gérer le budget annuel",titulaireId:2,suppleantId:null},
+  {id:4,titre:"Établir les rapports financiers",titulaireId:2,suppleantId:null},
+  {id:5,titre:"Ouvrir et fermer les inscriptions",titulaireId:3,suppleantId:6},
+  {id:6,titre:"Envoyer les confirmations aux familles",titulaireId:3,suppleantId:6},
+  {id:7,titre:"Gérer les réseaux sociaux",titulaireId:4,suppleantId:null},
+  {id:8,titre:"Rechercher et contacter les prestataires",titulaireId:5,suppleantId:null},
+];
+let nextRespId=9;
+
+let membres=[
+  {id:1,prenom:'Marie',nom:'Dupont',role:'Présidente',statut:'actif',email:'marie.dupont@gmail.com',tel:'+41 79 100 11 22',commune:'Bulle',dateEntree:'2022-09-01',finEngagement:'',suppleantDe:'',notes:"Référente principale pour le service Fri-Time."},
+  {id:2,prenom:'Jean',nom:'Martin',role:'Trésorier',statut:'actif',email:'jean.martin@gmail.com',tel:'+41 79 200 22 33',commune:'Intyamons',dateEntree:'2022-09-01',finEngagement:'',suppleantDe:'',notes:''},
+  {id:3,prenom:'Sophie',nom:'Remy',role:'Responsable inscriptions',statut:'actif',email:'sophie.remy@gmail.com',tel:'+41 79 300 33 44',commune:'Broc',dateEntree:'2023-01-15',finEngagement:'',suppleantDe:'',notes:''},
+  {id:4,prenom:'Lara',nom:'Blanc',role:'Responsable communication',statut:'actif',email:'lara.blanc@gmail.com',tel:'+41 79 400 44 55',commune:'Bulle',dateEntree:'2023-09-01',finEngagement:'',suppleantDe:'',notes:''},
+  {id:5,prenom:'Paul',nom:'Morel',role:'Contact prestataires',statut:'actif',email:'paul.morel@gmail.com',tel:'+41 79 500 55 66',commune:'Châtel-St-Denis',dateEntree:'2022-09-01',finEngagement:'2026-08-31',suppleantDe:'',notes:"Fin d'engagement prévue en août 2026."},
+  {id:6,prenom:'Ana',nom:'Favre',role:'Membre',statut:'remplacant',email:'ana.favre@gmail.com',tel:'+41 79 600 66 77',commune:'Bulle',dateEntree:'2024-03-01',finEngagement:'',suppleantDe:"Sophie Remy",notes:"Remplace Sophie en cas d'absence."},
+];
+let nid=7,selId=null,filtre='tous',editResps=[];
+
+function membreName(id){const m=membres.find(x=>x.id===id);return m?m.prenom+' '+m.nom:'—';}
+function respsDe(membreId){return responsabilites.filter(r=>r.titulaireId===membreId);}
+function suppleantPour(membreId){return responsabilites.filter(r=>r.suppleantId===membreId);}
+function ini(m){return((m.prenom||'')[0]+(m.nom||'')[0]).toUpperCase();}
+function fmtDate(d){if(!d)return'';const[y,m,j]=d.split('-');return`${j}.${m}.${y}`;}
+function tachesOf(m){
+  return[
+    {titre:"Contacter le prestataire poterie",statut:"terminee"},
+    {titre:"Réserver la salle communale",statut:"encours"},
+    {titre:"Préparer la liste participants",statut:"assignee"},
+  ].filter((_,i)=>i<(m.id%3));
+}
+
+function fillRoleSelect(id,currentVal){
+  const sel=document.getElementById(id);if(!sel)return;
+  sel.innerHTML=ROLES.map(r=>`<option value="${r}"${currentVal===r?' selected':''}>${r}</option>`).join('');
+}
+function toggleNewRole(blockId){
+  const el=document.getElementById(blockId);
+  el.style.display=el.style.display==='none'||el.style.display===''?'block':'none';
+}
+function addNewRole(selectId){
+  const inputId=selectId+'-new-val';
+  const val=document.getElementById(inputId).value.trim();
+  if(!val)return;
+  if(!ROLES.includes(val))ROLES.push(val);
+  fillRoleSelect(selectId,val);
+  document.getElementById(selectId).value=val;
+  document.getElementById(inputId).value='';
+  document.getElementById(selectId+'-new').style.display='none';
+}
+
+function renderMetrics(){
+  const ac=membres.filter(m=>m.statut==='actif').length;
+  const in_=membres.filter(m=>m.statut==='inactif').length;
+  const re=membres.filter(m=>m.statut==='remplacant').length;
+  document.getElementById('metrics').innerHTML=[
+    {val:membres.length,lbl:'Total membres'},
+    {val:ac,lbl:'Actifs'},
+    {val:re,lbl:'Remplaçants'},
+    {val:in_,lbl:'Inactifs'}
+  ].map(x=>`<div class="metric"><div class="metric-val">${x.val}</div><div class="metric-lbl">${x.lbl}</div></div>`).join('');
+}
+
+function getFiltered(){
+  const q=(document.getElementById('search')||{value:''}).value.toLowerCase();
+  return membres.filter(m=>{
+    const mf=filtre==='tous'||m.statut===filtre;
+    const ms=!q||(m.prenom+' '+m.nom).toLowerCase().includes(q)||m.role.toLowerCase().includes(q);
+    return mf&&ms;
+  });
+}
+
+function render(){
+  renderMetrics();
+  const filtered=getFiltered();
+  const g=document.getElementById('grid');
+  if(!filtered.length){g.innerHTML='<div style="color:#888;font-size:13px;padding:2rem">Aucun membre trouvé</div>';return;}
+  g.innerHTML=filtered.map(m=>{
+    const resps=respsDe(m.id);
+    const suppl=suppleantPour(m.id);
+    const taches=tachesOf(m);
+    const enCours=taches.filter(t=>t.statut!=='terminee'&&t.statut!=='archivee');
+    return`<div class="card${m.statut==='inactif'?' inactif':''}" onclick="openDetail(${m.id})">
+      <div class="card-top">
+        <div class="avatar">${ini(m)}</div>
+        <div style="flex:1">
+          <div class="card-name">${m.prenom} ${m.nom}</div>
+          <div class="card-role">${m.role}</div>
+        </div>
+        <span class="badge badge-${m.statut}">${m.statut==='actif'?'Actif':m.statut==='inactif'?'Inactif':'Remplaçant'}</span>
+      </div>
+      <div class="card-meta">
+        ${m.commune?`<span>📍 ${m.commune}</span>`:''}
+        ${m.email?`<span>✉️ ${m.email}</span>`:''}
+        ${m.tel?`<span>📞 <a href="tel:${m.tel}" onclick="event.stopPropagation()" style="color:inherit;text-decoration:none">${m.tel}</a></span>`:''}
+        ${m.suppleantDe?`<span>↪ Suppléant de ${m.suppleantDe}</span>`:''}
+        ${m.finEngagement?`<span>📅 Fin : ${fmtDate(m.finEngagement)}</span>`:''}
+      </div>
+      ${resps.length?`<div style="margin-top:10px;padding-top:10px;border-top:1px solid #eee">
+        <div style="font-size:11px;color:#888;margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em">Responsabilités (${resps.length})</div>
+        ${resps.slice(0,2).map(r=>`<div style="font-size:12px;color:#555;padding:3px 0;display:flex;gap:6px">
+          <span style="color:#bbb">—</span>
+          <span style="flex:1">${r.titre}</span>
+          ${r.suppleantId?`<span style="font-size:11px;color:#888" title="Suppléant">↪ ${membreName(r.suppleantId).split(' ')[0]}</span>`:''}
+        </div>`).join('')}
+        ${resps.length>2?`<div style="font-size:11px;color:#888;margin-top:2px">+${resps.length-2} autre(s)</div>`:''}
+      </div>`:''}
+      ${suppl.length?`<div style="margin-top:6px;padding-top:6px;border-top:1px solid #eee">
+        <div style="font-size:11px;color:#888;margin-bottom:4px">Suppléant pour ${suppl.length} responsabilité(s)</div>
+      </div>`:''}
+      ${enCours.length?`<div style="margin-top:8px;padding-top:8px;border-top:1px solid #eee">
+        <div style="font-size:11px;color:#888;margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em">Tâches en cours (${enCours.length})</div>
+        ${enCours.map(t=>`<div class="task-mini"><span style="flex:1">${t.titre}</span><span class="status-pill sp-${t.statut}">${t.statut==='encours'?'En cours':t.statut==='assignee'?'Assignée':'Ouverte'}</span></div>`).join('')}
+      </div>`:''}
+    </div>`;
+  }).join('');
+}
+
+function setFilter(f,btn){filtre=f;document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');render();}
+
+function fillSuppleantSelect(selectId,excludeId){
+  const sel=document.getElementById(selectId);if(!sel)return;
+  sel.innerHTML='<option value="">— Aucun —</option>'+membres.filter(m=>m.id!==excludeId).map(m=>`<option value="${m.prenom} ${m.nom}">${m.prenom} ${m.nom}</option>`).join('');
+}
+
+function fillMembreSelect(selectId,currentId,excludeId){
+  const sel=document.getElementById(selectId);if(!sel)return;
+  sel.innerHTML='<option value="">— Aucun —</option>'+membres.filter(m=>m.id!==excludeId).map(m=>`<option value="${m.id}"${m.id===currentId?' selected':''}>${m.prenom} ${m.nom}</option>`).join('');
+}
+
+function openCreate(){fillSuppleantSelect('csu',null);fillRoleSelect('cr','Membre');document.getElementById('mCreate').style.display='flex';}
+function closeCreate(){
+  document.getElementById('mCreate').style.display='none';
+  ['cp','cn','ce','ct','cc','cde','cfe','cno'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+}
+function saveCreate(){
+  const p=document.getElementById('cp').value.trim(),n=document.getElementById('cn').value.trim();
+  if(!p||!n){alert('Prénom et nom obligatoires');return;}
+  membres.push({id:nid++,prenom:p,nom:n,role:document.getElementById('cr').value,statut:document.getElementById('cs').value,email:document.getElementById('ce').value.trim(),tel:document.getElementById('ct').value.trim(),commune:document.getElementById('cc').value.trim(),dateEntree:document.getElementById('cde').value,finEngagement:document.getElementById('cfe').value,suppleantDe:document.getElementById('csu').value,notes:document.getElementById('cno').value.trim()});
+  closeCreate();render();
+}
+
+function openDetail(id){selId=id;renderDet();document.getElementById('mDetail').style.display='flex';}
+function closeDetail(){document.getElementById('mDetail').style.display='none';}
+function renderDet(){
+  const m=membres.find(x=>x.id===selId);if(!m)return;
+  const resps=respsDe(m.id);
+  const suppl=suppleantPour(m.id);
+  const taches=tachesOf(m);
+  document.getElementById('det').innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="avatar" style="width:48px;height:48px;font-size:18px">${ini(m)}</div>
+        <div>
+          <div style="font-size:16px;font-weight:600">${m.prenom} ${m.nom}</div>
+          <span class="badge-role">${m.role}</span>
+          <span class="badge badge-${m.statut}" style="margin-left:4px">${m.statut==='actif'?'Actif':m.statut==='inactif'?'Inactif':'Remplaçant'}</span>
+        </div>
+      </div>
+      <button class="btn btn-sm" onclick="closeDetail()">✕</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;margin-bottom:12px">
+      <div><div class="dl">Email</div><div class="dv">${m.email||'—'}</div></div>
+      <div><div class="dl">Téléphone</div><div class="dv">${m.tel||'—'}</div></div>
+      <div><div class="dl">Commune</div><div class="dv">${m.commune||'—'}</div></div>
+      <div><div class="dl">Depuis</div><div class="dv">${fmtDate(m.dateEntree)||'—'}</div></div>
+      ${m.finEngagement?`<div><div class="dl">Fin d\'engagement</div><div class="dv">${fmtDate(m.finEngagement)}</div></div>`:''}
+      ${m.suppleantDe?`<div><div class="dl">Suppléant de</div><div class="dv">${m.suppleantDe}</div></div>`:''}
+    </div>
+    <div style="font-size:12px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Responsabilités permanentes</div>
+    ${resps.length?resps.map(r=>`
+      <div class="resp-item" style="flex-direction:column;gap:4px">
+        <div style="display:flex;align-items:center;gap:8px;width:100%">
+          <span style="color:#bbb;flex-shrink:0">—</span>
+          <span style="flex:1;font-weight:500">${r.titre}</span>
+          <button class="resp-item-del" onclick="deleteResp(${r.id})">×</button>
+        </div>
+        <div style="padding-left:20px;font-size:12px;color:#888">
+          Suppléant : ${r.suppleantId?`<strong style="color:#0c447c">${membreName(r.suppleantId)}</strong>`:'<em>non défini</em>'}
+          <button class="btn btn-sm" style="margin-left:8px;padding:2px 7px;font-size:11px" onclick="editRespSuppleant(${r.id})">Modifier suppléant</button>
+        </div>
+      </div>`).join(''):`<div style="font-size:13px;color:#bbb;margin-bottom:12px">Aucune responsabilité définie</div>`}
+    ${suppl.length?`
+      <div style="font-size:12px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.05em;margin:12px 0 8px">Suppléant pour</div>
+      ${suppl.map(r=>`<div class="resp-item"><span style="color:#bbb">↪</span><span style="flex:1">${r.titre}</span><span style="font-size:12px;color:#0c447c">(titulaire : ${membreName(r.titulaireId)})</span></div>`).join('')}
+    `:''}
+    ${taches.length?`
+      <div style="font-size:12px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.05em;margin:12px 0 8px">Tâches en cours</div>
+      ${taches.map(t=>`<div class="tache-det"><span style="flex:1">${t.titre}</span><span class="status-pill sp-${t.statut}">${t.statut==='encours'?'En cours':t.statut==='assignee'?'Assignée':t.statut==='terminee'?'Terminée':'Ouverte'}</span></div>`).join('')}
+    `:''}
+    ${m.notes?`<div style="margin-top:10px;padding:10px;background:#fafaf8;border-radius:8px;font-size:13px;color:#555">${m.notes}</div>`:''}
+    <div class="mf">
+      <button class="btn btn-sm btn-danger" onclick="closeDetail();deleteMemberById(${m.id})">Supprimer</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-sm" onclick="openMemberTask(${m.id})">+ Tâche / rôle</button>
+        <button class="btn btn-sm" onclick="closeDetail();openEdit(${m.id})">Modifier</button>
+        <button class="btn btn-sm btn-primary" onclick="closeDetail()">Fermer</button>
+      </div>
+    </div>`;
+}
+
+function deleteResp(respId){
+  if(confirm('Supprimer cette responsabilité ?')){responsabilites=responsabilites.filter(r=>r.id!==respId);renderDet();render();}
+}
+
+function editRespSuppleant(respId){
+  const r=responsabilites.find(x=>x.id===respId);if(!r)return;
+  const opts=membres.filter(m=>m.id!==r.titulaireId).map(m=>`<option value="${m.id}"${r.suppleantId===m.id?" selected":""}>${m.prenom} ${m.nom}</option>`).join("");
+  document.getElementById("supp-select-inner").innerHTML=`<option value="">Aucun</option>${opts}`;
+  document.getElementById("supp-resp-id").value=respId;
+  document.getElementById("mSuppleant").style.display="flex";
+}
+
+function openEdit(id){
+  selId=id;
+  const m=membres.find(x=>x.id===id);if(!m)return;
+  document.getElementById('ep').value=m.prenom;
+  document.getElementById('en').value=m.nom;
+  fillRoleSelect('er',m.role);
+  document.getElementById('es').value=m.statut;
+  document.getElementById('ee').value=m.email||'';
+  document.getElementById('ett').value=m.tel||'';
+  document.getElementById('ec').value=m.commune||'';
+  document.getElementById('ede').value=m.dateEntree||'';
+  document.getElementById('efe').value=m.finEngagement||'';
+  document.getElementById('eno').value=m.notes||'';
+  fillSuppleantSelect('esu',id);
+  document.getElementById('esu').value=m.suppleantDe||'';
+  renderEditResps();
+  document.getElementById('mEdit').style.display='flex';
+}
+function closeEdit(){document.getElementById('mEdit').style.display='none';}
+
+function renderEditResps(){
+  const resps=respsDe(selId);
+  document.getElementById('edit-resps').innerHTML=resps.length?resps.map(r=>`
+    <div class="resp-item" style="flex-direction:column;gap:6px">
+      <div style="display:flex;align-items:center;gap:8px;width:100%">
+        <span style="color:#bbb;flex-shrink:0">—</span>
+        <span style="flex:1">${r.titre}</span>
+        <button class="resp-item-del" onclick="deleteResp(${r.id});renderEditResps()">×</button>
+      </div>
+      <div style="padding-left:20px;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+        <label style="font-size:11px;color:#888">Suppléant :</label>
+        <select class="fi" style="width:auto;font-size:12px;padding:3px 6px" onchange="setRespSuppleant(${r.id},this.value)">
+          <option value="">— Aucun —</option>
+          ${membres.filter(m=>m.id!==selId).map(m=>`<option value="${m.id}"${r.suppleantId===m.id?' selected':''}>${m.prenom} ${m.nom}</option>`).join('')}
+        </select>
+      </div>
+    </div>`).join(''):'<div style="font-size:12px;color:#bbb;margin-bottom:8px">Aucune responsabilité permanente</div>';
+}
+
+function setRespSuppleant(respId,val){
+  responsabilites=responsabilites.map(r=>r.id===respId?{...r,suppleantId:parseInt(val)||null}:r);
+}
+
+function addResp(){
+  const v=document.getElementById('new-resp').value.trim();
+  if(!v)return;
+  // Vérifier unicité
+  const exists=responsabilites.find(r=>r.titre.toLowerCase()===v.toLowerCase());
+  if(exists){
+    alert("Cette responsabilité est déjà attribuée à " + membreName(exists.titulaireId) + ". Une responsabilité ne peut avoir qu\'un seul titulaire.");
+    return;
+  }
+  responsabilites.push({id:nextRespId++,titre:v,titulaireId:selId,suppleantId:null});
+  document.getElementById('new-resp').value='';
+  renderEditResps();
+}
+
+function saveEdit(){
+  const p=document.getElementById('ep').value.trim(),n=document.getElementById('en').value.trim();
+  if(!p||!n){alert('Prénom et nom obligatoires');return;}
+  membres=membres.map(m=>m.id===selId?{...m,prenom:p,nom:n,role:document.getElementById('er').value,statut:document.getElementById('es').value,email:document.getElementById('ee').value.trim(),tel:document.getElementById('ett').value.trim(),commune:document.getElementById('ec').value.trim(),dateEntree:document.getElementById('ede').value,finEngagement:document.getElementById('efe').value,suppleantDe:document.getElementById('esu').value,notes:document.getElementById('eno').value.trim()}:m);
+  closeEdit();render();
+}
+function deleteMember(){if(confirm('Supprimer ce membre ?')){responsabilites=responsabilites.map(r=>({...r,titulaireId:r.titulaireId===selId?null:r.titulaireId,suppleantId:r.suppleantId===selId?null:r.suppleantId}));membres=membres.filter(m=>m.id!==selId);closeEdit();render();}}
+function deleteMemberById(id){if(confirm('Supprimer ce membre ?')){responsabilites=responsabilites.map(r=>({...r,titulaireId:r.titulaireId===id?null:r.titulaireId,suppleantId:r.suppleantId===id?null:r.suppleantId}));membres=membres.filter(m=>m.id!==id);render();}}
+
+function openMemberTask(id){
+  selId=id;
+  const m=membres.find(x=>x.id===id);
+  document.getElementById('mTaskTitle').textContent='Nouvelle tâche pour '+m.prenom+' '+m.nom;
+  document.getElementById('mt-titre').value='';
+  document.getElementById('mt-desc').value='';
+  document.getElementById('mt-date').value='';
+  document.getElementById('mt-type').selectedIndex=0;
+  document.getElementById('mt-prio').selectedIndex=0;
+  // Fill suppléant select in task modal
+  fillMembreSelect('mt-supp',null,id);
+  document.getElementById('mTaskCreate').style.display='flex';
+}
+function closeMemberTask(){document.getElementById('mTaskCreate').style.display='none';}
+function saveMemberTask(){
+  const titre=document.getElementById('mt-titre').value.trim();
+  if(!titre){alert('Le titre est obligatoire');return;}
+  const type=document.getElementById('mt-type').value;
+  if(type==='permanente'){
+    const exists=responsabilites.find(r=>r.titre.toLowerCase()===titre.toLowerCase());
+    if(exists){alert("Cette responsabilité est déjà attribuée à " + membreName(exists.titulaireId) + ". Une responsabilité ne peut avoir qu\'un seul titulaire.");return;}
+    const suppId=parseInt(document.getElementById('mt-supp').value)||null;
+    responsabilites.push({id:nextRespId++,titre,titulaireId:selId,suppleantId:suppId});
+  } else {
+    alert('Tâche ponctuelle créée et assignée. Elle apparaîtra dans le module Tâches une fois les modules connectés.');
+  }
+  closeMemberTask();
+  if(document.getElementById('mDetail').style.display==='flex')renderDet();
+  render();
+}
+
+function saveSuppleant(){
+  const respId=parseInt(document.getElementById("supp-resp-id").value);
+  const val=parseInt(document.getElementById("supp-select-inner").value)||null;
+  responsabilites=responsabilites.map(r=>r.id===respId?{...r,suppleantId:val}:r);
+  document.getElementById("mSuppleant").style.display="none";
+  if(document.getElementById("mDetail").style.display==="flex")renderDet();
+  if(document.getElementById("mEdit").style.display==="flex")renderEditResps();
+}
+render();
+</script>
+
+<!-- Modal nouvelle tâche depuis fiche membre -->
+<div id="mTaskCreate" class="overlay" onclick="if(event.target.id==='mTaskCreate')closeMemberTask()">
+<div class="modal" style="max-width:480px" onclick="event.stopPropagation()">
+  <div class="modal-title" id="mTaskTitle">Nouvelle tâche pour ce membre</div>
+  <div class="fg"><label class="fl">Titre *</label><input class="fi" id="mt-titre" placeholder="Ex: Contacter le prestataire" /></div>
+  <div class="fg"><label class="fl">Description</label><textarea class="fi" id="mt-desc" rows="2" placeholder="Détails..."></textarea></div>
+  <div class="fr">
+    <div class="fg"><label class="fl">Type</label>
+      <select class="fi" id="mt-type">
+        <option value="ponctuelle">Tâche ponctuelle</option>
+        <option value="permanente">Responsabilité permanente</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">Priorité</label>
+      <select class="fi" id="mt-prio">
+        <option value="moyenne">Moyenne</option>
+        <option value="haute">Haute</option>
+        <option value="basse">Basse</option>
+      </select>
+    </div>
+  </div>
+  <div id="mt-supp-row" style="">
+    <div class="fg"><label class="fl">Suppléant (pour responsabilité permanente)</label>
+      <select class="fi" id="mt-supp"><option value="">— Aucun —</option></select>
+    </div>
+  </div>
+  <div class="fg"><label class="fl">Date limite (optionnel)</label><input class="fi" type="date" id="mt-date" style="width:50%" /></div>
+  <div class="mf">
+    <button class="btn" onclick="closeMemberTask()">Annuler</button>
+    <button class="btn btn-primary" onclick="saveMemberTask()">Créer</button>
+  </div>
+</div>
+</div>
+
+<div id="mSuppleant" class="overlay" onclick="if(event.target.id===\'mSuppleant\')document.getElementById(\'mSuppleant\').style.display=\'none\'">
+<div class="modal" style="max-width:380px" onclick="event.stopPropagation()">
+  <div class="modal-title">Modifier le suppléant</div>
+  <input type="hidden" id="supp-resp-id" />
+  <div class="fg"><label class="fl">Suppléant pour cette responsabilité</label>
+    <select class="fi" id="supp-select-inner"></select>
+  </div>
+  <div class="mf">
+    <button class="btn" onclick="document.getElementById(\'mSuppleant\').style.display=\'none\'">Annuler</button>
+    <button class="btn btn-primary" onclick="saveSuppleant()">Enregistrer</button>
+  </div>
+</div>
+</div>
+</body>
+</html>

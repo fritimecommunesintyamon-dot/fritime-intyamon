@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fri-Time Intyamon — Prestataires</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#f5f5f3;color:#1a1a1a;font-size:14px}
+.container{max-width:980px;margin:0 auto;padding:1.5rem}
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem}
+h1{font-size:20px;font-weight:600}
+.subtitle{font-size:13px;color:#666;margin-top:2px}
+.btn{padding:7px 14px;border-radius:8px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:13px;font-family:inherit;transition:background .15s}
+.btn:hover{background:#f5f5f3}
+.btn-primary{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.btn-primary:hover{background:#333}
+.btn-sm{padding:4px 10px;font-size:12px}
+.btn-danger{color:#7a1f1f;border-color:#f4c0c0}
+.btn-danger:hover{background:#fcebeb}
+.btn-gratuit{background:#eaf3de;color:#275a0a;border-color:#c0dd97;font-size:11px;padding:3px 10px;border-radius:20px}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.5rem}
+.metric{background:#fff;border-radius:10px;padding:12px;border:1px solid #eee}
+.metric-val{font-size:22px;font-weight:600}
+.metric-lbl{font-size:11px;color:#888;margin-top:2px}
+.toolbar{display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap;align-items:center}
+.search{flex:1;min-width:160px;padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit}
+.filter-btn{padding:4px 12px;border-radius:20px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:12px;color:#666}
+.filter-btn.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px}
+.card{background:#fff;border:1px solid #eee;border-radius:12px;padding:1.25rem;cursor:pointer;transition:border-color .15s;position:relative}
+.card:hover{border-color:#ccc}
+.card.inactif{opacity:.6}
+.card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px}
+.card-name{font-size:15px;font-weight:600}
+.card-type{font-size:12px;color:#888;margin-top:2px}
+.badge{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500;white-space:nowrap}
+.badge-actif{background:#eaf3de;color:#275a0a}
+.badge-inactif{background:#eee;color:#666}
+.badge-acontacter{background:#faeeda;color:#633806}
+.badge-cat{background:#e6f1fb;color:#0c447c}
+.badge-gratuit{background:#eaf3de;color:#275a0a}
+.stars{color:#ef9f27;font-size:14px;letter-spacing:1px}
+.stars-empty{color:#ddd}
+.card-meta{font-size:12px;color:#888;display:flex;flex-direction:column;gap:3px;margin-top:8px}
+.card-acts{margin-top:8px;padding-top:8px;border-top:1px solid #eee}
+.act-chip{display:inline-block;font-size:11px;padding:2px 8px;background:#f1efea;border-radius:20px;margin:2px;color:#555}
+.eval-mini{font-size:12px;color:#888;margin-top:6px;padding-top:6px;border-top:1px solid #eee}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;align-items:flex-start;justify-content:center;padding:2rem 1rem;overflow-y:auto}
+.modal{background:#fff;border-radius:12px;border:1px solid #eee;padding:1.5rem;width:min(600px,100%)}
+.modal-title{font-size:16px;font-weight:600;margin-bottom:1.25rem;padding-bottom:1rem;border-bottom:1px solid #eee}
+.sec{font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.06em;margin:1rem 0 .75rem;padding-top:1rem;border-top:1px solid #eee}
+.sec-first{border-top:none;padding-top:0;margin-top:0}
+.fg{margin-bottom:.75rem}
+.fl{font-size:12px;color:#666;margin-bottom:4px;display:block}
+.fi{width:100%;padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit}
+.fi:focus{outline:none;border-color:#aaa}
+textarea.fi{resize:vertical;min-height:60px}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fr3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.mf{display:flex;justify-content:space-between;align-items:center;margin-top:1.25rem;padding-top:1rem;border-top:1px solid #eee}
+.dl{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px}
+.dv{font-size:13px;margin-bottom:10px}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:#f5f5f3;border-radius:8px;margin-bottom:.75rem}
+.toggle-label{font-size:13px}
+.toggle{position:relative;width:36px;height:20px;cursor:pointer;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;inset:0;background:#ddd;border-radius:20px;transition:background .2s}
+.toggle-slider:before{content:"";position:absolute;width:14px;height:14px;left:3px;top:3px;background:#fff;border-radius:50%;transition:transform .2s}
+.toggle input:checked+.toggle-slider{background:#1a1a1a}
+.toggle input:checked+.toggle-slider:before{transform:translateX(16px)}
+.acts-list{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
+.act-tag{display:flex;align-items:center;gap:4px;background:#f1efea;border-radius:20px;padding:3px 10px;font-size:12px}
+.act-tag-del{background:none;border:none;cursor:pointer;color:#aaa;font-size:14px;line-height:1;padding:0}
+.act-tag-del:hover{color:#791f1f}
+.add-row{display:flex;gap:6px}
+.eval-item{background:#f5f5f3;border-radius:8px;padding:10px 12px;margin-bottom:8px}
+.eval-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.star-btn{background:none;border:none;font-size:20px;cursor:pointer;padding:2px;line-height:1;color:#ddd}
+.star-btn.active{color:#ef9f27}
+.star-select{display:flex;gap:2px;margin-bottom:8px}
+.info-box{background:#e6f1fb;border-radius:8px;padding:10px 12px;font-size:13px;color:#0c447c;margin-bottom:12px}
+.section{background:#fff;border:1px solid #eee;border-radius:12px;overflow:hidden;margin-bottom:1rem}
+.section-header{padding:10px 14px;background:#fafaf8;border-bottom:1px solid #eee;font-size:13px;font-weight:600}
+</style>
+  <script src="fritime_data.js"></script>
+  <script src="fritime_sync.js"></script>
+  <script src="fritime_auth.js"></script>
+</head>
+<body class="ft-body-offset">
+<!-- SHARED NAV - Fri-Time Intyamon -->
+<style>
+.ft-topbar{background:#1a1a1a;color:#fff;padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:52px;position:fixed;top:0;left:0;right:0;z-index:1000}
+.ft-logo{font-size:15px;font-weight:700;letter-spacing:.05em;color:#fff;text-decoration:none;white-space:nowrap}
+.ft-topbar-right{display:flex;align-items:center;gap:12px}
+.ft-user-name{font-size:12px;opacity:.6;display:none}
+.ft-avatar{width:30px;height:30px;border-radius:50%;background:#333;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;cursor:pointer;position:relative}
+.ft-avatar-menu{display:none;position:absolute;top:36px;right:0;background:#fff;border:1px solid #eee;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.1);min-width:180px;z-index:100;overflow:hidden}
+.ft-avatar-menu.open{display:block}
+.ft-avatar-menu-item{padding:10px 14px;font-size:13px;color:#1a1a1a;cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .1s}
+.ft-avatar-menu-item:hover{background:#f5f5f3}
+.ft-avatar-menu-item.red{color:#791f1f}
+.ft-avatar-divider{height:1px;background:#eee;margin:4px 0}
+.ft-sidebar{position:fixed;top:52px;left:0;width:210px;height:calc(100vh - 52px);background:#fff;border-right:1px solid #eee;overflow-y:auto;z-index:999;transform:translateX(-100%);transition:transform .2s}
+.ft-sidebar.open{transform:translateX(0)}
+.ft-sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:998;top:52px}
+.ft-sidebar-overlay.open{display:block}
+.ft-nav-section{padding:6px 14px;font-size:10px;font-weight:700;color:#bbb;text-transform:uppercase;letter-spacing:.08em;margin-top:8px}
+.ft-nav-item{display:flex;align-items:center;gap:9px;padding:9px 14px;font-size:13px;color:#555;cursor:pointer;transition:all .1s;text-decoration:none;border-left:3px solid transparent;white-space:nowrap}
+.ft-nav-item:hover{background:#fafaf8;color:#1a1a1a}
+.ft-nav-item.active{background:#f5f5f3;color:#1a1a1a;font-weight:600;border-left-color:#1a1a1a}
+.ft-nav-ico{font-size:15px;flex-shrink:0;opacity:.7}
+.ft-nav-badge{margin-left:auto;font-size:10px;background:#fcebeb;color:#791f1f;padding:1px 6px;border-radius:20px;font-weight:700}
+.ft-nav-badge.green{background:#eaf3de;color:#275a0a}
+.ft-nav-badge.blue{background:#e6f1fb;color:#0c447c}
+.ft-menu-btn{background:none;border:none;color:#fff;cursor:pointer;font-size:20px;padding:4px 8px;display:flex;align-items:center;justify-content:center;opacity:.8}
+.ft-menu-btn:hover{opacity:1}
+.ft-body-offset{padding-top:52px}
+.ft-layout{display:flex;min-height:calc(100vh - 52px)}
+.ft-sidebar-desktop{width:210px;flex-shrink:0;background:#fff;border-right:1px solid #eee;position:sticky;top:52px;height:calc(100vh - 52px);overflow-y:auto;flex-shrink:0}
+.ft-main{flex:1;overflow-x:hidden;min-width:0}
+@media(max-width:768px){
+  .ft-sidebar-desktop{display:none!important}
+  .ft-user-name{display:none}
+  .ft-main{padding:1rem!important}
+}
+@media(min-width:769px){
+  .ft-sidebar{display:none!important}
+  .ft-sidebar-overlay{display:none!important}
+  .ft-menu-btn{display:none!important}
+  .ft-sidebar-desktop{display:block!important}
+}
+</style>
+
+<div class="ft-topbar">
+  <div style="display:flex;align-items:center;gap:10px">
+    <button class="ft-menu-btn" onclick="toggleSidebar()" id="ft-menu-btn">☰</button>
+    <a href="fritime_dashboard.html" class="ft-logo">Fri-Time Intyamon</a>
+  </div>
+  <div class="ft-topbar-right">
+    <span class="ft-user-name" id="ft-user-name">—</span>
+    <div class="ft-avatar" id="ft-avatar" onclick="toggleAvatarMenu()">
+      <span id="ft-avatar-initials">?</span>
+      <div class="ft-avatar-menu" id="ft-avatar-menu">
+        <div class="ft-avatar-menu-item" style="background:#f5f5f3;cursor:default">
+          <div>
+            <div style="font-weight:600;font-size:13px" id="ft-menu-name">—</div>
+            <div style="font-size:11px;color:#888" id="ft-menu-role">—</div>
+          </div>
+        </div>
+        <div class="ft-avatar-divider"></div>
+        <a href="fritime_dashboard.html" class="ft-avatar-menu-item">🏠 Tableau de bord</a>
+        <div class="ft-avatar-menu-item" onclick="doLogout()">🔒 Se déconnecter</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="ft-sidebar-overlay" id="ft-sidebar-overlay" onclick="toggleSidebar()"></div>
+
+<div class="ft-sidebar" id="ft-sidebar">
+  <div class="ft-nav-section">Principal</div>
+  <a class="ft-nav-item" href="fritime_dashboard.html" data-page="dashboard"><span class="ft-nav-ico">🏠</span> Tableau de bord</a>
+  <a class="ft-nav-item" href="fritime_activites.html" data-page="activites"><span class="ft-nav-ico">🎯</span> Activités</a>
+  <a class="ft-nav-item" href="fritime_inscriptions.html" data-page="inscriptions"><span class="ft-nav-ico">📋</span> Inscriptions</a>
+  <a class="ft-nav-item" href="fritime_enfants.html" data-page="enfants"><span class="ft-nav-ico">👦</span> Enfants</a>
+
+  <div class="ft-nav-section">Organisation</div>
+  <a class="ft-nav-item" href="fritime_taches.html" data-page="taches"><span class="ft-nav-ico">✅</span> Tâches</a>
+  <a class="ft-nav-item" href="fritime_comite.html" data-page="comite"><span class="ft-nav-ico">👥</span> Comité</a>
+  <a class="ft-nav-item" href="fritime_campagnes.html" data-page="campagnes"><span class="ft-nav-ico">📧</span> Campagnes</a>
+  <a class="ft-nav-item" href="fritime_sondages.html" data-page="sondages"><span class="ft-nav-ico">⭐</span> Sondages</a>
+
+  <div class="ft-nav-section">Finances & Partenaires</div>
+  <a class="ft-nav-item" href="fritime_budget.html" data-page="budget"><span class="ft-nav-ico">💰</span> Budget</a>
+  <a class="ft-nav-item" href="fritime_prestataires.html" data-page="prestataires"><span class="ft-nav-ico">🤝</span> Prestataires</a>
+
+  <div class="ft-nav-section">Contenu</div>
+  <a class="ft-nav-item" href="fritime_idees.html" data-page="idees"><span class="ft-nav-ico">💡</span> Banque d'idées</a>
+  <a class="ft-nav-item" href="fritime_documents.html" data-page="documents"><span class="ft-nav-ico">📁</span> Documents</a>
+
+  <div class="ft-nav-section">Sécurité</div>
+  <a class="ft-nav-item" href="fritime_incidents.html" data-page="incidents"><span class="ft-nav-ico">⚠️</span> Incidents</a>
+  <a class="ft-nav-item" href="fritime_urgences.html" data-page="urgences"><span class="ft-nav-ico">🚨</span> Urgences</a>
+  <a class="ft-nav-item" href="fritime_modifications.html" data-page="modifications"><span class="ft-nav-ico">🔄</span> Demandes</a>
+</div>
+
+<script>
+(function(){
+  // Auth check
+  const user = sessionStorage.getItem("ft-user");
+  const publicPages = ["fritime_login.html","fritime_inscription_publique.html","fritime_sondage_parent.html"];
+  const currentPage = window.location.pathname.split("/").pop();
+  if(!user && !publicPages.includes(currentPage)){
+    window.location.href = "fritime_login.html";
+    return;
+  }
+  if(user){
+    const u = JSON.parse(user);
+    const ini = ((u.nom||"").split(" ").map(p=>p[0]||"").join("")).substring(0,2).toUpperCase();
+    document.getElementById("ft-avatar-initials").textContent = ini||"?";
+    document.getElementById("ft-user-name").textContent = u.nom||"";
+    document.getElementById("ft-menu-name").textContent = u.nom||"";
+    document.getElementById("ft-menu-role").textContent = u.role||"";
+    document.getElementById("ft-user-name").style.display = "block";
+  }
+
+  // Active nav item
+  document.querySelectorAll(".ft-nav-item[data-page]").forEach(function(el){
+    if(currentPage.includes(el.dataset.page)) el.classList.add("active");
+  });
+})();
+
+function toggleSidebar(){
+  document.getElementById("ft-sidebar").classList.toggle("open");
+  document.getElementById("ft-sidebar-overlay").classList.toggle("open");
+}
+function toggleAvatarMenu(){
+  document.getElementById("ft-avatar-menu").classList.toggle("open");
+}
+document.addEventListener("click", function(e){
+  const menu = document.getElementById("ft-avatar-menu");
+  const avatar = document.getElementById("ft-avatar");
+  if(menu && !avatar.contains(e.target)) menu.classList.remove("open");
+});
+function doLogout(){
+  sessionStorage.removeItem("ft-user");
+  window.location.href = "fritime_login.html";
+}
+</script>
+
+<div class="container">
+<div class="header">
+  <div><h1>Prestataires</h1><div class="subtitle">Liste et évaluations — Fri-Time</div></div>
+  <button class="btn btn-primary" onclick="openCreate()">+ Nouveau prestataire</button>
+</div>
+
+<div class="metrics" id="metrics"></div>
+
+<div class="toolbar">
+  <input class="search" id="search" placeholder="Rechercher un prestataire..." oninput="render()" />
+  <button class="filter-btn active" onclick="setFilter('tous',this)">Tous</button>
+  <button class="filter-btn" onclick="setFilter('actif',this)">Actifs</button>
+  <button class="filter-btn" onclick="setFilter('acontacter',this)">À contacter</button>
+  <button class="filter-btn" onclick="setFilter('inactif',this)">Inactifs</button>
+  <button class="filter-btn" onclick="setFilter('gratuit',this)">Gratuits</button>
+</div>
+
+<div class="grid" id="grid"></div>
+</div>
+
+<!-- Modal création / édition -->
+<div id="mCreate" class="overlay" onclick="if(event.target.id==='mCreate')closeCreate()">
+<div class="modal" onclick="event.stopPropagation()">
+  <div class="modal-title" id="create-title">Nouveau prestataire</div>
+
+  <div class="sec sec-first">Informations générales</div>
+  <div class="fg"><label class="fl">Nom de l'entreprise / organisation *</label><input class="fi" id="f-nom" /></div>
+  <div class="fr3">
+    <div class="fg"><label class="fl">Type</label>
+      <select class="fi" id="f-type">
+        <option>Association</option><option>Entreprise</option>
+        <option>Indépendant</option><option>Commune</option><option>Autre</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">Statut</label>
+      <select class="fi" id="f-statut">
+        <option value="actif">Actif</option>
+        <option value="acontacter">À contacter</option>
+        <option value="inactif">Inactif</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">Catégorie</label>
+      <div style="display:flex;gap:6px">
+        <select class="fi" id="f-cat" style="flex:1"></select>
+        <button class="btn btn-sm" onclick="toggleNewCat()" type="button">+</button>
+      </div>
+      <div id="new-cat-row" style="display:none;margin-top:6px">
+        <div class="add-row">
+          <input class="fi" id="new-cat-val" placeholder="Nouvelle catégorie..." style="flex:1" />
+          <button class="btn btn-sm" onclick="addCat()" type="button">OK</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">Contact</div>
+  <div class="fr">
+    <div class="fg"><label class="fl">Prénom contact</label><input class="fi" id="f-cp" /></div>
+    <div class="fg"><label class="fl">Nom contact</label><input class="fi" id="f-cn" /></div>
+  </div>
+  <div class="fr">
+    <div class="fg"><label class="fl">Email</label><input class="fi" type="email" id="f-email" /></div>
+    <div class="fg"><label class="fl">Téléphone</label><input class="fi" type="tel" id="f-tel" /></div>
+  </div>
+  <div class="fg"><label class="fl">Site web</label><input class="fi" type="url" id="f-url" placeholder="https://" /></div>
+  <div class="fg"><label class="fl">Adresse</label><input class="fi" id="f-adresse" placeholder="Rue, NPA Localité" /></div>
+
+  <div class="sec">Activités & tarification</div>
+  <div class="toggle-row">
+    <span class="toggle-label">Activité gratuite</span>
+    <label class="toggle"><input type="checkbox" id="f-gratuit"><span class="toggle-slider"></span></label>
+  </div>
+  <div class="fg">
+    <label class="fl">Activités proposées (facultatif)</label>
+    <div class="acts-list" id="acts-list"></div>
+    <div class="add-row">
+      <input class="fi" id="new-act-val" placeholder="Ex: Poterie, Escalade, Cuisine..." style="flex:1" onkeydown="if(event.key==='Enter'){event.preventDefault();addAct();}" />
+      <button class="btn btn-sm" onclick="addAct()" type="button">Ajouter</button>
+    </div>
+  </div>
+
+  <div class="sec">Notes</div>
+  <div class="fg"><label class="fl">Notes internes</label><textarea class="fi" id="f-notes" placeholder="Informations complémentaires, conditions, remarques..."></textarea></div>
+
+  <div class="mf">
+    <button class="btn btn-danger btn-sm" id="f-del-btn" style="display:none" onclick="deletePrest()">Supprimer</button>
+    <div style="display:flex;gap:8px">
+      <button class="btn" onclick="closeCreate()">Annuler</button>
+      <button class="btn btn-primary" onclick="savePrest()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- Modal détail -->
+<div id="mDetail" class="overlay" onclick="if(event.target.id==='mDetail')closeDetail()">
+<div class="modal" onclick="event.stopPropagation()"><div id="det"></div></div>
+</div>
+
+<!-- Modal évaluation -->
+<div id="mEval" class="overlay" onclick="if(event.target.id==='mEval')closeMEval()">
+<div class="modal" style="max-width:460px" onclick="event.stopPropagation()">
+  <div class="modal-title">Évaluation du prestataire</div>
+  <div class="fg"><label class="fl">Activité concernée</label><input class="fi" id="ev-activite" placeholder="Ex: Atelier poterie — mai 2026" /></div>
+  <div class="fg">
+    <label class="fl">Note (1 à 5 étoiles)</label>
+    <div class="star-select" id="star-select">
+      <button class="star-btn" onclick="setNote(1)" id="s1">★</button>
+      <button class="star-btn" onclick="setNote(2)" id="s2">★</button>
+      <button class="star-btn" onclick="setNote(3)" id="s3">★</button>
+      <button class="star-btn" onclick="setNote(4)" id="s4">★</button>
+      <button class="star-btn" onclick="setNote(5)" id="s5">★</button>
+    </div>
+  </div>
+  <div class="fg"><label class="fl">Commentaire</label><textarea class="fi" id="ev-comment" rows="3" placeholder="Points positifs, axes d'amélioration, recommandation..."></textarea></div>
+  <div class="fg"><label class="fl">Date</label><input class="fi" type="date" id="ev-date" /></div>
+  <div class="mf">
+    <button class="btn" onclick="closeMEval()">Annuler</button>
+    <button class="btn btn-primary" onclick="saveEval()">Enregistrer l'évaluation</button>
+  </div>
+</div>
+</div>
+
+<script>
+let categories=["Sport","Nature","Arts","Cuisine","Musique","Autre"];
+let editActs=[];
+let noteTemp=0;
+let selId=null;
+let editId=null;
+
+let prestataires=[
+  {id:1,nom:"Atelier Terracotta",type:"Indépendant",statut:"actif",cat:"Arts",cp:"Julie",cn:"Favre",email:"julie@terracotta.ch",tel:"+41 79 444 55 66",url:"https://atelierterracotta.ch",adresse:"Rue du Moulin 4, 1630 Bulle",gratuit:false,acts:["Poterie","Modelage","Céramique"],notes:"Très flexible sur les horaires.",evals:[{activite:"Atelier poterie — mai 2026",note:5,comment:"Excellente prestation, enfants ravis.",date:"2026-05-20"}]},
+  {id:2,nom:"Guide Pro Rando",type:"Entreprise",statut:"actif",cat:"Nature",cp:"Marc",cn:"Dupont",email:"marc@guiderando.ch",tel:"+41 79 111 22 33",url:"https://guiderando.ch",adresse:"Route du Col 12, 1663s",gratuit:false,acts:["Randonnée","Observation nature","Orientation"],notes:"Certifié guide de montagne.",evals:[{activite:"Sortie Lac Noir — juin 2025",note:4,comment:"Très professionnel, bon rythme.",date:"2025-06-14"}]},
+  {id:3,nom:"Cirque en",type:"Association",statut:"acontacter",cat:"Arts",cp:"Sophie",cn:"Blanc",email:"contact@cirquegruyere.ch",tel:"+41 79 333 44 55",url:"",adresse:"",gratuit:false,acts:["Jonglage","Acrobatie","Équilibre"],notes:"Contacté en janvier, en attente de réponse.",evals:[]},
+  {id:4,nom:"Cuisine du Monde ASBL",type:"Association",statut:"actif",cat:"Cuisine",cp:"Ana",cn:"Martin",email:"ana@cuisinedumonde.ch",tel:"+41 79 222 33 44",url:"",adresse:"Avenue de la Gare 8, 1630 Bulle",gratuit:true,acts:["Cuisine internationale","Ateliers parents-enfants"],notes:"Propose des ateliers gratuits pour les associations.",evals:[]},
+];
+let nid=5;
+
+function renderStars(note,max=5){
+  let s="";
+  for(let i=1;i<=max;i++) s+=`<span style="color:${i<=note?"#ef9f27":"#ddd"}">★</span>`;
+  return s;
+}
+function avgNote(evals){
+  if(!evals.length)return null;
+  return Math.round(evals.reduce((s,e)=>s+e.note,0)/evals.length*10)/10;
+}
+function fmtDate(d){if(!d)return"";const[y,m,j]=d.split("-");return`${j}.${m}.${y}`;}
+
+function renderMetrics(){
+  const actifs=prestataires.filter(p=>p.statut==="actif").length;
+  const acontacter=prestataires.filter(p=>p.statut==="acontacter").length;
+  const gratuits=prestataires.filter(p=>p.gratuit).length;
+  const notees=prestataires.filter(p=>p.evals.length>0);
+  const moyGlobal=notees.length?Math.round(notees.reduce((s,p)=>s+avgNote(p.evals),0)/notees.length*10)/10:0;
+  document.getElementById("metrics").innerHTML=[
+    {val:prestataires.length,lbl:"Total"},
+    {val:actifs,lbl:"Actifs"},
+    {val:acontacter,lbl:"À contacter"},
+    {val:gratuits?`${gratuits} 🆓`:0,lbl:"Gratuits"},
+  ].map(x=>`<div class="metric"><div class="metric-val">${x.val}</div><div class="metric-lbl">${x.lbl}</div></div>`).join("");
+}
+
+function getFiltered(){
+  const q=(document.getElementById("search")||{value:""}).value.toLowerCase();
+  const f=window._filtre||"tous";
+  return prestataires.filter(p=>{
+    const mf=f==="tous"||p.statut===f||(f==="gratuit"&&p.gratuit);
+    const ms=!q||p.nom.toLowerCase().includes(q)||(p.cat||"").toLowerCase().includes(q)||(p.cp+" "+p.cn).toLowerCase().includes(q);
+    return mf&&ms;
+  });
+}
+
+function render(){
+  renderMetrics();
+  const filtered=getFiltered();
+  const g=document.getElementById("grid");
+  if(!filtered.length){g.innerHTML=`<div style="color:#888;font-size:13px;padding:2rem">Aucun prestataire trouvé</div>`;return;}
+  g.innerHTML=filtered.map(p=>{
+    const avg=avgNote(p.evals);
+    return`<div class="card${p.statut==="inactif"?" inactif":""}" onclick="openDetail(${p.id})">
+      <div class="card-top">
+        <div>
+          <div class="card-name">${p.nom}</div>
+          <div class="card-type">${p.type}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+          <span class="badge badge-${p.statut}">${p.statut==="actif"?"Actif":p.statut==="inactif"?"Inactif":"À contacter"}</span>
+          ${p.cat?`<span class="badge badge-cat">${p.cat}</span>`:""}
+          ${p.gratuit?`<span class="badge badge-gratuit">Gratuit</span>`:""}
+        </div>
+      </div>
+      ${avg!==null?`<div style="margin-bottom:6px">${renderStars(Math.round(avg))} <span style="font-size:12px;color:#888">${avg}/5 (${p.evals.length} éval.)</span></div>`:""}
+      <div class="card-meta">
+        ${p.cp||p.cn?`<span>👤 ${p.cp} ${p.cn}</span>`:""}
+        ${p.tel?`<span>📞 <a href="tel:${p.tel}" onclick="event.stopPropagation()" style="color:inherit;text-decoration:none">${p.tel}</a></span>`:""}
+        ${p.email?`<span>✉️ ${p.email}</span>`:""}
+        ${p.url?`<span>🌐 <a href="${p.url}" target="_blank" onclick="event.stopPropagation()" style="color:#0c447c">${p.url.replace("https://","")}</a></span>`:""}
+      </div>
+      ${p.acts.length?`<div class="card-acts">${p.acts.map(a=>`<span class="act-chip">${a}</span>`).join("")}</div>`:""}
+      ${p.evals.length?`<div class="eval-mini">Dernière éval. : ${p.evals[p.evals.length-1].activite}</div>`:""}
+    </div>`;
+  }).join("");
+}
+
+function setFilter(f,btn){
+  window._filtre=f;
+  document.querySelectorAll(".filter-btn").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  render();
+}
+
+function fillCatSelect(current){
+  const sel=document.getElementById("f-cat");
+  sel.innerHTML=categories.map(c=>`<option value="${c}"${c===current?" selected":""}>${c}</option>`).join("");
+}
+function toggleNewCat(){
+  const r=document.getElementById("new-cat-row");
+  r.style.display=r.style.display==="none"?"block":"none";
+}
+function addCat(){
+  const v=document.getElementById("new-cat-val").value.trim();
+  if(!v)return;
+  if(!categories.includes(v))categories.push(v);
+  fillCatSelect(v);
+  document.getElementById("f-cat").value=v;
+  document.getElementById("new-cat-val").value="";
+  document.getElementById("new-cat-row").style.display="none";
+}
+
+function renderActsList(){
+  document.getElementById("acts-list").innerHTML=editActs.map((a,i)=>`
+    <div class="act-tag"><span>${a}</span><button class="act-tag-del" onclick="removeAct(${i})" type="button">×</button></div>`).join("");
+}
+function addAct(){
+  const v=document.getElementById("new-act-val").value.trim();
+  if(!v)return;
+  if(!editActs.includes(v))editActs.push(v);
+  document.getElementById("new-act-val").value="";
+  renderActsList();
+}
+function removeAct(i){editActs.splice(i,1);renderActsList();}
+
+function openCreate(){
+  editId=null;
+  document.getElementById("create-title").textContent="Nouveau prestataire";
+  document.getElementById("f-del-btn").style.display="none";
+  ["f-nom","f-cp","f-cn","f-email","f-tel","f-url","f-adresse","f-notes","new-act-val"].forEach(id=>document.getElementById(id).value="");
+  document.getElementById("f-gratuit").checked=false;
+  document.getElementById("f-statut").value="actif";
+  document.getElementById("f-type").selectedIndex=0;
+  editActs=[];
+  fillCatSelect("");
+  renderActsList();
+  document.getElementById("mCreate").style.display="flex";
+}
+function closeCreate(){document.getElementById("mCreate").style.display="none";}
+
+function openEdit(id){
+  editId=id;
+  const p=prestataires.find(x=>x.id===id);
+  document.getElementById("create-title").textContent="Modifier le prestataire";
+  document.getElementById("f-del-btn").style.display="inline-block";
+  document.getElementById("f-nom").value=p.nom;
+  document.getElementById("f-type").value=p.type;
+  document.getElementById("f-statut").value=p.statut;
+  document.getElementById("f-cp").value=p.cp||"";
+  document.getElementById("f-cn").value=p.cn||"";
+  document.getElementById("f-email").value=p.email||"";
+  document.getElementById("f-tel").value=p.tel||"";
+  document.getElementById("f-url").value=p.url||"";
+  document.getElementById("f-adresse").value=p.adresse||"";
+  document.getElementById("f-gratuit").checked=p.gratuit||false;
+  document.getElementById("f-notes").value=p.notes||"";
+  editActs=[...p.acts];
+  fillCatSelect(p.cat);
+  renderActsList();
+  closeDetail();
+  document.getElementById("mCreate").style.display="flex";
+}
+
+function savePrest(){
+  const nom=document.getElementById("f-nom").value.trim();
+  if(!nom){alert("Le nom est obligatoire");return;}
+  const data={nom,type:document.getElementById("f-type").value,statut:document.getElementById("f-statut").value,cat:document.getElementById("f-cat").value,cp:document.getElementById("f-cp").value.trim(),cn:document.getElementById("f-cn").value.trim(),email:document.getElementById("f-email").value.trim(),tel:document.getElementById("f-tel").value.trim(),url:document.getElementById("f-url").value.trim(),adresse:document.getElementById("f-adresse").value.trim(),gratuit:document.getElementById("f-gratuit").checked,acts:[...editActs],notes:document.getElementById("f-notes").value.trim()};
+  if(editId){prestataires=prestataires.map(p=>p.id===editId?{...p,...data}:p);}
+  else{prestataires.push({id:nid++,...data,evals:[]});}
+  closeCreate();render();
+}
+function deletePrest(){
+  if(confirm("Supprimer ce prestataire ?")){prestataires=prestataires.filter(p=>p.id!==editId);closeCreate();render();}
+}
+
+function openDetail(id){
+  selId=id;renderDet();
+  document.getElementById("mDetail").style.display="flex";
+}
+function closeDetail(){document.getElementById("mDetail").style.display="none";}
+function renderDet(){
+  const p=prestataires.find(x=>x.id===selId);if(!p)return;
+  const avg=avgNote(p.evals);
+  document.getElementById("det").innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem">
+      <div>
+        <div style="font-size:16px;font-weight:600">${p.nom}</div>
+        <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">
+          <span class="badge badge-${p.statut}">${p.statut==="actif"?"Actif":p.statut==="inactif"?"Inactif":"À contacter"}</span>
+          ${p.cat?`<span class="badge badge-cat">${p.cat}</span>`:""}
+          <span class="badge" style="background:#f1efea;color:#444">${p.type}</span>
+          ${p.gratuit?`<span class="badge badge-gratuit">🆓 Gratuit</span>`:""}
+        </div>
+      </div>
+      <button class="btn btn-sm" onclick="closeDetail()">✕</button>
+    </div>
+    ${avg!==null?`<div style="margin-bottom:12px">${renderStars(Math.round(avg))} <span style="font-size:13px;color:#888">${avg}/5 — ${p.evals.length} évaluation(s)</span></div>`:""}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;margin-bottom:12px">
+      <div><div class="dl">Contact</div><div class="dv">${p.cp||p.cn?p.cp+" "+p.cn:"—"}</div></div>
+      <div><div class="dl">Téléphone</div><div class="dv">${p.tel?`<a href="tel:${p.tel}" style="color:inherit">${p.tel}</a>`:"—"}</div></div>
+      <div><div class="dl">Email</div><div class="dv">${p.email||"—"}</div></div>
+      <div><div class="dl">Site web</div><div class="dv">${p.url?`<a href="${p.url}" target="_blank" style="color:#0c447c">${p.url}</a>`:"—"}</div></div>
+      <div style="grid-column:1/-1"><div class="dl">Adresse</div><div class="dv">${p.adresse||"—"}</div></div>
+    </div>
+    ${p.acts.length?`<div class="dl">Activités proposées</div><div style="margin-bottom:12px">${p.acts.map(a=>`<span class="act-chip">${a}</span>`).join("")}</div>`:""}
+    ${p.notes?`<div style="background:#fafaf8;border-radius:8px;padding:10px 12px;font-size:13px;color:#555;margin-bottom:12px">${p.notes}</div>`:""}
+    ${p.evals.length?`
+      <div style="font-size:12px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Évaluations (${p.evals.length})</div>
+      ${p.evals.map((e,i)=>`<div class="eval-item">
+        <div class="eval-header">
+          <div><strong style="font-size:13px">${e.activite}</strong><span style="color:#888;font-size:12px;margin-left:8px">${fmtDate(e.date)}</span></div>
+          <div style="display:flex;align-items:center;gap:8px">
+            ${renderStars(e.note)}
+            <button class="btn btn-sm btn-danger" onclick="deleteEval(${i})">×</button>
+          </div>
+        </div>
+        ${e.comment?`<div style="font-size:13px;color:#555;margin-top:4px">${e.comment}</div>`:""}
+      </div>`).join("")}
+    `:`<div style="font-size:13px;color:#bbb;margin-bottom:12px">Aucune évaluation pour ce prestataire.</div>`}
+    <div class="mf" style="flex-wrap:wrap;gap:8px">
+      <button class="btn btn-sm btn-danger" onclick="closeDetail();openEdit(${p.id});document.getElementById('f-del-btn').style.display='inline-block'">Supprimer</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-sm" onclick="openEval(${p.id})">+ Évaluation</button>
+        <button class="btn btn-sm" onclick="openEdit(${p.id})">Modifier</button>
+        <button class="btn btn-sm btn-primary" onclick="closeDetail()">Fermer</button>
+      </div>
+    </div>`;
+}
+
+function deleteEval(idx){
+  if(confirm("Supprimer cette évaluation ?")){
+    prestataires=prestataires.map(p=>p.id===selId?{...p,evals:p.evals.filter((_,i)=>i!==idx)}:p);
+    renderDet();render();
+  }
+}
+
+function setNote(n){
+  noteTemp=n;
+  for(let i=1;i<=5;i++){
+    const btn=document.getElementById("s"+i);
+    btn.classList.toggle("active",i<=n);
+  }
+}
+function openEval(id){
+  selId=id;
+  noteTemp=0;
+  document.getElementById("ev-activite").value="";
+  document.getElementById("ev-comment").value="";
+  document.getElementById("ev-date").value=new Date().toISOString().split("T")[0];
+  for(let i=1;i<=5;i++)document.getElementById("s"+i).classList.remove("active");
+  document.getElementById("mEval").style.display="flex";
+}
+function closeMEval(){document.getElementById("mEval").style.display="none";}
+function saveEval(){
+  const activite=document.getElementById("ev-activite").value.trim();
+  if(!activite){alert("Précise l'activité concernée");return;}
+  if(!noteTemp){alert("Choisis une note");return;}
+  const eval_={activite,note:noteTemp,comment:document.getElementById("ev-comment").value.trim(),date:document.getElementById("ev-date").value};
+  prestataires=prestataires.map(p=>p.id===selId?{...p,evals:[...p.evals,eval_]}:p);
+  closeMEval();
+  if(document.getElementById("mDetail").style.display==="flex")renderDet();
+  render();
+}
+
+window._filtre="tous";
+render();
+</script>
+</body>
+</html>

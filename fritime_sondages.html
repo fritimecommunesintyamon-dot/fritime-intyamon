@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fri-Time Intyamon — Sondages de satisfaction</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#f5f5f3;color:#1a1a1a;font-size:14px}
+.container{max-width:940px;margin:0 auto;padding:1.5rem}
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem}
+h1{font-size:20px;font-weight:600}
+.subtitle{font-size:13px;color:#666;margin-top:2px}
+.btn{padding:7px 14px;border-radius:8px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:13px;font-family:inherit;transition:background .15s}
+.btn:hover{background:#f5f5f3}
+.btn-primary{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.btn-primary:hover{background:#333}
+.btn-sm{padding:4px 10px;font-size:12px}
+.btn-danger{color:#7a1f1f;border-color:#f4c0c0}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.5rem}
+.metric{background:#fff;border-radius:10px;padding:12px;border:1px solid #eee;text-align:center}
+.metric-val{font-size:22px;font-weight:600}
+.metric-lbl{font-size:11px;color:#888;margin-top:2px}
+.section{background:#fff;border:1px solid #eee;border-radius:12px;overflow:hidden;margin-bottom:1.25rem}
+.section-header{padding:12px 16px;background:#fafaf8;border-bottom:1px solid #eee;display:flex;align-items:center;justify-content:space-between}
+.section-title{font-size:13px;font-weight:600}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:#888;border-bottom:1px solid #eee;background:#fafaf8;text-transform:uppercase;letter-spacing:.05em}
+td{padding:10px 14px;border-bottom:1px solid #eee;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafaf8;cursor:pointer}
+.badge{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500}
+.badge-envoye{background:#eaf3de;color:#275a0a}
+.badge-attente{background:#faeeda;color:#633806}
+.badge-brouillon{background:#f5f5f3;color:#888}
+.smiley-bar{display:flex;gap:4px;align-items:center}
+.smiley-count{font-size:12px;color:#888;margin-left:6px}
+.prog-wrap{height:6px;background:#eee;border-radius:20px;overflow:hidden;margin-top:3px;width:80px}
+.prog-bar{height:6px;border-radius:20px}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;align-items:flex-start;justify-content:center;padding:2rem 1rem;overflow-y:auto}
+.modal{background:#fff;border-radius:12px;border:1px solid #eee;padding:1.5rem;width:min(580px,100%)}
+.modal-title{font-size:16px;font-weight:600;margin-bottom:1.25rem;padding-bottom:1rem;border-bottom:1px solid #eee}
+.fg{margin-bottom:.75rem}
+.fl{font-size:12px;color:#666;margin-bottom:4px;display:block}
+.fi{width:100%;padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit}
+.fi:focus{outline:none;border-color:#aaa}
+.mf{display:flex;justify-content:space-between;align-items:center;margin-top:1.25rem;padding-top:1rem;border-top:1px solid #eee}
+.reponse-card{background:#f5f5f3;border-radius:10px;padding:12px 14px;margin-bottom:8px}
+.reponse-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.reponse-nom{font-weight:500;font-size:13px}
+.reponse-date{font-size:11px;color:#888}
+.reponse-note{font-size:20px}
+.reponse-comment{font-size:13px;color:#555;margin-top:4px;line-height:1.5}
+.email-preview{background:#f5f5f3;border-radius:8px;padding:1rem;font-size:13px;line-height:1.7;border-left:3px solid #1a1a1a;margin-bottom:1rem}
+.participant-check{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;border-radius:7px;border:1px solid #eee;margin-bottom:5px;font-size:13px;background:#fff}
+.avg-stars{font-size:22px;font-weight:700;color:#ef9f27}
+</style>
+  <script src="fritime_data.js"></script>
+  <script src="fritime_sync.js"></script>
+  <script src="fritime_auth.js"></script>
+</head>
+<body class="ft-body-offset">
+<!-- SHARED NAV - Fri-Time Intyamon -->
+<style>
+.ft-topbar{background:#1a1a1a;color:#fff;padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:52px;position:fixed;top:0;left:0;right:0;z-index:1000}
+.ft-logo{font-size:15px;font-weight:700;letter-spacing:.05em;color:#fff;text-decoration:none;white-space:nowrap}
+.ft-topbar-right{display:flex;align-items:center;gap:12px}
+.ft-user-name{font-size:12px;opacity:.6;display:none}
+.ft-avatar{width:30px;height:30px;border-radius:50%;background:#333;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;cursor:pointer;position:relative}
+.ft-avatar-menu{display:none;position:absolute;top:36px;right:0;background:#fff;border:1px solid #eee;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.1);min-width:180px;z-index:100;overflow:hidden}
+.ft-avatar-menu.open{display:block}
+.ft-avatar-menu-item{padding:10px 14px;font-size:13px;color:#1a1a1a;cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .1s}
+.ft-avatar-menu-item:hover{background:#f5f5f3}
+.ft-avatar-menu-item.red{color:#791f1f}
+.ft-avatar-divider{height:1px;background:#eee;margin:4px 0}
+.ft-sidebar{position:fixed;top:52px;left:0;width:210px;height:calc(100vh - 52px);background:#fff;border-right:1px solid #eee;overflow-y:auto;z-index:999;transform:translateX(-100%);transition:transform .2s}
+.ft-sidebar.open{transform:translateX(0)}
+.ft-sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:998;top:52px}
+.ft-sidebar-overlay.open{display:block}
+.ft-nav-section{padding:6px 14px;font-size:10px;font-weight:700;color:#bbb;text-transform:uppercase;letter-spacing:.08em;margin-top:8px}
+.ft-nav-item{display:flex;align-items:center;gap:9px;padding:9px 14px;font-size:13px;color:#555;cursor:pointer;transition:all .1s;text-decoration:none;border-left:3px solid transparent;white-space:nowrap}
+.ft-nav-item:hover{background:#fafaf8;color:#1a1a1a}
+.ft-nav-item.active{background:#f5f5f3;color:#1a1a1a;font-weight:600;border-left-color:#1a1a1a}
+.ft-nav-ico{font-size:15px;flex-shrink:0;opacity:.7}
+.ft-nav-badge{margin-left:auto;font-size:10px;background:#fcebeb;color:#791f1f;padding:1px 6px;border-radius:20px;font-weight:700}
+.ft-nav-badge.green{background:#eaf3de;color:#275a0a}
+.ft-nav-badge.blue{background:#e6f1fb;color:#0c447c}
+.ft-menu-btn{background:none;border:none;color:#fff;cursor:pointer;font-size:20px;padding:4px 8px;display:flex;align-items:center;justify-content:center;opacity:.8}
+.ft-menu-btn:hover{opacity:1}
+.ft-body-offset{padding-top:52px}
+.ft-layout{display:flex;min-height:calc(100vh - 52px)}
+.ft-sidebar-desktop{width:210px;flex-shrink:0;background:#fff;border-right:1px solid #eee;position:sticky;top:52px;height:calc(100vh - 52px);overflow-y:auto;flex-shrink:0}
+.ft-main{flex:1;overflow-x:hidden;min-width:0}
+@media(max-width:768px){
+  .ft-sidebar-desktop{display:none!important}
+  .ft-user-name{display:none}
+  .ft-main{padding:1rem!important}
+}
+@media(min-width:769px){
+  .ft-sidebar{display:none!important}
+  .ft-sidebar-overlay{display:none!important}
+  .ft-menu-btn{display:none!important}
+  .ft-sidebar-desktop{display:block!important}
+}
+</style>
+
+<div class="ft-topbar">
+  <div style="display:flex;align-items:center;gap:10px">
+    <button class="ft-menu-btn" onclick="toggleSidebar()" id="ft-menu-btn">☰</button>
+    <a href="fritime_dashboard.html" class="ft-logo">Fri-Time Intyamon</a>
+  </div>
+  <div class="ft-topbar-right">
+    <span class="ft-user-name" id="ft-user-name">—</span>
+    <div class="ft-avatar" id="ft-avatar" onclick="toggleAvatarMenu()">
+      <span id="ft-avatar-initials">?</span>
+      <div class="ft-avatar-menu" id="ft-avatar-menu">
+        <div class="ft-avatar-menu-item" style="background:#f5f5f3;cursor:default">
+          <div>
+            <div style="font-weight:600;font-size:13px" id="ft-menu-name">—</div>
+            <div style="font-size:11px;color:#888" id="ft-menu-role">—</div>
+          </div>
+        </div>
+        <div class="ft-avatar-divider"></div>
+        <a href="fritime_dashboard.html" class="ft-avatar-menu-item">🏠 Tableau de bord</a>
+        <div class="ft-avatar-menu-item" onclick="doLogout()">🔒 Se déconnecter</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="ft-sidebar-overlay" id="ft-sidebar-overlay" onclick="toggleSidebar()"></div>
+
+<div class="ft-sidebar" id="ft-sidebar">
+  <div class="ft-nav-section">Principal</div>
+  <a class="ft-nav-item" href="fritime_dashboard.html" data-page="dashboard"><span class="ft-nav-ico">🏠</span> Tableau de bord</a>
+  <a class="ft-nav-item" href="fritime_activites.html" data-page="activites"><span class="ft-nav-ico">🎯</span> Activités</a>
+  <a class="ft-nav-item" href="fritime_inscriptions.html" data-page="inscriptions"><span class="ft-nav-ico">📋</span> Inscriptions</a>
+  <a class="ft-nav-item" href="fritime_enfants.html" data-page="enfants"><span class="ft-nav-ico">👦</span> Enfants</a>
+
+  <div class="ft-nav-section">Organisation</div>
+  <a class="ft-nav-item" href="fritime_taches.html" data-page="taches"><span class="ft-nav-ico">✅</span> Tâches</a>
+  <a class="ft-nav-item" href="fritime_comite.html" data-page="comite"><span class="ft-nav-ico">👥</span> Comité</a>
+  <a class="ft-nav-item" href="fritime_campagnes.html" data-page="campagnes"><span class="ft-nav-ico">📧</span> Campagnes</a>
+  <a class="ft-nav-item" href="fritime_sondages.html" data-page="sondages"><span class="ft-nav-ico">⭐</span> Sondages</a>
+
+  <div class="ft-nav-section">Finances & Partenaires</div>
+  <a class="ft-nav-item" href="fritime_budget.html" data-page="budget"><span class="ft-nav-ico">💰</span> Budget</a>
+  <a class="ft-nav-item" href="fritime_prestataires.html" data-page="prestataires"><span class="ft-nav-ico">🤝</span> Prestataires</a>
+
+  <div class="ft-nav-section">Contenu</div>
+  <a class="ft-nav-item" href="fritime_idees.html" data-page="idees"><span class="ft-nav-ico">💡</span> Banque d'idées</a>
+  <a class="ft-nav-item" href="fritime_documents.html" data-page="documents"><span class="ft-nav-ico">📁</span> Documents</a>
+
+  <div class="ft-nav-section">Sécurité</div>
+  <a class="ft-nav-item" href="fritime_incidents.html" data-page="incidents"><span class="ft-nav-ico">⚠️</span> Incidents</a>
+  <a class="ft-nav-item" href="fritime_urgences.html" data-page="urgences"><span class="ft-nav-ico">🚨</span> Urgences</a>
+  <a class="ft-nav-item" href="fritime_modifications.html" data-page="modifications"><span class="ft-nav-ico">🔄</span> Demandes</a>
+</div>
+
+<script>
+(function(){
+  // Auth check
+  const user = sessionStorage.getItem("ft-user");
+  const publicPages = ["fritime_login.html","fritime_inscription_publique.html","fritime_sondage_parent.html"];
+  const currentPage = window.location.pathname.split("/").pop();
+  if(!user && !publicPages.includes(currentPage)){
+    window.location.href = "fritime_login.html";
+    return;
+  }
+  if(user){
+    const u = JSON.parse(user);
+    const ini = ((u.nom||"").split(" ").map(p=>p[0]||"").join("")).substring(0,2).toUpperCase();
+    document.getElementById("ft-avatar-initials").textContent = ini||"?";
+    document.getElementById("ft-user-name").textContent = u.nom||"";
+    document.getElementById("ft-menu-name").textContent = u.nom||"";
+    document.getElementById("ft-menu-role").textContent = u.role||"";
+    document.getElementById("ft-user-name").style.display = "block";
+  }
+
+  // Active nav item
+  document.querySelectorAll(".ft-nav-item[data-page]").forEach(function(el){
+    if(currentPage.includes(el.dataset.page)) el.classList.add("active");
+  });
+})();
+
+function toggleSidebar(){
+  document.getElementById("ft-sidebar").classList.toggle("open");
+  document.getElementById("ft-sidebar-overlay").classList.toggle("open");
+}
+function toggleAvatarMenu(){
+  document.getElementById("ft-avatar-menu").classList.toggle("open");
+}
+document.addEventListener("click", function(e){
+  const menu = document.getElementById("ft-avatar-menu");
+  const avatar = document.getElementById("ft-avatar");
+  if(menu && !avatar.contains(e.target)) menu.classList.remove("open");
+});
+function doLogout(){
+  sessionStorage.removeItem("ft-user");
+  window.location.href = "fritime_login.html";
+}
+</script>
+
+<div class="container">
+
+<div class="header">
+  <div><h1>Sondages de satisfaction</h1><div class="subtitle">Suivi des retours des familles — Fri-Time</div></div>
+  <button class="btn btn-primary" onclick="openSend()">+ Envoyer un sondage</button>
+</div>
+
+<div class="metrics" id="metrics"></div>
+
+<div class="section">
+  <div class="section-header">
+    <span class="section-title">Sondages par activité</span>
+  </div>
+  <table>
+    <thead><tr>
+      <th>Activité</th><th>Date activité</th><th>Participants</th>
+      <th>Réponses</th><th>Note moyenne</th><th>Statut</th><th></th>
+    </tr></thead>
+    <tbody id="tbody"></tbody>
+  </table>
+</div>
+
+</div>
+
+<!-- Modal envoyer sondage -->
+<div id="mSend" class="overlay" onclick="if(event.target.id==='mSend')closeMSend()">
+<div class="modal" onclick="event.stopPropagation()">
+  <div class="modal-title">Envoyer un sondage</div>
+  <div class="fg"><label class="fl">Activité *</label>
+    <select class="fi" id="s-activite" onchange="updateParticipants()">
+      <option value="">— Choisir une activité terminée —</option>
+      <option value="3">Journée ski — 15 fév. 2026</option>
+      <option value="1">Atelier poterie — 20 mai 2026</option>
+      <option value="2">Sortie Lac Noir — 14 juin 2026</option>
+    </select>
+  </div>
+  <div id="participants-list" style="margin-bottom:.75rem"></div>
+  <div class="fg"><label class="fl">Aperçu du message email</label>
+    <div class="email-preview" id="email-preview">
+      Sélectionnez une activité pour voir l'aperçu du message.
+    </div>
+  </div>
+  <div class="fg"><label class="fl">Message personnalisé (optionnel)</label>
+    <input class="fi" id="s-message" placeholder="Ex: Merci d'avoir participé à notre atelier !" oninput="updatePreview()" />
+  </div>
+  <div class="mf">
+    <button class="btn" onclick="closeMSend()">Annuler</button>
+    <button class="btn btn-primary" onclick="saveSend()">📧 Envoyer le sondage</button>
+  </div>
+</div>
+</div>
+
+<!-- Modal résultats -->
+<div id="mResults" class="overlay" onclick="if(event.target.id==='mResults')closeMResults()">
+<div class="modal" onclick="event.stopPropagation()"><div id="results-content"></div></div>
+</div>
+
+<script>
+const SMILEYS=["😞","😕","😐","🙂","😄"];
+const SMILEY_COLORS=["#791f1f","#b05a00","#888","#275a0a","#275a0a"];
+
+let sondages=[
+  {id:1,activite:"Journée ski",dateActivite:"2026-02-15",dateEnvoi:"2026-02-16",statut:"envoye",
+    participants:[
+      {nom:"Anne Bernard (Luca)",email:"anne.bernard@gmail.com",repondu:true,note:5,comment:"Luca a adoré, il veut y retourner !",dateRep:"2026-02-16"},
+      {nom:"Claire Morel (Noah)",email:"claire.morel@gmail.com",repondu:true,note:4,comment:"Très bonne organisation, juste un peu froid.",dateRep:"2026-02-17"},
+      {nom:"Sophie Remy (Tom)",email:"sophie.remy@gmail.com",repondu:true,note:5,comment:"Parfait, Tom était aux anges.",dateRep:"2026-02-16"},
+      {nom:"Marc Dupont (Léa)",email:"marc.dupont@gmail.com",repondu:false,note:null,comment:"",dateRep:null},
+      {nom:"Paul Favre (Emma)",email:"paul.favre@gmail.com",repondu:true,note:3,comment:"Bien mais Emma a eu froid, peut-être prévoir des gants.",dateRep:"2026-02-18"},
+    ]},
+  {id:2,activite:"Atelier poterie",dateActivite:"2026-05-20",dateEnvoi:null,statut:"brouillon",
+    participants:[
+      {nom:"Anne Bernard (Luca)",email:"anne.bernard@gmail.com",repondu:false,note:null,comment:"",dateRep:null},
+      {nom:"Paul Favre (Emma)",email:"paul.favre@gmail.com",repondu:false,note:null,comment:"",dateRep:null},
+      {nom:"Claire Morel (Noah)",email:"claire.morel@gmail.com",repondu:false,note:null,comment:"",dateRep:null},
+    ]},
+];
+let nSondage=3;
+let selSondageId=null;
+
+function fmtDate(d){if(!d)return"—";const[y,m,j]=d.split("-");return`${j}.${m}.${y}`;}
+function avgNote(s){const rep=s.participants.filter(p=>p.repondu&&p.note);if(!rep.length)return null;return(rep.reduce((a,p)=>a+p.note,0)/rep.length).toFixed(1);}
+function smileyFor(note){if(!note)return"—";return SMILEYS[Math.round(note)-1]||"—";}
+
+function renderMetrics(){
+  const total=sondages.length;
+  const envoyes=sondages.filter(s=>s.statut==="envoye").length;
+  const repTotal=sondages.reduce((s,x)=>s+x.participants.filter(p=>p.repondu).length,0);
+  const partTotal=sondages.reduce((s,x)=>s+x.participants.length,0);
+  const taux=partTotal?Math.round(repTotal/partTotal*100):0;
+  const notes=sondages.flatMap(s=>s.participants.filter(p=>p.repondu&&p.note).map(p=>p.note));
+  const moy=notes.length?(notes.reduce((a,b)=>a+b,0)/notes.length).toFixed(1):"—";
+  document.getElementById("metrics").innerHTML=[
+    {val:total,lbl:"Sondages"},
+    {val:envoyes,lbl:"Envoyés"},
+    {val:taux+"%",lbl:"Taux de réponse"},
+    {val:moy!=="—"?SMILEYS[Math.round(moy)-1]+" "+moy:moy,lbl:"Note globale"},
+  ].map(x=>`<div class="metric"><div class="metric-val">${x.val}</div><div class="metric-lbl">${x.lbl}</div></div>`).join("");
+}
+
+function renderTable(){
+  const tb=document.getElementById("tbody");
+  if(!sondages.length){tb.innerHTML=`<tr><td colspan="7" style="text-align:center;padding:2rem;color:#888">Aucun sondage</td></tr>`;return;}
+  tb.innerHTML=sondages.map(s=>{
+    const rep=s.participants.filter(p=>p.repondu).length;
+    const tot=s.participants.length;
+    const avg=avgNote(s);
+    const pct=tot?Math.round(rep/tot*100):0;
+    return`<tr onclick="openResults(${s.id})">
+      <td style="font-weight:500">${s.activite}</td>
+      <td>${fmtDate(s.dateActivite)}</td>
+      <td>${tot}</td>
+      <td>
+        <div>${rep}/${tot} <span style="font-size:11px;color:#888">(${pct}%)</span></div>
+        <div class="prog-wrap"><div class="prog-bar" style="width:${pct}%;background:${pct>=70?"#275a0a":pct>=40?"#ef9f27":"#791f1f"}"></div></div>
+      </td>
+      <td>
+        ${avg?`<span class="avg-stars">${smileyFor(parseFloat(avg))}</span> <span style="font-size:13px;font-weight:600">${avg}/5</span>`:"<span style='color:#bbb'>—</span>"}
+      </td>
+      <td><span class="badge badge-${s.statut}">${s.statut==="envoye"?"Envoyé":s.statut==="attente"?"En attente":"Brouillon"}</span></td>
+      <td>
+        <div style="display:flex;gap:6px">
+          ${s.statut==="brouillon"?`<button class="btn btn-sm btn-primary" onclick="event.stopPropagation();envoyerSondage(${s.id})" style="font-size:11px">📧 Envoyer</button>`:""}
+          <button class="btn btn-sm" onclick="event.stopPropagation();openResults(${s.id})" style="font-size:11px">Voir résultats</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join("");
+}
+
+function updateParticipants(){
+  const val=document.getElementById("s-activite").value;
+  const pList=document.getElementById("participants-list");
+  const maps={
+    "1":["Anne Bernard (Luca)","Paul Favre (Emma)","Claire Morel (Noah)"],
+    "2":["Anne Bernard (Luca)","Claire Morel (Noah)","Sophie Remy (Tom)"],
+    "3":["Anne Bernard (Luca)","Claire Morel (Noah)","Sophie Remy (Tom)","Marc Dupont (Léa)","Paul Favre (Emma)"]
+  };
+  const parts=maps[val]||[];
+  if(!parts.length){pList.innerHTML="";updatePreview();return;}
+  pList.innerHTML=`<label class="fl">Participants (${parts.length})</label>`+
+    parts.map(p=>`<div class="participant-check"><span>${p}</span><span style="font-size:11px;color:#275a0a">✓ sera notifié</span></div>`).join("");
+  updatePreview();
+}
+
+function updatePreview(){
+  const actEl=document.getElementById("s-activite");
+  const actNames={"1":"Atelier poterie","2":"Sortie Lac Noir","3":"Journée ski"};
+  const act=actNames[actEl.value]||"[activité]";
+  const msg=document.getElementById("s-message").value.trim();
+  document.getElementById("email-preview").innerHTML=`
+    <strong>Objet :</strong> Votre avis compte — ${act} 🙂<br><br>
+    Bonjour,<br><br>
+    ${msg||"Merci d'avoir participé à notre activité."}<br><br>
+    <strong>Comment s'est passée la journée pour votre enfant ?</strong><br>
+    👉 <span style="color:#0c447c;text-decoration:underline">Répondre en 20 secondes →</span><br><br>
+    <em style="color:#888;font-size:12px">Fri-Time — Votre avis nous aide à améliorer nos activités.</em>`;
+}
+
+function openSend(){
+  document.getElementById("s-activite").selectedIndex=0;
+  document.getElementById("s-message").value="";
+  document.getElementById("participants-list").innerHTML="";
+  document.getElementById("email-preview").innerHTML="Sélectionnez une activité pour voir l'aperçu du message.";
+  document.getElementById("mSend").style.display="flex";
+}
+function closeMSend(){document.getElementById("mSend").style.display="none";}
+
+function saveSend(){
+  const actEl=document.getElementById("s-activite");
+  if(!actEl.value){alert("Choisissez une activité");return;}
+  const actNames={"1":"Atelier poterie","2":"Sortie Lac Noir","3":"Journée ski"};
+  const dateMap={"1":"2026-05-20","2":"2026-06-14","3":"2026-02-15"};
+  const partsMap={
+    "1":["Anne Bernard (Luca)","Paul Favre (Emma)","Claire Morel (Noah)"],
+    "2":["Anne Bernard (Luca)","Claire Morel (Noah)","Sophie Remy (Tom)"],
+    "3":["Anne Bernard (Luca)","Claire Morel (Noah)","Sophie Remy (Tom)","Marc Dupont (Léa)","Paul Favre (Emma)"]
+  };
+  sondages.push({id:nSondage++,activite:actNames[actEl.value],dateActivite:dateMap[actEl.value],dateEnvoi:new Date().toISOString().split("T")[0],statut:"envoye",participants:(partsMap[actEl.value]||[]).map(nom=>({nom,email:"",repondu:false,note:null,comment:"",dateRep:null}))});
+  closeMSend();renderAll();
+  alert("Sondage envoyé aux familles !");
+}
+
+function envoyerSondage(id){
+  sondages=sondages.map(s=>s.id===id?{...s,statut:"envoye",dateEnvoi:new Date().toISOString().split("T")[0]}:s);
+  renderAll();alert("Sondage envoyé !");
+}
+
+function openResults(id){
+  selSondageId=id;
+  const s=sondages.find(x=>x.id===id);if(!s)return;
+  const rep=s.participants.filter(p=>p.repondu);
+  const avg=avgNote(s);
+  const dist=[1,2,3,4,5].map(n=>({n,count:rep.filter(p=>p.note===n).length}));
+  document.getElementById("results-content").innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem">
+      <div>
+        <div style="font-size:16px;font-weight:600">${s.activite}</div>
+        <div style="font-size:12px;color:#888;margin-top:2px">${fmtDate(s.dateActivite)} · Sondage envoyé le ${fmtDate(s.dateEnvoi)}</div>
+      </div>
+      <button class="btn btn-sm" onclick="closeMResults()">✕</button>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:1.25rem">
+      <div style="background:#f5f5f3;border-radius:10px;padding:14px;text-align:center">
+        <div style="font-size:36px;margin-bottom:4px">${avg?smileyFor(parseFloat(avg)):"—"}</div>
+        <div style="font-size:24px;font-weight:700;color:#ef9f27">${avg||"—"}</div>
+        <div style="font-size:12px;color:#888;margin-top:2px">Note moyenne / 5</div>
+      </div>
+      <div style="background:#f5f5f3;border-radius:10px;padding:14px">
+        <div style="font-size:12px;font-weight:600;color:#888;margin-bottom:8px">Distribution</div>
+        ${[5,4,3,2,1].map(n=>{
+          const c=dist.find(d=>d.n===n)?.count||0;
+          const pct=rep.length?Math.round(c/rep.length*100):0;
+          return`<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+            <span style="font-size:14px">${SMILEYS[n-1]}</span>
+            <div style="flex:1;height:6px;background:#eee;border-radius:20px;overflow:hidden">
+              <div style="width:${pct}%;height:6px;background:${SMILEY_COLORS[n-1]};border-radius:20px"></div>
+            </div>
+            <span style="font-size:11px;color:#888;width:30px">${c}</span>
+          </div>`;
+        }).join("")}
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div style="font-size:12px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.05em">Réponses (${rep.length}/${s.participants.length})</div>
+      <div style="font-size:12px;color:#888">${s.participants.filter(p=>!p.repondu).length} en attente</div>
+    </div>
+    ${rep.length?rep.map(p=>`<div class="reponse-card">
+      <div class="reponse-header">
+        <div>
+          <span class="reponse-nom">${p.nom}</span>
+          <span class="reponse-date" style="margin-left:8px">${fmtDate(p.dateRep)}</span>
+        </div>
+        <span style="font-size:20px">${SMILEYS[(p.note||1)-1]}</span>
+      </div>
+      ${p.comment?`<div class="reponse-comment">"${p.comment}"</div>`:`<div style="font-size:12px;color:#bbb;font-style:italic">Aucun commentaire</div>`}
+    </div>`).join(""):`<div style="text-align:center;padding:1.5rem;color:#bbb;font-size:13px">Aucune réponse pour l'instant</div>`}
+    ${s.participants.filter(p=>!p.repondu).length?`
+      <div style="margin-top:12px;padding:10px 12px;background:#faeeda;border-radius:8px;font-size:12px;color:#633806">
+        ⏳ En attente : ${s.participants.filter(p=>!p.repondu).map(p=>p.nom).join(", ")}
+      </div>`:""}
+    <div class="mf"><div></div><button class="btn btn-primary btn-sm" onclick="closeMResults()">Fermer</button></div>`;
+  document.getElementById("mResults").style.display="flex";
+}
+function closeMResults(){document.getElementById("mResults").style.display="none";}
+
+function renderAll(){renderMetrics();renderTable();}
+renderAll();
+</script>
+</body>
+</html>

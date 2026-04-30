@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fri-Time Intyamon — Procédures d'urgence</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#f5f5f3;color:#1a1a1a;font-size:14px}
+.container{max-width:900px;margin:0 auto;padding:1.5rem}
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem}
+h1{font-size:20px;font-weight:600}
+.subtitle{font-size:13px;color:#666;margin-top:2px}
+.btn{padding:7px 14px;border-radius:8px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:13px;font-family:inherit;transition:background .15s}
+.btn:hover{background:#f5f5f3}
+.btn-primary{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.btn-primary:hover{background:#333}
+.btn-sm{padding:4px 10px;font-size:12px}
+.btn-urgence{background:#791f1f;color:#fff;border-color:#791f1f;font-size:14px;padding:10px 20px;border-radius:10px;width:100%;font-weight:600;letter-spacing:.02em}
+.btn-urgence:hover{background:#5a1515}
+
+/* Alerte band */
+.alerte-band{background:#791f1f;color:#fff;border-radius:12px;padding:1.25rem 1.5rem;margin-bottom:1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+.alerte-band-title{font-size:16px;font-weight:700;margin-bottom:4px}
+.alerte-band-sub{font-size:13px;opacity:.85}
+
+/* Numéros urgence */
+.nums-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:1.5rem}
+.num-card{background:#fff;border:1px solid #eee;border-radius:12px;padding:1rem;text-align:center;text-decoration:none;color:inherit;transition:border-color .15s;display:block}
+.num-card:hover{border-color:#791f1f}
+.num-card-ico{font-size:28px;margin-bottom:6px}
+.num-card-num{font-size:22px;font-weight:700;color:#791f1f;letter-spacing:.05em}
+.num-card-lbl{font-size:11px;color:#888;margin-top:2px}
+
+/* Sections */
+.section{background:#fff;border:1px solid #eee;border-radius:12px;margin-bottom:1.25rem;overflow:hidden}
+.section-header{display:flex;align-items:center;gap:10px;padding:14px 16px;background:#fafaf8;border-bottom:1px solid #eee;cursor:pointer;user-select:none}
+.section-header:hover{background:#f5f5f3}
+.section-ico{font-size:20px;flex-shrink:0}
+.section-title{font-size:14px;font-weight:600;flex:1}
+.section-toggle{font-size:16px;color:#aaa;transition:transform .2s}
+.section-toggle.open{transform:rotate(180deg)}
+.section-body{padding:1.25rem 1.5rem;display:none}
+.section-body.open{display:block}
+
+/* Steps */
+.steps{counter-reset:step;list-style:none}
+.step{display:flex;gap:14px;margin-bottom:1rem;align-items:flex-start}
+.step-num{counter-increment:step;background:#1a1a1a;color:#fff;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;margin-top:1px}
+.step-num::before{content:counter(step)}
+.step-urgent .step-num{background:#791f1f}
+.step-content{flex:1}
+.step-title{font-weight:600;font-size:14px;margin-bottom:2px}
+.step-desc{font-size:13px;color:#555;line-height:1.6}
+.step-call{display:inline-flex;align-items:center;gap:6px;background:#791f1f;color:#fff;border-radius:8px;padding:5px 12px;font-size:13px;font-weight:600;text-decoration:none;margin-top:6px}
+.step-call:hover{background:#5a1515}
+
+/* Contacts rapides */
+.contacts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+.contact-card{background:#f5f5f3;border-radius:10px;padding:12px}
+.contact-name{font-weight:600;font-size:13px}
+.contact-role{font-size:12px;color:#888;margin-bottom:6px}
+.contact-tel{display:flex;align-items:center;gap:6px;font-size:13px;color:#0c447c;text-decoration:none;font-weight:500}
+.contact-tel:hover{text-decoration:underline}
+
+/* Info box */
+.info-box{border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:10px;line-height:1.6}
+.info-box.rouge{background:#fcebeb;color:#791f1f;border-left:3px solid #791f1f}
+.info-box.bleu{background:#e6f1fb;color:#0c447c;border-left:3px solid #0c447c}
+.info-box.vert{background:#eaf3de;color:#275a0a;border-left:3px solid #275a0a}
+.info-box.jaune{background:#faeeda;color:#633806;border-left:3px solid #ef9f27}
+
+/* Tabs */
+.tab-ico{font-size:22px}
+.panel{display:none}.panel.active{display:block}
+
+/* Rapport CTA */
+.rapport-cta{background:linear-gradient(135deg,#1a1a1a 0%,#333 100%);border-radius:12px;padding:1.5rem;color:#fff;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-top:1.5rem}
+.rapport-cta-text{font-size:15px;font-weight:600;margin-bottom:4px}
+.rapport-cta-sub{font-size:13px;opacity:.75}
+</style>
+  <script src="fritime_data.js"></script>
+  <script src="fritime_sync.js"></script>
+  <script src="fritime_auth.js"></script>
+</head>
+<body class="ft-body-offset">
+<!-- SHARED NAV - Fri-Time Intyamon -->
+<style>
+.ft-topbar{background:#1a1a1a;color:#fff;padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:52px;position:fixed;top:0;left:0;right:0;z-index:1000}
+.ft-logo{font-size:15px;font-weight:700;letter-spacing:.05em;color:#fff;text-decoration:none;white-space:nowrap}
+.ft-topbar-right{display:flex;align-items:center;gap:12px}
+.ft-user-name{font-size:12px;opacity:.6;display:none}
+.ft-avatar{width:30px;height:30px;border-radius:50%;background:#333;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;cursor:pointer;position:relative}
+.ft-avatar-menu{display:none;position:absolute;top:36px;right:0;background:#fff;border:1px solid #eee;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.1);min-width:180px;z-index:100;overflow:hidden}
+.ft-avatar-menu.open{display:block}
+.ft-avatar-menu-item{padding:10px 14px;font-size:13px;color:#1a1a1a;cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .1s}
+.ft-avatar-menu-item:hover{background:#f5f5f3}
+.ft-avatar-menu-item.red{color:#791f1f}
+.ft-avatar-divider{height:1px;background:#eee;margin:4px 0}
+.ft-sidebar{position:fixed;top:52px;left:0;width:210px;height:calc(100vh - 52px);background:#fff;border-right:1px solid #eee;overflow-y:auto;z-index:999;transform:translateX(-100%);transition:transform .2s}
+.ft-sidebar.open{transform:translateX(0)}
+.ft-sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:998;top:52px}
+.ft-sidebar-overlay.open{display:block}
+.ft-nav-section{padding:6px 14px;font-size:10px;font-weight:700;color:#bbb;text-transform:uppercase;letter-spacing:.08em;margin-top:8px}
+.ft-nav-item{display:flex;align-items:center;gap:9px;padding:9px 14px;font-size:13px;color:#555;cursor:pointer;transition:all .1s;text-decoration:none;border-left:3px solid transparent;white-space:nowrap}
+.ft-nav-item:hover{background:#fafaf8;color:#1a1a1a}
+.ft-nav-item.active{background:#f5f5f3;color:#1a1a1a;font-weight:600;border-left-color:#1a1a1a}
+.ft-nav-ico{font-size:15px;flex-shrink:0;opacity:.7}
+.ft-nav-badge{margin-left:auto;font-size:10px;background:#fcebeb;color:#791f1f;padding:1px 6px;border-radius:20px;font-weight:700}
+.ft-nav-badge.green{background:#eaf3de;color:#275a0a}
+.ft-nav-badge.blue{background:#e6f1fb;color:#0c447c}
+.ft-menu-btn{background:none;border:none;color:#fff;cursor:pointer;font-size:20px;padding:4px 8px;display:flex;align-items:center;justify-content:center;opacity:.8}
+.ft-menu-btn:hover{opacity:1}
+.ft-body-offset{padding-top:52px}
+.ft-layout{display:flex;min-height:calc(100vh - 52px)}
+.ft-sidebar-desktop{width:210px;flex-shrink:0;background:#fff;border-right:1px solid #eee;position:sticky;top:52px;height:calc(100vh - 52px);overflow-y:auto;flex-shrink:0}
+.ft-main{flex:1;overflow-x:hidden;min-width:0}
+@media(max-width:768px){
+  .ft-sidebar-desktop{display:none!important}
+  .ft-user-name{display:none}
+  .ft-main{padding:1rem!important}
+}
+@media(min-width:769px){
+  .ft-sidebar{display:none!important}
+  .ft-sidebar-overlay{display:none!important}
+  .ft-menu-btn{display:none!important}
+  .ft-sidebar-desktop{display:block!important}
+}
+</style>
+
+<div class="ft-topbar">
+  <div style="display:flex;align-items:center;gap:10px">
+    <button class="ft-menu-btn" onclick="toggleSidebar()" id="ft-menu-btn">☰</button>
+    <a href="fritime_dashboard.html" class="ft-logo">Fri-Time Intyamon</a>
+  </div>
+  <div class="ft-topbar-right">
+    <span class="ft-user-name" id="ft-user-name">—</span>
+    <div class="ft-avatar" id="ft-avatar" onclick="toggleAvatarMenu()">
+      <span id="ft-avatar-initials">?</span>
+      <div class="ft-avatar-menu" id="ft-avatar-menu">
+        <div class="ft-avatar-menu-item" style="background:#f5f5f3;cursor:default">
+          <div>
+            <div style="font-weight:600;font-size:13px" id="ft-menu-name">—</div>
+            <div style="font-size:11px;color:#888" id="ft-menu-role">—</div>
+          </div>
+        </div>
+        <div class="ft-avatar-divider"></div>
+        <a href="fritime_dashboard.html" class="ft-avatar-menu-item">🏠 Tableau de bord</a>
+        <div class="ft-avatar-menu-item" onclick="doLogout()">🔒 Se déconnecter</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="ft-sidebar-overlay" id="ft-sidebar-overlay" onclick="toggleSidebar()"></div>
+
+<div class="ft-sidebar" id="ft-sidebar">
+  <div class="ft-nav-section">Principal</div>
+  <a class="ft-nav-item" href="fritime_dashboard.html" data-page="dashboard"><span class="ft-nav-ico">🏠</span> Tableau de bord</a>
+  <a class="ft-nav-item" href="fritime_activites.html" data-page="activites"><span class="ft-nav-ico">🎯</span> Activités</a>
+  <a class="ft-nav-item" href="fritime_inscriptions.html" data-page="inscriptions"><span class="ft-nav-ico">📋</span> Inscriptions</a>
+  <a class="ft-nav-item" href="fritime_enfants.html" data-page="enfants"><span class="ft-nav-ico">👦</span> Enfants</a>
+
+  <div class="ft-nav-section">Organisation</div>
+  <a class="ft-nav-item" href="fritime_taches.html" data-page="taches"><span class="ft-nav-ico">✅</span> Tâches</a>
+  <a class="ft-nav-item" href="fritime_comite.html" data-page="comite"><span class="ft-nav-ico">👥</span> Comité</a>
+  <a class="ft-nav-item" href="fritime_campagnes.html" data-page="campagnes"><span class="ft-nav-ico">📧</span> Campagnes</a>
+  <a class="ft-nav-item" href="fritime_sondages.html" data-page="sondages"><span class="ft-nav-ico">⭐</span> Sondages</a>
+
+  <div class="ft-nav-section">Finances & Partenaires</div>
+  <a class="ft-nav-item" href="fritime_budget.html" data-page="budget"><span class="ft-nav-ico">💰</span> Budget</a>
+  <a class="ft-nav-item" href="fritime_prestataires.html" data-page="prestataires"><span class="ft-nav-ico">🤝</span> Prestataires</a>
+
+  <div class="ft-nav-section">Contenu</div>
+  <a class="ft-nav-item" href="fritime_idees.html" data-page="idees"><span class="ft-nav-ico">💡</span> Banque d'idées</a>
+  <a class="ft-nav-item" href="fritime_documents.html" data-page="documents"><span class="ft-nav-ico">📁</span> Documents</a>
+
+  <div class="ft-nav-section">Sécurité</div>
+  <a class="ft-nav-item" href="fritime_incidents.html" data-page="incidents"><span class="ft-nav-ico">⚠️</span> Incidents</a>
+  <a class="ft-nav-item" href="fritime_urgences.html" data-page="urgences"><span class="ft-nav-ico">🚨</span> Urgences</a>
+  <a class="ft-nav-item" href="fritime_modifications.html" data-page="modifications"><span class="ft-nav-ico">🔄</span> Demandes</a>
+</div>
+
+<script>
+(function(){
+  // Auth check
+  const user = sessionStorage.getItem("ft-user");
+  const publicPages = ["fritime_login.html","fritime_inscription_publique.html","fritime_sondage_parent.html"];
+  const currentPage = window.location.pathname.split("/").pop();
+  if(!user && !publicPages.includes(currentPage)){
+    window.location.href = "fritime_login.html";
+    return;
+  }
+  if(user){
+    const u = JSON.parse(user);
+    const ini = ((u.nom||"").split(" ").map(p=>p[0]||"").join("")).substring(0,2).toUpperCase();
+    document.getElementById("ft-avatar-initials").textContent = ini||"?";
+    document.getElementById("ft-user-name").textContent = u.nom||"";
+    document.getElementById("ft-menu-name").textContent = u.nom||"";
+    document.getElementById("ft-menu-role").textContent = u.role||"";
+    document.getElementById("ft-user-name").style.display = "block";
+  }
+
+  // Active nav item
+  document.querySelectorAll(".ft-nav-item[data-page]").forEach(function(el){
+    if(currentPage.includes(el.dataset.page)) el.classList.add("active");
+  });
+})();
+
+function toggleSidebar(){
+  document.getElementById("ft-sidebar").classList.toggle("open");
+  document.getElementById("ft-sidebar-overlay").classList.toggle("open");
+}
+function toggleAvatarMenu(){
+  document.getElementById("ft-avatar-menu").classList.toggle("open");
+}
+document.addEventListener("click", function(e){
+  const menu = document.getElementById("ft-avatar-menu");
+  const avatar = document.getElementById("ft-avatar");
+  if(menu && !avatar.contains(e.target)) menu.classList.remove("open");
+});
+function doLogout(){
+  sessionStorage.removeItem("ft-user");
+  window.location.href = "fritime_login.html";
+}
+</script>
+
+<div class="container">
+
+<div class="header">
+  <div>
+    <h1>Procédures d'urgence</h1>
+    <div class="subtitle">Guide complet en cas de problème ou accident lors d'une activité</div>
+  </div>
+  <button class="btn" onclick="window.location.href='fritime_incidents.html'">📋 Rapports d'incident</button>
+</div>
+<div class="info-box rouge" style="margin-bottom:1.25rem;font-size:14px;font-weight:500">
+  ⚠️ <strong>Important :</strong> En cas de doute sur la gravité, appelez toujours les secours. Il n'y a pas de "petite" urgence médicale.
+</div>
+
+<!-- Encadrés compacts côte à côte -->
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.5rem">
+
+  <!-- Numéros d'urgence compact -->
+  <div style="background:#fff;border:1.5px solid #f7c1c1;border-radius:12px;padding:1rem">
+    <div style="font-size:12px;font-weight:700;color:#791f1f;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;display:flex;align-items:center;gap:6px">🚨 Numéros d'urgence</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+      <a href="tel:112" style="display:flex;align-items:center;gap:8px;background:#fcebeb;border-radius:8px;padding:7px 10px;text-decoration:none;color:#791f1f;font-weight:700;font-size:13px">🆘 <span>112</span><span style="font-size:10px;font-weight:400;color:#a33">Urgences</span></a>
+      <a href="tel:144" style="display:flex;align-items:center;gap:8px;background:#fcebeb;border-radius:8px;padding:7px 10px;text-decoration:none;color:#791f1f;font-weight:700;font-size:13px">🚑 <span>144</span><span style="font-size:10px;font-weight:400;color:#a33">Ambulance</span></a>
+      <a href="tel:117" style="display:flex;align-items:center;gap:8px;background:#f5f5f3;border-radius:8px;padding:7px 10px;text-decoration:none;color:#1a1a1a;font-weight:600;font-size:13px">👮 <span>117</span><span style="font-size:10px;font-weight:400;color:#888">Police</span></a>
+      <a href="tel:118" style="display:flex;align-items:center;gap:8px;background:#f5f5f3;border-radius:8px;padding:7px 10px;text-decoration:none;color:#1a1a1a;font-weight:600;font-size:13px">🚒 <span>118</span><span style="font-size:10px;font-weight:400;color:#888">Pompiers</span></a>
+      <a href="tel:1414" style="display:flex;align-items:center;gap:8px;background:#f5f5f3;border-radius:8px;padding:7px 10px;text-decoration:none;color:#1a1a1a;font-weight:600;font-size:13px">🚁 <span>1414</span><span style="font-size:10px;font-weight:400;color:#888">Rega</span></a>
+      <a href="tel:145" style="display:flex;align-items:center;gap:8px;background:#f5f5f3;border-radius:8px;padding:7px 10px;text-decoration:none;color:#1a1a1a;font-weight:600;font-size:13px">☠️ <span>145</span><span style="font-size:10px;font-weight:400;color:#888">Toxicocentre</span></a>
+    </div>
+  </div>
+
+  <!-- Procédure téléphonique compact -->
+  <div style="background:#fff;border:1.5px solid #b5d4f4;border-radius:12px;padding:1rem">
+    <div style="font-size:12px;font-weight:700;color:#0c447c;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">📞 Procédure téléphonique</div>
+    <ol style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:5px">
+      <li style="display:flex;align-items:flex-start;gap:8px;font-size:12px"><span style="background:#0c447c;color:#fff;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px">1</span><span><strong>Qui</strong> — Votre nom et qualité</span></li>
+      <li style="display:flex;align-items:flex-start;gap:8px;font-size:12px"><span style="background:#0c447c;color:#fff;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px">2</span><span><strong>Quoi</strong> — Type d'accident / incident</span></li>
+      <li style="display:flex;align-items:flex-start;gap:8px;font-size:12px"><span style="background:#0c447c;color:#fff;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px">3</span><span><strong>Où</strong> — Adresse exacte / repères</span></li>
+      <li style="display:flex;align-items:flex-start;gap:8px;font-size:12px"><span style="background:#0c447c;color:#fff;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px">4</span><span><strong>Combien</strong> — Nombre et âge des blessés</span></li>
+      <li style="display:flex;align-items:flex-start;gap:8px;font-size:12px"><span style="background:#0c447c;color:#fff;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px">5</span><span><strong>Divers</strong> — Dangers, mesures prises</span></li>
+    </ol>
+    <div style="font-size:11px;color:#0c447c;margin-top:8px;padding-top:8px;border-top:1px solid #e6f1fb;font-style:italic">Ne raccrochez pas avant que le dispatcher vous le demande.</div>
+  </div>
+
+</div>
+
+
+<!-- Contacts d'urgence en haut -->
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.5rem">
+  <div style="background:#fff;border:1.5px solid #eee;border-radius:12px;padding:1rem">
+    <div style="font-size:12px;font-weight:700;color:#1a1a1a;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">📞 Comité Fri-Time</div>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:5px 8px;background:#f5f5f3;border-radius:6px">
+        <div><span style="font-weight:600">Marie Dupont</span> <span style="color:#888;font-size:11px">Présidente</span></div>
+        <a href="tel:+41791001122" style="color:#0c447c;font-weight:600;text-decoration:none">📞 079 100 11 22</a>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:5px 8px;background:#f5f5f3;border-radius:6px">
+        <div><span style="font-weight:600">Jean Martin</span> <span style="color:#888;font-size:11px">Trésorier</span></div>
+        <a href="tel:+41792002233" style="color:#0c447c;font-weight:600;text-decoration:none">📞 079 200 22 33</a>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:5px 8px;background:#f5f5f3;border-radius:6px">
+        <div><span style="font-weight:600">Sophie Remy</span> <span style="color:#888;font-size:11px">Inscriptions</span></div>
+        <a href="tel:+41793003344" style="color:#0c447c;font-weight:600;text-decoration:none">📞 079 300 33 44</a>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:5px 8px;background:#f5f5f3;border-radius:6px">
+        <div><span style="font-weight:600">Paul Morel</span> <span style="color:#888;font-size:11px">Prestataires</span></div>
+        <a href="tel:+41795005566" style="color:#0c447c;font-weight:600;text-decoration:none">📞 079 500 55 66</a>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:5px 8px;background:#f5f5f3;border-radius:6px">
+        <div><span style="font-weight:600">Service Fri-Time</span> <span style="color:#888;font-size:11px">Coordination</span></div>
+        <a href="tel:+41264002600" style="color:#0c447c;font-weight:600;text-decoration:none">📞 026 400 26 00</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Trousse + documents -->
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <div style="background:#fff;border:1.5px solid #eee;border-radius:12px;padding:1rem;flex:1">
+      <div style="font-size:12px;font-weight:700;color:#1a1a1a;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">🩺 Trousse de secours</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px">
+        <div style="font-size:11px;color:#333;padding:3px 0;display:flex;gap:4px"><span style="color:#275a0a">✓</span>Pansements (tailles variées)</div>
+        <div style="font-size:11px;color:#333;padding:3px 0;display:flex;gap:4px"><span style="color:#275a0a">✓</span>Compresses stériles</div>
+        <div style="font-size:11px;color:#333;padding:3px 0;display:flex;gap:4px"><span style="color:#275a0a">✓</span>Bande de gaze</div>
+        <div style="font-size:11px;color:#333;padding:3px 0;display:flex;gap:4px"><span style="color:#275a0a">✓</span>Sparadrap</div>
+        <div style="font-size:11px;color:#333;padding:3px 0;display:flex;gap:4px"><span style="color:#275a0a">✓</span>Désinfectant (Betadine)</div>
+        <div style="font-size:11px;color:#333;padding:3px 0;display:flex;gap:4px"><span style="color:#275a0a">✓</span>Gants jetables</div>
+        <div style="font-size:11px;color:#333;padding:3px 0;display:flex;gap:4px"><span style="color:#275a0a">✓</span>Ciseaux à bout rond</div>
+        <div style="font-size:11px;color:#333;padding:3px 0;display:flex;gap:4px"><span style="color:#275a0a">✓</span>Pince à épiler</div>
+        <div style="font-size:11px;color:#333;padding:3px 0;display:flex;gap:4px"><span style="color:#275a0a">✓</span>Couverture de survie</div>
+        <div style="font-size:11px;color:#333;padding:3px 0;display:flex;gap:4px"><span style="color:#275a0a">✓</span>Glace instantanée</div>
+        <div style="font-size:11px;color:#333;padding:3px 0;display:flex;gap:4px"><span style="color:#275a0a">✓</span>Thermomètre</div>
+        <div style="font-size:11px;color:#333;padding:3px 0;display:flex;gap:4px"><span style="color:#275a0a">✓</span>Numéros d'urgence imprimés</div>
+      </div>
+    </div>
+    <div style="background:#fff;border:1.5px solid #eee;border-radius:12px;padding:1rem">
+      <div style="font-size:12px;font-weight:700;color:#1a1a1a;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">📂 Documents à emporter</div>
+      <div style="display:flex;flex-direction:column;gap:3px">
+        <div style="font-size:11px;color:#333;display:flex;gap:6px"><span style="color:#275a0a">✓</span>Liste enfants + numéros des parents</div>
+        <div style="font-size:11px;color:#333;display:flex;gap:6px"><span style="color:#275a0a">✓</span>Fiches médicales / allergies des enfants</div>
+        <div style="font-size:11px;color:#333;display:flex;gap:6px"><span style="color:#275a0a">✓</span>Numéros d'urgence du comité imprimés</div>
+        <div style="font-size:11px;color:#333;display:flex;gap:6px"><span style="color:#275a0a">✓</span>Autorisation parentale si nécessaire</div>
+        <div style="font-size:11px;color:#333;display:flex;gap:6px"><span style="color:#275a0a">✓</span>Guide procédures d'urgence (imprimé)</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Recommandations toujours visibles -->
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:1.5rem">
+  <div style="background:#fff;border:1px solid #eee;border-radius:10px;padding:12px;display:flex;align-items:flex-start;gap:10px">
+    <span style="font-size:20px;flex-shrink:0">📋</span>
+    <div><div style="font-size:12px;font-weight:600;margin-bottom:2px">Documentation</div><div style="font-size:11px;color:#666;line-height:1.4">Rédiger un rapport pour chaque incident, même mineur.</div></div>
+  </div>
+  <div style="background:#fff;border:1px solid #eee;border-radius:10px;padding:12px;display:flex;align-items:flex-start;gap:10px">
+    <span style="font-size:20px;flex-shrink:0">👨‍👩‍👧</span>
+    <div><div style="font-size:12px;font-weight:600;margin-bottom:2px">Parents</div><div style="font-size:11px;color:#666;line-height:1.4">Informer rapidement et honnêtement les parents concernés.</div></div>
+  </div>
+  <div style="background:#fff;border:1px solid #eee;border-radius:10px;padding:12px;display:flex;align-items:flex-start;gap:10px">
+    <span style="font-size:20px;flex-shrink:0">🤝</span>
+    <div><div style="font-size:12px;font-weight:600;margin-bottom:2px">Comité</div><div style="font-size:11px;color:#666;line-height:1.4">Alerter immédiatement un responsable pour tout incident grave.</div></div>
+  </div>
+  <div style="background:#fff;border:1px solid #eee;border-radius:10px;padding:12px;display:flex;align-items:flex-start;gap:10px">
+    <span style="font-size:20px;flex-shrink:0">🧠</span>
+    <div><div style="font-size:12px;font-weight:600;margin-bottom:2px">Support psychologique</div><div style="font-size:11px;color:#666;line-height:1.4">Proposer du soutien aux enfants et bénévoles choqués.</div></div>
+  </div>
+  <div style="background:#fcebeb;border:1px solid #f7c1c1;border-radius:10px;padding:12px;display:flex;align-items:flex-start;gap:10px">
+    <span style="font-size:20px;flex-shrink:0">💊</span>
+    <div><div style="font-size:12px;font-weight:600;margin-bottom:2px;color:#791f1f">Médicaments</div><div style="font-size:11px;color:#791f1f;line-height:1.4;font-weight:500">Ne jamais administrer de médicament sans consentement écrit des parents.</div></div>
+  </div>
+</div>
+
+
+
+<!-- PROCÉDURES -->
+
+
+  <!-- Petits accidents -->
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-ico">🦵</span>
+      <span class="section-title">Petits accidents (entorse, coupure légère...)</span>
+      <span class="section-toggle">▼</span>
+    </div>
+    <div class="section-body">
+      <div class="info-box vert">La plupart des petits accidents peuvent être gérés sur place. En cas de doute, appelez le 144.</div>
+      <div class="info-box rouge">💊 Ne jamais administrer de médicament à un enfant sans consentement écrit des parents.</div>
+      <ol class="steps">
+        <li class="step"><div class="step-num"></div><div class="step-content"><div class="step-title">Évaluer la blessure</div><div class="step-desc">Entorse : gonflement, douleur localisée, enfant peut bouger (légèrement). Coupure : superficielle, saignement limité.</div></div></li>
+        <li class="step"><div class="step-num"></div><div class="step-content"><div class="step-title">Premiers soins avec la trousse</div><div class="step-desc">Entorse : RICE (repos, glace, compression, élévation). Coupure : nettoyage, désinfection, pansement.</div></div></li>
+        <li class="step"><div class="step-num"></div><div class="step-content"><div class="step-title">Surveiller l'enfant</div><div class="step-desc">Rester attentif à l'évolution. Si douleur augmente ou gonflement important → 144.</div></div></li>
+        <li class="step"><div class="step-num"></div><div class="step-content"><div class="step-title">Informer les parents à la reprise</div><div class="step-desc">Toujours mentionner l'incident aux parents même si l'enfant va bien.</div></div></li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- Accident / blessure -->
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-ico">🩹</span>
+      <span class="section-title">Accident / blessure physique</span>
+      <span class="section-toggle">▼</span>
+    </div>
+    <div class="section-body">
+      <div class="info-box rouge">Toujours évaluer la gravité avant d'agir. En cas de doute, appelle le 144.</div>
+      <ol class="steps">
+        <li class="step step-urgent">
+          <div class="step-num"></div>
+          <div class="step-content">
+            <div class="step-title">Sécuriser la zone</div>
+            <div class="step-desc">Éloigne les autres enfants du danger. Ne déplace pas l'enfant blessé sauf danger immédiat.</div>
+          </div>
+        </li>
+        <li class="step">
+          <div class="step-num"></div>
+          <div class="step-content">
+            <div class="step-title">Évaluer l'état de l'enfant</div>
+            <div class="step-desc">Est-il conscient ? Respire-t-il ? Saigne-t-il abondamment ? Y a-t-il une fracture visible ?</div>
+          </div>
+        </li>
+        <li class="step step-urgent">
+          <div class="step-num"></div>
+          <div class="step-content">
+            <div class="step-title">Appeler le 144 si nécessaire</div>
+            <div class="step-desc">Fracture, perte de connaissance, saignement abondant, choc → appel immédiat.</div>
+            <a href="tel:144" class="step-call">📞 Appeler le 144</a>
+          </div>
+        </li>
+        <li class="step">
+          <div class="step-num"></div>
+          <div class="step-content">
+            <div class="step-title">Premiers secours de base</div>
+            <div class="step-desc">Plaie légère : nettoyage, désinfection, pansement. Ne jamais retirer un objet planté. En cas de choc : allonger, couvrir, rassurer.</div>
+          </div>
+        </li>
+        <li class="step">
+          <div class="step-num"></div>
+          <div class="step-content">
+            <div class="step-title">Contacter les parents</div>
+            <div class="step-desc">Appelle immédiatement le responsable légal de l'enfant. Informe-le de la situation et des mesures prises.</div>
+          </div>
+        </li>
+        <li class="step">
+          <div class="step-num"></div>
+          <div class="step-content">
+            <div class="step-title">Notifier le comité et rédiger le rapport</div>
+            <div class="step-desc">Informe la présidente ou un autre membre du comité. Rédige le rapport d'incident le jour même.</div>
+          </div>
+        </li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- Réaction allergique -->
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-ico">🤧</span>
+      <span class="section-title">Réaction allergique</span>
+      <span class="section-toggle">▼</span>
+    </div>
+    <div class="section-body">
+      <div class="info-box rouge">Réaction sévère (gonflement de la gorge, difficultés respiratoires) = urgence absolue. Appelle le 144 immédiatement.</div>
+      <ol class="steps">
+        <li class="step step-urgent">
+          <div class="step-num"></div>
+          <div class="step-content">
+            <div class="step-title">Identifier la réaction</div>
+            <div class="step-desc">Urticaire, rougeurs, gonflement, nausées = réaction légère. Gonflement gorge, difficultés à respirer, perte de connaissance = anaphylaxie.</div>
+          </div>
+        </li>
+        <li class="step step-urgent">
+          <div class="step-num"></div>
+          <div class="step-content">
+            <div class="step-title">Si anaphylaxie : EpiPen et 144</div>
+            <div class="step-desc">Utilise l'EpiPen si l'enfant en possède un. Appelle le 144 immédiatement même après l'injection.</div>
+            <a href="tel:144" class="step-call">📞 Appeler le 144</a>
+          </div>
+        </li>
+        <li class="step">
+          <div class="step-num"></div>
+          <div class="step-content">
+            <div class="step-title">Réaction légère</div>
+            <div class="step-desc">Antihistaminique si disponible et prescrit. Surveille l'enfant. Contacte les parents immédiatement.</div>
+          </div>
+        </li>
+        <li class="step">
+          <div class="step-num"></div>
+          <div class="step-content">
+            <div class="step-title">Rédiger le rapport d'incident</div>
+            <div class="step-desc">Documente l'allergène suspecté, les symptômes, les mesures prises et l'évolution.</div>
+          </div>
+        </li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- Accident conséquent -->
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-ico">🦴</span>
+      <span class="section-title">Accident conséquent (fracture, commotion)</span>
+      <span class="section-toggle">▼</span>
+    </div>
+    <div class="section-body">
+      <div class="info-box rouge">Ne jamais mobiliser un enfant ayant une fracture suspectée ou un traumatisme crânien. Attendre les secours.</div>
+      <ol class="steps">
+        <li class="step step-urgent"><div class="step-num"></div><div class="step-content"><div class="step-title">Appeler le 144 immédiatement</div><div class="step-desc">Fracture visible, déformation, douleur intense, perte de connaissance même brève, vomissements après choc crânien.<a href="tel:144" class="step-call">🚑 144</a></div></div></li>
+        <li class="step"><div class="step-num"></div><div class="step-content"><div class="step-title">Ne pas bouger l'enfant</div><div class="step-desc">Immobiliser la zone blessée si possible. Couvrir et rassurer. Parler calmement à l'enfant.</div></div></li>
+        <li class="step"><div class="step-num"></div><div class="step-content"><div class="step-title">Surveiller les signes de commotion</div><div class="step-desc">Confusion, maux de tête, nausées, vision trouble après un choc à la tête = commotion probable.</div></div></li>
+        <li class="step"><div class="step-num"></div><div class="step-content"><div class="step-title">Contacter les parents en urgence</div><div class="step-desc">Appel immédiat. Rejoindre l'enfant à l'hôpital si possible.</div></div></li>
+        <li class="step"><div class="step-num"></div><div class="step-content"><div class="step-title">Rapport d'incident : gravité Sérieux</div><div class="step-desc">Documenter précisément les circonstances de l'accident.</div></div></li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- Accident grave -->
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-ico">🏥</span>
+      <span class="section-title">Accident grave</span>
+      <span class="section-toggle">▼</span>
+    </div>
+    <div class="section-body">
+      <div class="info-box rouge">Chaque seconde compte. Appeler le 144 en premier, agir ensuite.</div>
+      <ol class="steps">
+        <li class="step step-urgent"><div class="step-num"></div><div class="step-content"><div class="step-title">Appeler le 144 immédiatement</div><div class="step-desc">Donner la localisation exacte, le nombre de blessés, l'état apparent (conscient, respire-t-il).<a href="tel:144" class="step-call">🚑 144</a></div></div></li>
+        <li class="step step-urgent"><div class="step-num"></div><div class="step-content"><div class="step-title">Appeler la Rega si zone difficile d'accès</div><div class="step-desc">En montagne, forêt ou lieu isolé : hélitreuillage possible.<a href="tel:1414" class="step-call">🚁 Rega 1414</a></div></div></li>
+        <li class="step"><div class="step-num"></div><div class="step-content"><div class="step-title">Premiers secours jusqu'à l'arrivée des secours</div><div class="step-desc">RCP si inconscient et ne respire pas. Position latérale de sécurité si respire mais inconscient. Stopper les hémorragies.</div></div></li>
+        <li class="step"><div class="step-num"></div><div class="step-content"><div class="step-title">Protéger le groupe</div><div class="step-desc">Un adulte s'occupe du blessé, un autre gère le groupe à l'écart.</div></div></li>
+        <li class="step"><div class="step-num"></div><div class="step-content"><div class="step-title">Contacter parents et comité en parallèle</div><div class="step-desc">Informer immédiatement. Rapport d'incident gravité Critique obligatoire.</div></div></li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- Décès -->
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-ico">🕊️</span>
+      <span class="section-title">Décès</span>
+      <span class="section-toggle">▼</span>
+    </div>
+    <div class="section-body">
+      <div class="info-box rouge">Situation exceptionnelle. Votre rôle est de protéger les enfants présents et d'appeler les autorités. Ne touchez pas la personne décédée.</div>
+      <ol class="steps">
+        <li class="step step-urgent"><div class="step-num"></div><div class="step-content"><div class="step-title">Appeler le 144 et le 117</div><div class="step-desc">Les deux services doivent être alertés. Préserver les lieux si cause non naturelle suspectée.<a href="tel:144" class="step-call">🚑 144</a><a href="tel:117" class="step-call" style="margin-top:6px">📞 117</a></div></div></li>
+        <li class="step step-urgent"><div class="step-num"></div><div class="step-content"><div class="step-title">Éloigner les enfants immédiatement</div><div class="step-desc">Ne pas les exposer à la scène. Les regrouper dans un lieu calme avec un adulte dédié.</div></div></li>
+        <li class="step"><div class="step-num"></div><div class="step-content"><div class="step-title">Contacter la présidente du comité immédiatement</div><div class="step-desc">Elle prendra en charge la coordination et le contact avec les familles.</div></div></li>
+        <li class="step"><div class="step-num"></div><div class="step-content"><div class="step-title">Contacter les familles des enfants présents</div><div class="step-desc">Tous les enfants du groupe doivent être récupérés rapidement par leurs parents.</div></div></li>
+        <li class="step"><div class="step-num"></div><div class="step-content"><div class="step-title">Soutien psychologique</div><div class="step-desc">Prévoir un suivi pour les enfants et les bénévoles présents. Contacter un professionnel si nécessaire.</div></div></li>
+      </ol>
+    </div>
+  </div>
+
+
+  <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#633806;background:#faeeda;padding:6px 14px;border-radius:20px;display:inline-block;margin:1rem 0 .5rem">💊 Médical / substances</div>
+  <!-- Consommation de drogue -->
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-ico">💊</span>
+      <span class="section-title">Consommation de drogue ou d'alcool</span>
+      <span class="section-toggle">▼</span>
+    </div>
+    <div class="section-body">
+      <div class="info-box rouge">Si l'enfant est dans un état grave (inconscient, convulsions, difficultés à respirer) : 144 immédiatement.</div>
+      <ol class="steps">
+        <li class="step step-urgent"><div class="step-num"></div><div class="step-content"><div class="step-title">Si état grave : appeler le 144</div><div class="step-desc">Inconscience, vomissements incontrôlés, convulsions, détresse respiratoire = urgence absolue.<a href="tel:144" class="step-call">🚑 144</a></div></div></li>
+        <li class="step"><div class="step-num"></div><div class="step-content"><div class="step-title">Mettre en sécurité l'enfant</div><div class="step-desc">Éloigner du groupe. Surveiller en permanence. Ne jamais laisser seul. Position latérale de sécurité si inconscient.</div></div></li>
+        <li class="step"><div class="step-num"></div><div class="step-content"><div class="step-title">Contacter les parents immédiatement</div><div class="step-desc">Informer sans délai. Ne pas minimiser la situation.</div></div></li>
+        <li class="step"><div class="step-num"></div><div class="step-content"><div class="step-title">Informer le comité et rédiger le rapport</div><div class="step-desc">Documenter objectivement : comportement observé, heure, substance suspectée si connue.</div></div></li>
+      </ol>
+    </div>
+  </div>
+
+
+  <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#633806;background:#faeeda;padding:6px 14px;border-radius:20px;display:inline-block;margin:1rem 0 .5rem">⚠️ Conflits & violence</div>
+  <!-- Petite bagarre -->
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-ico">👊</span>
+      <span class="section-title">Petite bagarre (sans blessure)</span>
+      <span class="section-toggle">▼</span>
+    </div>
+    <div class="section-body">
+      <div class="info-box jaune">Intervenir rapidement avant escalade. Rester calme et neutre.</div>
+      <ol class="steps">
+        <li class="step"><div class="step-num"></div><div class="step-content"><div class="step-title">Intervenir verbalement et séparer</div><div class="step-desc">Voix ferme et calme. Séparer physiquement les enfants si nécessaire (jamais seul avec un enfant).</div></div></li>
+        <li class="step"><div class="step-num"></div><div class="step-content"><div class="step-title">Écouter chaque enfant séparément</div><div class="step-desc">Donner la parole à chacun. Ne pas prendre parti. Identifier la cause du conflit.</div></div></li>
+        <li class="step"><div class="step-num"></div><div class="step-content"><div class="step-title">Informer les parents en fin d'activité</div><div class="step-desc">Mentionner l'incident calmement aux parents à la reprise. Pas d'alarme excessive si situation résolue.</div></div></li>
+        <li class="step"><div class="step-num"></div><div class="step-content"><div class="step-title">Documenter si récurrent</div><div class="step-desc">Si comportement répété, rédiger un rapport et en informer le comité.</div></div></li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- Bagarre importante -->
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-ico">🚨</span>
+      <span class="section-title">Bagarre importante (avec blessures)</span>
+      <span class="section-toggle">▼</span>
+    </div>
+    <div class="section-body">
+      <div class="info-box rouge">Ne jamais s'interposer physiquement seul entre deux personnes en conflit violent.</div>
+      <ol class="steps">
+        <li class="step step-urgent"><div class="step-num"></div><div class="step-content"><div class="step-title">Protéger les autres enfants</div><div class="step-desc">Éloigner immédiatement le reste du groupe. Un adulte reste avec eux.</div></div></li>
+        <li class="step step-urgent"><div class="step-num"></div><div class="step-content"><div class="step-title">Appeler le 117 si violence incontrôlable</div><div class="step-desc">Si les personnes ne peuvent pas être séparées ou si des adultes sont impliqués.<a href="tel:117" class="step-call">📞 Police 117</a></div></div></li>
+        <li class="step"><div class="step-num"></div><div class="step-content"><div class="step-title">Prendre en charge les blessés</div><div class="step-desc">Évaluer les blessures. Appeler le 144 si nécessaire.<a href="tel:144" class="step-call">🚑 144</a></div></div></li>
+        <li class="step"><div class="step-num"></div><div class="step-content"><div class="step-title">Contacter parents et comité</div><div class="step-desc">Informer toutes les familles concernées. Alerter la présidente immédiatement.</div></div></li>
+        <li class="step"><div class="step-num"></div><div class="step-content"><div class="step-title">Rapport d'incident obligatoire</div><div class="step-desc">Documenter les faits, témoins, blessures et mesures prises. Statut : Sérieux ou Critique.</div></div></li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- Agression sexuelle -->
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-ico">🛡️</span>
+      <span class="section-title">Agression sexuelle ou signalement d'abus</span>
+      <span class="section-toggle">▼</span>
+    </div>
+    <div class="section-body">
+      <div class="info-box rouge">Toute suspicion doit être prise au sérieux et signalée. Vous n'avez pas à en avoir la certitude pour agir.</div>
+      <ol class="steps">
+        <li class="step step-urgent"><div class="step-num"></div><div class="step-content"><div class="step-title">Écouter et croire l'enfant</div><div class="step-desc">Ne pas questionner, ne pas minimiser. Remercier l'enfant d'avoir parlé. Ne pas promettre le secret.</div></div></li>
+        <li class="step step-urgent"><div class="step-num"></div><div class="step-content"><div class="step-title">Mettre l'enfant en sécurité immédiatement</div><div class="step-desc">Éloigner l'enfant de la personne suspectée. Ne jamais les laisser seuls ensemble.</div></div></li>
+        <li class="step step-urgent"><div class="step-num"></div><div class="step-content"><div class="step-title">Contacter la police</div><div class="step-desc">Signalez immédiatement. Ne pas tenter d'investiguer soi-même.<a href="tel:117" class="step-call">📞 Police 117</a></div></div></li>
+        <li class="step"><div class="step-num"></div><div class="step-content"><div class="step-title">Informer les parents (hors auteur suspecté)</div><div class="step-desc">Si l'auteur suspecté n'est pas un parent, informer les responsables légaux de l'enfant.</div></div></li>
+        <li class="step"><div class="step-num"></div><div class="step-content"><div class="step-title">Rapport d'incident : gravité Critique</div><div class="step-desc">Documenter uniquement ce qui a été dit ou observé. Ne pas interpréter. Informer le comité immédiatement.</div></div></li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- Vol -->
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-ico">💰</span>
+      <span class="section-title">Vol</span>
+      <span class="section-toggle">▼</span>
+    </div>
+    <div class="section-body">
+      <div class="info-box jaune">Ne pas accuser sans preuve. Rester factuel et discret.</div>
+      <ol class="steps">
+        <li class="step"><div class="step-num"></div><div class="step-content"><div class="step-title">Vérifier et délimiter la situation</div><div class="step-desc">S'assurer que l'objet est bien volé (pas juste égaré). Identifier le moment et le lieu probable du vol.</div></div></li>
+        <li class="step"><div class="step-num"></div><div class="step-content"><div class="step-title">Informer discrètement le responsable</div><div class="step-desc">Ne pas annoncer publiquement. Gérer en privé avec les enfants concernés.</div></div></li>
+        <li class="step"><div class="step-num"></div><div class="step-content"><div class="step-title">Contacter les parents des deux parties</div><div class="step-desc">Informer la famille de la victime et, si l'auteur est identifié, ses parents également.</div></div></li>
+        <li class="step"><div class="step-num"></div><div class="step-content"><div class="step-title">Porter plainte si nécessaire</div><div class="step-desc">Pour un vol important, accompagner la famille à porter plainte au 117.<a href="tel:117" class="step-call">📞 Police 117</a></div></div></li>
+        <li class="step"><div class="step-num"></div><div class="step-content"><div class="step-title">Rédiger le rapport d'incident</div><div class="step-desc">Documenter les faits sans jugement. Informer le comité.</div></div></li>
+      </ol>
+    </div>
+  </div>
+
+
+  <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#275a0a;background:#eaf3de;padding:6px 14px;border-radius:20px;display:inline-block;margin:1rem 0 .5rem">🔒 Sécurité & environnement</div>
+  <!-- Disparition enfant -->
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-ico">🔍</span>
+      <span class="section-title">Disparition d'un enfant</span>
+      <span class="section-toggle">▼</span>
+    </div>
+    <div class="section-body">
+      <div class="info-box rouge">Toute disparition doit être prise au sérieux dès les premières minutes. Ne pas attendre.</div>
+      <ol class="steps">
+        <li class="step step-urgent">
+          <div class="step-num"></div>
+          <div class="step-content">
+            <div class="step-title">Vérifier la présence immédiatement</div>
+            <div class="step-desc">Appelle le nom de l'enfant. Vérifie les sanitaires, pièces adjacentes, cachettes habituelles.</div>
+          </div>
+        </li>
+        <li class="step step-urgent">
+          <div class="step-num"></div>
+          <div class="step-content">
+            <div class="step-title">Après 5 minutes : alerter et organiser la recherche</div>
+            <div class="step-desc">Divise le groupe en équipes de recherche. Un adulte reste avec les autres enfants en permanence.</div>
+          </div>
+        </li>
+        <li class="step step-urgent">
+          <div class="step-num"></div>
+          <div class="step-content">
+            <div class="step-title">Après 10 minutes : appeler le 117</div>
+            <div class="step-desc">Signale la disparition à la police. Décris l'enfant, sa tenue, l'heure et le lieu de sa dernière présence.</div>
+            <a href="tel:117" class="step-call">📞 Appeler le 117</a>
+          </div>
+        </li>
+        <li class="step">
+          <div class="step-num"></div>
+          <div class="step-content">
+            <div class="step-title">Contacter les parents et le comité</div>
+            <div class="step-desc">Informe immédiatement les parents et la présidente du comité.</div>
+          </div>
+        </li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- Mauvais temps -->
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-ico">🌩️</span>
+      <span class="section-title">Mauvais temps / orage</span>
+      <span class="section-toggle">▼</span>
+    </div>
+    <div class="section-body">
+      <div class="info-box bleu">En cas de doute météo, l'activité est annulée ou reportée. La sécurité prime sur le programme.</div>
+      <ol class="steps">
+        <li class="step">
+          <div class="step-num"></div>
+          <div class="step-content">
+            <div class="step-title">Surveiller la météo avant et pendant</div>
+            <div class="step-desc">Consulte MétéoSuisse avant toute activité en plein air. En cas d'alerte orange ou rouge : annulation automatique.</div>
+          </div>
+        </li>
+        <li class="step step-urgent">
+          <div class="step-num"></div>
+          <div class="step-content">
+            <div class="step-title">Orage imminent : mise à l'abri</div>
+            <div class="step-desc">Dirige immédiatement le groupe vers un bâtiment. Éviter les arbres isolés, crêtes, plans d'eau, barrières métalliques.</div>
+          </div>
+        </li>
+        <li class="step">
+          <div class="step-num"></div>
+          <div class="step-content">
+            <div class="step-title">Informer les parents du changement</div>
+            <div class="step-desc">Envoie un message aux familles dès la décision d'annulation ou de report.</div>
+          </div>
+        </li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- Incendie -->
+  <div class="section">
+    <div class="section-header" onclick="toggleSection(this)">
+      <span class="section-ico">🔥</span>
+      <span class="section-title">Incendie</span>
+      <span class="section-toggle">▼</span>
+    </div>
+    <div class="section-body">
+      <div class="info-box rouge">L'évacuation prime sur tout. Ne revenez jamais dans un bâtiment en feu.</div>
+      <ol class="steps">
+        <li class="step step-urgent"><div class="step-num"></div><div class="step-content"><div class="step-title">Évacuer immédiatement</div><div class="step-desc">Déclencher l'alarme. Faire sortir tous les enfants calmement. Utiliser les sorties de secours. Ne jamais utiliser l'ascenseur.</div></div></li>
+        <li class="step step-urgent"><div class="step-num"></div><div class="step-content"><div class="step-title">Appeler le 118</div><div class="step-desc">Depuis l'extérieur du bâtiment uniquement.<a href="tel:118" class="step-call">🚒 Pompiers 118</a></div></div></li>
+        <li class="step"><div class="step-num"></div><div class="step-content"><div class="step-title">Faire l'appel du groupe</div><div class="step-desc">Vérifier que tous les enfants sont présents. Point de rassemblement : endroit prédéfini loin du bâtiment.</div></div></li>
+        <li class="step"><div class="step-num"></div><div class="step-content"><div class="step-title">Attendre les secours</div><div class="step-desc">Ne pas retourner dans le bâtiment. Signaler aux pompiers si une personne est manquante.</div></div></li>
+        <li class="step"><div class="step-num"></div><div class="step-content"><div class="step-title">Contacter parents et comité</div><div class="step-desc">Informer les familles dès que possible. Rapport d'incident : gravité Critique.</div></div></li>
+      </ol>
+    </div>
+  </div>
+
+
+  <!-- CTA rapport -->
+  <div class="rapport-cta">
+    <div>
+      <div class="rapport-cta-text">📋 Un incident s'est produit ?</div>
+      <div class="rapport-cta-sub">Rédige le rapport d'incident dès que la situation est stabilisée — le jour même si possible.</div>
+    </div>
+    <button class="btn" style="background:#fff;color:#1a1a1a;font-weight:600;white-space:nowrap" onclick="window.location.href='fritime_incidents.html'">
+      Créer un rapport d'incident →
+    </button>
+  </div>
+</div>
+
+
+
+<script>
+function switchTab(name,btn){
+  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+  document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
+  btn.classList.add("active");
+  document.getElementById("panel-"+name).classList.add("active");
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+function toggleSection(header){
+  const body=header.nextElementSibling;
+  const toggle=header.querySelector(".section-toggle");
+  const isOpen=body.classList.contains("open");
+  body.classList.toggle("open",!isOpen);
+  toggle.classList.toggle("open",!isOpen);
+}
+
+// Open first section by default
+document.querySelectorAll(".section-body")[0].classList.add("open");
+document.querySelectorAll(".section-toggle")[0].classList.add("open");
+</script>
+</body>
+</html>

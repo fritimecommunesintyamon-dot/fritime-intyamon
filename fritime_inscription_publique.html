@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inscriptions — Fri-Time Intyamon</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#f5f5f3;color:#1a1a1a;font-size:14px;min-height:100vh}
+.top-bar{background:#1a1a1a;color:#fff;padding:14px 1.5rem;display:flex;align-items:center;justify-content:space-between}
+.top-logo{font-size:16px;font-weight:700;letter-spacing:.05em}
+.top-sub{font-size:12px;opacity:.6;margin-top:2px}
+
+/* Règles importantes - fond rouge clair, texte rouge foncé */
+.rules-band{background:#fdf0f0;border-left:4px solid #c0392b;padding:1.25rem 1.5rem;margin-bottom:0}
+.rules-inner{max-width:680px;margin:0 auto}
+.rules-title{font-size:15px;font-weight:700;margin-bottom:12px;color:#7a1f1f;display:flex;align-items:center;gap:8px}
+.rules-list{list-style:none;display:flex;flex-direction:column;gap:10px}
+.rules-list li{font-size:13px;line-height:1.6;color:#7a1f1f}
+.rules-list li strong{color:#5a1010}
+.rules-list a{color:#c0392b;text-decoration:underline}
+
+.hero{background:#fff;border-bottom:1px solid #eee;padding:1.5rem}
+.hero-inner{max-width:680px;margin:0 auto}
+.hero-title{font-size:22px;font-weight:700;margin-bottom:6px;line-height:1.3}
+.hero-sub{font-size:14px;color:#555;line-height:1.6}
+
+.progress-wrap{background:#fff;border-bottom:1px solid #eee;padding:0 1.5rem}
+.progress-inner{max-width:680px;margin:0 auto;display:flex;align-items:center}
+.step-item{display:flex;align-items:center;gap:6px;padding:12px 0;flex:1;position:relative}
+.step-item:not(:last-child)::after{content:"";position:absolute;right:0;top:50%;width:100%;height:1px;background:#eee;z-index:0}
+.step-num{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;z-index:1;border:2px solid #eee;background:#fff;color:#aaa}
+.step-num.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.step-num.done{background:#275a0a;color:#fff;border-color:#275a0a}
+.step-label{font-size:11px;color:#aaa;white-space:nowrap}
+.step-label.active{color:#1a1a1a;font-weight:500}
+.step-label.done{color:#275a0a}
+
+.content{max-width:680px;margin:0 auto;padding:1.5rem}
+.panel{display:none}.panel.active{display:block}
+
+/* Message info important — même couleur que règles */
+.msg-important{background:#fdf0f0;border-left:4px solid #c0392b;border-radius:0 8px 8px 0;padding:12px 14px;font-size:13px;color:#7a1f1f;margin-bottom:1.25rem;line-height:1.5;font-weight:500}
+
+/* Activité cards */
+.act-card{background:#fff;border:2px solid #eee;border-radius:14px;margin-bottom:12px;overflow:hidden;transition:border-color .15s;cursor:pointer}
+.act-card:hover{border-color:#ccc}
+.act-card.selected{border-color:#1a1a1a}
+.act-card.complet{opacity:.55;cursor:not-allowed}
+.act-card.age-error{border-color:#c0392b;border-width:2px}
+.act-card-header{padding:1rem 1.25rem;display:flex;align-items:flex-start;gap:12px}
+.check-ico{width:26px;height:26px;border-radius:50%;border:2px solid #ddd;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;transition:all .15s;font-size:13px;background:#fff}
+.act-card.selected .check-ico{background:#1a1a1a;border-color:#1a1a1a;color:#fff}
+.act-title{font-size:16px;font-weight:700;margin-bottom:8px}
+
+/* Badges mis en évidence — plus grande police */
+.badges-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px}
+.badge-hl{font-size:14px;padding:5px 12px;border-radius:20px;font-weight:700;white-space:nowrap}
+.bh-age{background:#e6f1fb;color:#0c447c}
+.bh-deadline{background:#faeeda;color:#633806}
+.bh-gratuit{background:#eaf3de;color:#275a0a}
+.bh-payant{background:#fcebeb;color:#791f1f}
+.places-badge{font-size:14px;font-weight:700;padding:5px 12px;border-radius:20px;white-space:nowrap}
+.pb-dispo{background:#eaf3de;color:#275a0a}
+.pb-complet{background:#fcebeb;color:#791f1f}
+.pb-limite{background:#faeeda;color:#633806}
+
+.act-details{padding:0 1.25rem 1.25rem;border-top:1px solid #f5f5f3}
+.act-desc{font-size:13px;color:#444;line-height:1.6;margin:10px 0}
+.act-info-grid{display:flex;flex-direction:column;gap:6px;font-size:13px}
+.act-info-line{display:flex;align-items:flex-start;gap:10px;padding:6px 0;border-bottom:1px solid #f5f5f3}
+.act-info-line:last-child{border-bottom:none}
+.act-info-lbl{color:#888;min-width:80px;flex-shrink:0;font-size:12px;margin-top:1px}
+.act-info-val{font-weight:500;color:#1a1a1a;line-height:1.4;flex:1}
+
+/* Matériel et tenue — fond rouge clair */
+.act-info-line.mat, .act-info-line.ten{background:#fdf0f0;border-radius:6px;padding:7px 10px;border-bottom:none;margin-top:2px}
+.act-info-line.mat .act-info-lbl, .act-info-line.ten .act-info-lbl{color:#7a1f1f}
+.act-info-line.mat .act-info-val, .act-info-line.ten .act-info-val{color:#5a1010}
+
+/* Message d'erreur âge */
+.age-error-msg{background:#fcebeb;border-radius:8px;padding:12px 14px;margin-top:8px;font-size:13px;color:#791f1f;line-height:1.6;display:none}
+.age-error-msg.visible{display:block}
+
+/* Préférences */
+.pref-card{background:#fff;border:1.5px solid #eee;border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.pref-rank{width:34px;height:34px;border-radius:50%;background:#1a1a1a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;flex-shrink:0}
+.pref-name{font-size:14px;font-weight:500;flex:1}
+.pref-arrows{display:flex;flex-direction:column;gap:3px}
+.pref-arrow{background:none;border:1px solid #ddd;border-radius:5px;width:26px;height:22px;cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center}
+.pref-arrow:hover{background:#f5f5f3}
+.pref-arrow:disabled{opacity:.3;cursor:not-allowed}
+
+/* Formulaire */
+.form-section{background:#fff;border-radius:12px;padding:1.25rem;margin-bottom:1rem;border:1px solid #eee}
+.form-section-title{font-size:13px;font-weight:600;margin-bottom:1rem;padding-bottom:10px;border-bottom:1px solid #eee}
+.fg{margin-bottom:.875rem}
+.fl{font-size:12px;color:#666;margin-bottom:4px;display:block}
+.req{color:#791f1f}
+.fi{width:100%;padding:9px 12px;border:1.5px solid #eee;border-radius:8px;font-size:14px;font-family:inherit;transition:border-color .15s}
+.fi:focus{outline:none;border-color:#1a1a1a}
+.fi.error{border-color:#791f1f}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.err{font-size:11px;color:#791f1f;margin-top:4px;display:none}
+.err.on{display:block}
+
+/* Conditions */
+.conditions-box{background:#fdf0f0;border:1px solid #f7c1c1;border-radius:10px;padding:1.25rem;margin-bottom:1rem}
+.conditions-title{font-size:13px;font-weight:700;color:#7a1f1f;margin-bottom:10px}
+.conditions-list{list-style:none;display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.conditions-list li{font-size:13px;color:#5a1010;line-height:1.5;display:flex;align-items:flex-start;gap:8px}
+.conditions-list li::before{content:"•";flex-shrink:0;color:#c0392b;font-weight:700;margin-top:1px}
+.conditions-note{font-size:12px;color:#7a1f1f;line-height:1.6;padding-top:10px;border-top:1px solid #f7c1c1;margin-top:2px}
+.consent-row{display:flex;align-items:flex-start;gap:10px;padding:12px;background:#fff;border:1.5px solid #f7c1c1;border-radius:8px;cursor:pointer;margin-top:10px}
+.consent-row input{width:18px;height:18px;margin-top:2px;flex-shrink:0;cursor:pointer;accent-color:#791f1f}
+.consent-row label{font-size:13px;font-weight:600;color:#5a1010;cursor:pointer;line-height:1.5}
+
+/* Récap */
+.recap-item{display:flex;align-items:flex-start;gap:10px;padding:9px 12px;background:#f5f5f3;border-radius:8px;margin-bottom:7px}
+.recap-ico{font-size:18px;flex-shrink:0;margin-top:1px}
+.recap-lbl{font-size:11px;color:#888}
+.recap-val{font-size:13px;font-weight:500}
+.recap-act{background:#fff;border:1px solid #eee;border-radius:8px;padding:10px 14px;margin-bottom:6px;display:flex;align-items:center;gap:12px}
+.rk{width:28px;height:28px;border-radius:50%;background:#1a1a1a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+
+/* Email confirmation */
+.email-confirmation{background:#eaf3de;border:1px solid #c0dd97;border-radius:10px;padding:1.25rem;margin-bottom:1rem}
+.email-conf-title{font-size:13px;font-weight:700;color:#275a0a;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.email-conf-text{font-size:13px;color:#2d5c0d;line-height:1.7}
+
+/* Nav */
+.nav-bar{background:#fff;border-top:1px solid #eee;position:sticky;bottom:0;padding:1rem 1.5rem}
+.nav-inner{max-width:680px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.btn{padding:10px 20px;border-radius:8px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:14px;font-family:inherit;font-weight:500;transition:all .15s}
+.btn:hover{background:#f5f5f3}
+.btn-primary{background:#1a1a1a;color:#fff;border-color:#1a1a1a;padding:12px 28px}
+.btn-primary:hover{background:#333}
+.success-wrap{text-align:center;padding:2rem 1rem;max-width:520px;margin:0 auto}
+.req-note{font-size:12px;color:#888;margin-bottom:1.25rem}
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div><div class="top-logo">Fri-Time Intyamon Intyamon</div><div class="top-sub">Association d'activités pour enfants</div></div>
+  <div style="font-size:12px;opacity:.5">Formulaire sécurisé</div>
+</div>
+
+<!-- Règles importantes - fond clair -->
+<div class="rules-band">
+  <div class="rules-inner">
+    <div class="rules-title">⚠️ Règles importantes à connaître avant l'inscription</div>
+    <ul class="rules-list">
+      <li><strong>Assurance du participant :</strong> En cas de dégât matériel ou autre, c'est l'assurance responsabilité civile privée du participant qui prend en charge les frais.</li>
+      <li><strong>Responsabilité :</strong> L'organisateur et le comité d'organisation Fri-Time déclinent toute responsabilité en cas d'accident, de dégâts matériels et/ou de vol.</li>
+      <li><strong>Non-respect des règles :</strong> En cas de non-respect de la charte et du règlement de l'activité, des règles de sécurité et des directives, l'organisateur et le comité d'organisation Fri-Time se réservent le droit de renvoi du participant et le bannissement des futures activités si nécessaire.</li>
+      <li><strong>Droit à l'image :</strong> En participant aux activités FriTime, vous acceptez que des images et photos prises lors de ces activités puissent être utilisées à des fins de promotion. Si vous vous y opposez : <a href="mailto:fritimecommunesintyamon@gmail.com">fritimecommunesintyamon@gmail.com</a></li>
+      <li><strong>Rapport d'incident :</strong> En cas de problème, accident ou incident survenant lors d'une activité, un rapport d'incident officiel sera systématiquement établi par le comité d'organisation Fri-Time. Les parents ou responsables légaux concernés en seront informés dans les meilleurs délais.</li>
+      <li><strong>Procédures d'urgence :</strong> En cas d'urgence médicale, les bénévoles sont formés aux procédures de premiers secours. Les services d'urgence seront contactés si nécessaire (144 ambulance · 117 police · 118 pompiers · 1414 Rega). Les parents seront prévenus le plus rapidement possible. <strong>Il est impératif d'être joignable par téléphone pendant toute la durée de l'activité.</strong></li>
+      <li><strong>Informations importantes à communiquer au comité :</strong> Pour la sécurité de votre enfant, il est indispensable de signaler au moment de l'inscription toute allergie (alimentaire, médicamenteuse, au soleil, aux insectes...), tout traitement médical en cours, toute condition de santé particulière (asthme, épilepsie, diabète, troubles moteurs...) ou toute information que les bénévoles doivent connaître. Ces informations sont confidentielles et uniquement utilisées dans le cadre de la sécurité de votre enfant.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-title">Inscriptions activités printemps 2026</div>
+    <div class="hero-sub">Sélectionnez toutes les activités qui intéressent votre enfant. Vous indiquerez vos préférences à l'étape 4.</div>
+  </div>
+</div>
+
+<div class="progress-wrap">
+  <div class="progress-inner">
+    <div class="step-item"><div class="step-num active" id="sn1">1</div><div class="step-label active" id="sl1">Activités</div></div>
+    <div class="step-item"><div class="step-num" id="sn2">2</div><div class="step-label" id="sl2">Votre enfant</div></div>
+    <div class="step-item"><div class="step-num" id="sn3">3</div><div class="step-label" id="sl3">Coordonnées</div></div>
+    <div class="step-item"><div class="step-num" id="sn4">4</div><div class="step-label" id="sl4">Préférences</div></div>
+    <div class="step-item"><div class="step-num" id="sn5">5</div><div class="step-label" id="sl5">Validation</div></div>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- Étape 1 -->
+  <div class="panel active" id="panel-1">
+    <div class="msg-important">Cochez toutes les activités qui intéressent votre enfant — sans limite. Vous indiquerez vos préférences à l'étape 4.</div>
+    <div id="activites-list"></div>
+    <div id="no-sel-msg" style="display:none" class="msg-important">Veuillez sélectionner au moins une activité pour continuer.</div>
+    <div id="age-errors-global" style="display:none" class="msg-important">Veuillez corriger les erreurs d'âge indiquées avant de continuer.</div>
+  </div>
+
+  <!-- Étape 2 -->
+  <div class="panel" id="panel-2">
+    <div class="req-note">Les champs marqués <span class="req">*</span> sont obligatoires.</div>
+    <div class="form-section">
+      <div class="form-section-title">Informations sur l'enfant</div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Prénom <span class="req">*</span></label><input class="fi" id="e-prenom" /><div class="err" id="err-prenom">Obligatoire</div></div>
+        <div class="fg"><label class="fl">Nom <span class="req">*</span></label><input class="fi" id="e-nom" /><div class="err" id="err-nom">Obligatoire</div></div>
+      </div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Date de naissance <span class="req">*</span></label><input class="fi" type="date" id="e-ddn" onchange="calcAge()" /><div class="err" id="err-ddn">Obligatoire</div></div>
+        <div class="fg"><label class="fl">Âge calculé</label><input class="fi" id="e-age" readonly style="background:#f5f5f3" /></div>
+      </div>
+      <div class="fg"><label class="fl">Commune / village <span class="req">*</span></label><input class="fi" id="e-commune" placeholder="Ex: Bulle,s, Broc..." /><div class="err" id="err-commune">Obligatoire</div></div>
+      <div class="fg"><label class="fl">Allergies / besoins particuliers</label><input class="fi" id="e-notes" placeholder="Ex: Allergie arachides, asthme, besoin d'accompagnement..." /></div>
+    </div>
+  </div>
+
+  <!-- Étape 3 -->
+  <div class="panel" id="panel-3">
+    <div class="req-note">Les champs marqués <span class="req">*</span> sont obligatoires.</div>
+    <div class="form-section">
+      <div class="form-section-title">Coordonnées du parent / responsable légal</div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Prénom du parent <span class="req">*</span></label><input class="fi" id="p-prenom" /><div class="err" id="err-p-prenom">Obligatoire</div></div>
+        <div class="fg"><label class="fl">Nom du parent <span class="req">*</span></label><input class="fi" id="p-nom" /><div class="err" id="err-p-nom">Obligatoire</div></div>
+      </div>
+      <div class="fg"><label class="fl">E-mail <span class="req">*</span></label><input class="fi" type="email" id="p-email" placeholder="votre@email.ch" /><div class="err" id="err-p-email">Email invalide</div></div>
+      <div class="fg"><label class="fl">Téléphone <span class="req">*</span></label><input class="fi" type="tel" id="p-tel" placeholder="+41 79 000 00 00" /><div class="err" id="err-p-tel">Obligatoire</div></div>
+    </div>
+  </div>
+
+  <!-- Étape 4 -->
+  <div class="panel" id="panel-4">
+    <div class="msg-important">Classez les activités par ordre de préférence avec les flèches. L'activité n°1 est votre premier choix.</div>
+    <div id="pref-list"></div>
+  </div>
+
+  <!-- Étape 5 : Récap + Conditions -->
+  <div class="panel" id="panel-5">
+    <div style="font-size:14px;font-weight:600;margin-bottom:1rem">Vérifiez vos informations et acceptez les conditions</div>
+
+    <div class="form-section"><div class="form-section-title">Enfant</div><div id="recap-enfant"></div></div>
+    <div class="form-section"><div class="form-section-title">Parent / responsable</div><div id="recap-parent"></div></div>
+    <div class="form-section">
+      <div class="form-section-title">Activités et préférences</div>
+      <div id="recap-activites"></div>
+    </div>
+
+    <!-- Conditions de participation -->
+    <div class="conditions-box">
+      <div class="conditions-title">📋 Conditions de participation</div>
+      <div style="font-size:13px;color:#5a1010;margin-bottom:10px;font-weight:500">Par cette inscription, le parent ou le représentant légal :</div>
+      <ul class="conditions-list">
+        <li>Atteste avoir pris connaissance des règles de participation</li>
+        <li>Atteste avoir transmis les règles de participation à son enfant</li>
+        <li>S'engage à être atteignable par téléphone pendant l'activité en cas de problème</li>
+        <li>Atteste que son enfant est au bénéfice d'une assurance accident ainsi que d'une assurance responsabilité civile (RC)</li>
+        <li>Certifie que l'état de santé de son enfant lui permet de participer sans risque à l'activité</li>
+        <li>Reconnaît être responsable de son enfant sur le chemin menant à l'activité</li>
+      </ul>
+      <div class="conditions-note">
+        <strong>En cas d'annulation ou de problème :</strong> L'organisateur et le comité d'organisation Fri-Time ne peuvent être tenus responsables en cas d'accident, de dégât matériel, de vol ou de tout autre problème survenant lors de l'activité ou sur le trajet.
+      </div>
+      <div class="consent-row">
+        <input type="checkbox" id="cond-consent" />
+        <label for="cond-consent">J'accepte les conditions de participation et reconnais les responsabilités mentionnées ci-dessus</label>
+      </div>
+      <div class="err" id="err-cond-consent" style="margin-top:6px">Vous devez accepter les conditions pour valider l'inscription</div>
+    </div>
+
+    <!-- Email de confirmation -->
+    <div class="email-confirmation">
+      <div class="email-conf-title">📧 Confirmation par email</div>
+      <div class="email-conf-text">
+        Un email de confirmation vous sera envoyé à <strong id="conf-email-display">—</strong> après validation de ce formulaire.<br><br>
+        <strong>⚠️ Important :</strong> Cet email confirme uniquement la réception de votre inscription. Il ne confirme pas la participation de votre enfant.<br><br>
+        <strong>Critères de sélection :</strong> La sélection est effectuée mécaniquement selon des critères d'équité définis à l'avance : priorité aux enfants n'ayant jamais participé, puis à ceux ayant le moins de participations, puis selon votre ordre de préférence. Le comité ne fait pas de choix personnels — le processus est automatique et impartial.<br><br>
+        Vous recevrez un second email pour vous confirmer si votre enfant est retenu ou placé en liste d'attente.
+      </div>
+    </div>
+
+    <div id="age-error-final" style="display:none" class="msg-important"></div>
+  </div>
+
+  <!-- Succès -->
+  <div class="panel" id="panel-success">
+    <div class="success-wrap">
+      <div style="font-size:64px;margin-bottom:1.25rem">🎉</div>
+      <div style="font-size:22px;font-weight:700;margin-bottom:8px">Inscription reçue !</div>
+      <div style="font-size:14px;color:#555;line-height:1.7;margin-bottom:1.25rem">
+        Un email de confirmation a été envoyé à <strong id="success-email">—</strong>.<br><br>
+        <strong>Rappel important :</strong> Cet email confirme uniquement la réception de votre demande, pas la participation de votre enfant. La sélection se fait selon les critères d'équité définis — le choix est mécanique et impartial. Vous recevrez un second email avec la décision finale.
+      </div>
+      <div style="display:inline-block;background:#f5f5f3;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;color:#888;letter-spacing:.05em" id="ref-numero">Référence : FT-2026-XXXX</div>
+      <div style="margin-top:1.5rem;font-size:12px;color:#bbb">Fri-Time Intyamon · fritimecommunesintyamon@gmail.com</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="nav-bar" id="nav-bar">
+  <div class="nav-inner">
+    <button class="btn" id="btn-prev" onclick="prevStep()" style="display:none">← Retour</button>
+    <div style="font-size:12px;color:#888" id="nav-info"></div>
+    <button class="btn btn-primary" id="btn-next" onclick="nextStep()">Continuer →</button>
+  </div>
+</div>
+
+<script>
+const ACTS=[
+  {id:1,nom:"Atelier poterie",date:"2026-05-20",deb:"09:00",fin:"12:00",deadline:"2026-05-10",lieu:"Atelier communal, Bulle",desc:"Initiation à la poterie avec un artisan local. Les enfants créeront leur propre bol en argile.",prest:"Julie Favre — Atelier Terracotta",ageMin:6,ageMax:12,places:12,inscrits:8,cout:0,materiel:"Tabliers fournis sur place",tenue:"Vieux vêtements"},
+  {id:2,nom:"Sortie nature Lac Noir",date:"2026-06-14",deb:"08:30",fin:"17:00",deadline:"2026-06-01",lieu:"Lac Noir, Fribourg",desc:"Randonnée adaptée autour du Lac Noir avec observation de la faune et flore locales.",prest:"Marc Dupont — Guide Pro Rando",ageMin:7,ageMax:14,places:20,inscrits:15,cout:25,materiel:"Sac à dos, lunch, eau (2L min.)",tenue:"Chaussures de marche, vêtements chauds"},
+  {id:3,nom:"Cours de cirque",date:"2026-07-08",deb:"14:00",fin:"17:00",deadline:"2026-06-25",lieu:"Salle communale, Bulle",desc:"Découverte des arts du cirque : jonglage, équilibre, acrobaties douces adaptées.",prest:"Sophie Blanc — Cirque en",ageMin:5,ageMax:12,places:15,inscrits:0,cout:0,materiel:"Aucun matériel requis",tenue:"Vêtements confortables, chaussettes antidérapantes"},
+];
+
+let step=1,selIds=[],prefOrder=[],childAge=null;
+
+function fd(d){if(!d)return"";const[y,m,j]=d.split("-");return`${j}.${m}.${y}`;}
+
+function calcAge(){
+  const ddn=document.getElementById("e-ddn").value;
+  if(!ddn){document.getElementById("e-age").value="";childAge=null;return;}
+  const t=new Date(),b=new Date(ddn);let a=t.getFullYear()-b.getFullYear();
+  if(t.getMonth()-b.getMonth()<0||(t.getMonth()===b.getMonth()&&t.getDate()<b.getDate()))a--;
+  childAge=a>=0?a:null;
+  document.getElementById("e-age").value=a>=0?a+" ans":"—";
+  // Re-render si on revient à l'étape 1
+  if(step===1)renderActs();
+}
+
+function getAgeErrors(){
+  if(childAge===null)return[];
+  return selIds.filter(id=>{
+    const a=ACTS.find(x=>x.id===id);
+    return a&&(childAge<a.ageMin||childAge>a.ageMax);
+  });
+}
+
+function renderActs(){
+  const errors=getAgeErrors();
+  document.getElementById("activites-list").innerHTML=ACTS.map(a=>{
+    const rest=a.places-a.inscrits,complet=rest<=0,sel=selIds.includes(a.id);
+    const ageErr=childAge!==null&&sel&&errors.includes(a.id);
+    return`<div class="act-card${sel?" selected":""}${complet?" complet":""}${ageErr?" age-error":""}" id="act-${a.id}" onclick="toggleAct(${a.id})">
+      <div class="act-card-header">
+        <div class="check-ico">${sel?"✓":""}</div>
+        <div style="flex:1">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px">
+            <div class="act-title">${a.nom}</div>
+            <span class="places-badge ${complet?"pb-complet":rest<=5?"pb-limite":"pb-dispo"}">${complet?"Complet":rest<=5?rest+" places dispo":"Places disponibles : "+(a.places-a.inscrits)}</span>
+          </div>
+          <div class="badges-row">
+            <span class="badge-hl bh-age">👥 ${a.ageMin}–${a.ageMax} ans</span>
+            <span class="badge-hl bh-deadline">⏰ Limite : ${fd(a.deadline)}</span>
+            ${a.cout===0?`<span class="badge-hl bh-gratuit">🆓 Gratuit</span>`:`<span class="badge-hl bh-payant">💰 ${a.cout} CHF / enfant</span>`}
+          </div>
+        </div>
+      </div>
+      <div class="act-details">
+        <div class="act-desc">${a.desc}</div>
+        <div class="act-info-grid">
+          <div class="act-info-line"><span>📅</span><span class="act-info-lbl">Date</span><span class="act-info-val">${fd(a.date)}</span></div>
+          <div class="act-info-line"><span>🕐</span><span class="act-info-lbl">Horaire</span><span class="act-info-val">${a.deb} – ${a.fin}</span></div>
+          <div class="act-info-line"><span>📍</span><span class="act-info-lbl">Lieu</span><span class="act-info-val">${a.lieu}</span></div>
+          <div class="act-info-line"><span>👤</span><span class="act-info-lbl">Prestataire</span><span class="act-info-val">${a.prest}</span></div>
+          <div class="act-info-line mat"><span>🎒</span><span class="act-info-lbl">Matériel</span><span class="act-info-val">${a.materiel}</span></div>
+          <div class="act-info-line ten"><span>👕</span><span class="act-info-lbl">Tenue</span><span class="act-info-val">${a.tenue}</span></div>
+        </div>
+        ${ageErr?`<div class="age-error-msg visible">
+          ⛔ Inscription impossible — l'âge de votre enfant (${childAge} ans) ne correspond pas aux critères de l'activité "${a.nom}" (${a.ageMin}–${a.ageMax} ans requis). Veuillez retirer cette activité ou corriger l'âge de votre enfant.<br><br>
+          <em>Sachez toutefois qu'une pièce d'identité de votre enfant sera demandée et que le prestataire et les bénévoles s'autorisent le droit de refuser la participation d'un enfant si les règles ne sont pas respectées.</em>
+        </div>`:""}
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function toggleAct(id){
+  const a=ACTS.find(x=>x.id===id);if(a.places-a.inscrits<=0)return;
+  selIds=selIds.includes(id)?selIds.filter(x=>x!==id):[...selIds,id];
+  renderActs();
+  document.getElementById("nav-info").textContent=selIds.length?`${selIds.length} activité${selIds.length>1?"s":""} sélectionnée${selIds.length>1?"s":""}` : "";
+}
+
+function renderPref(){
+  prefOrder=prefOrder.filter(id=>selIds.includes(id));
+  selIds.forEach(id=>{if(!prefOrder.includes(id))prefOrder.push(id);});
+  document.getElementById("pref-list").innerHTML=prefOrder.map((id,i)=>{
+    const a=ACTS.find(x=>x.id===id);if(!a)return"";
+    return`<div class="pref-card">
+      <div class="pref-rank">${i+1}</div>
+      <div style="flex:1"><div class="pref-name">${a.nom}</div><div style="font-size:12px;color:#888;margin-top:2px">${fd(a.date)} · ${a.deb}–${a.fin}</div></div>
+      <div class="pref-arrows">
+        <button class="pref-arrow" onclick="movePref(${i},-1)" ${i===0?"disabled":""}>▲</button>
+        <button class="pref-arrow" onclick="movePref(${i},1)" ${i===prefOrder.length-1?"disabled":""}>▼</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function movePref(i,d){
+  const ni=i+d;if(ni<0||ni>=prefOrder.length)return;
+  [prefOrder[i],prefOrder[ni]]=[prefOrder[ni],prefOrder[i]];renderPref();
+}
+
+function updateProg(s){
+  for(let i=1;i<=5;i++){
+    const n=document.getElementById("sn"+i),l=document.getElementById("sl"+i);
+    if(i<s){n.className="step-num done";n.textContent="✓";l.className="step-label done";}
+    else if(i===s){n.className="step-num active";n.textContent=i;l.className="step-label active";}
+    else{n.className="step-num";n.textContent=i;l.className="step-label";}
+  }
+}
+
+function showStep(n){
+  document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
+  document.getElementById(n===6?"panel-success":"panel-"+n).classList.add("active");
+  step=n;updateProg(Math.min(n,5));
+  document.getElementById("btn-prev").style.display=n>1&&n<6?"inline-flex":"none";
+  const nb=document.getElementById("btn-next");
+  if(n===5){nb.textContent="✓ Valider mon inscription";nb.style.background="#275a0a";nb.style.borderColor="#275a0a";}
+  else if(n===6){document.getElementById("nav-bar").style.display="none";}
+  else{nb.textContent="Continuer →";nb.style.background="#1a1a1a";nb.style.borderColor="#1a1a1a";}
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+function nextStep(){
+  if(step===1){
+    if(!selIds.length){document.getElementById("no-sel-msg").style.display="block";return;}
+    document.getElementById("no-sel-msg").style.display="none";
+    const errs=getAgeErrors();
+    if(errs.length){document.getElementById("age-errors-global").style.display="block";document.getElementById("age-errors-global").textContent="Veuillez corriger les erreurs d'âge indiquées sur les activités concernées avant de continuer.";return;}
+    document.getElementById("age-errors-global").style.display="none";
+    showStep(2);
+  } else if(step===2){
+    if(!v2())return;
+    // Re-check age errors after age is entered
+    const errs=getAgeErrors();
+    if(errs.length){
+      const names=errs.map(id=>ACTS.find(x=>x.id===id)?.nom).join(", ");
+      alert("L'âge de votre enfant ne correspond pas aux critères de : "+names+". Veuillez retourner à l'étape 1 et retirer ces activités.");
+      return;
+    }
+    showStep(3);
+  } else if(step===3){
+    if(!v3())return;
+    renderPref();showStep(4);
+  } else if(step===4){
+    buildRecap();showStep(5);
+  } else if(step===5){
+    if(!document.getElementById("cond-consent").checked){
+      document.getElementById("err-cond-consent").classList.add("on");
+      document.getElementById("err-cond-consent").scrollIntoView({behavior:"smooth",block:"center"});
+      return;
+    }
+    document.getElementById("err-cond-consent").classList.remove("on");
+    const email=document.getElementById("p-email").value.trim();
+    document.getElementById("success-email").textContent=email;
+    document.getElementById("ref-numero").textContent="Référence : FT-2026-"+Math.floor(1000+Math.random()*9000);
+    showStep(6);
+  }
+}
+function prevStep(){showStep(step-1);}
+
+function chk(fid,eid){
+  const v=document.getElementById(fid).value.trim(),ok=!!v;
+  document.getElementById(fid).classList.toggle("error",!ok);
+  document.getElementById(eid).classList.toggle("on",!ok);return ok;
+}
+function v2(){return[["e-prenom","err-prenom"],["e-nom","err-nom"],["e-ddn","err-ddn"],["e-commune","err-commune"]].map(([f,e])=>chk(f,e)).every(Boolean);}
+function v3(){
+  let ok=[["p-prenom","err-p-prenom"],["p-nom","err-p-nom"],["p-tel","err-p-tel"]].map(([f,e])=>chk(f,e)).every(Boolean);
+  const em=document.getElementById("p-email").value.trim();
+  const eok=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em);
+  document.getElementById("p-email").classList.toggle("error",!eok);
+  document.getElementById("err-p-email").classList.toggle("on",!eok);
+  if(!eok)ok=false;
+  return ok;
+}
+
+function buildRecap(){
+  const f=id=>document.getElementById(id).value.trim();
+  const email=f("p-email");
+  document.getElementById("conf-email-display").textContent=email;
+
+  document.getElementById("recap-enfant").innerHTML=[
+    {i:"👤",l:"Nom",v:`${f("e-prenom")} ${f("e-nom")}`},
+    {i:"🎂",l:"Âge",v:f("e-age")||"—"},
+    {i:"📍",l:"Commune",v:f("e-commune")},
+    f("e-notes")?{i:"⚠️",l:"Allergies",v:f("e-notes")}:null,
+  ].filter(Boolean).map(r=>`<div class="recap-item"><span class="recap-ico">${r.i}</span><div><div class="recap-lbl">${r.l}</div><div class="recap-val">${r.v}</div></div></div>`).join("");
+
+  document.getElementById("recap-parent").innerHTML=[
+    {i:"👤",l:"Nom",v:`${f("p-prenom")} ${f("p-nom")}`},
+    {i:"✉️",l:"E-mail",v:email},
+    {i:"📞",l:"Téléphone",v:f("p-tel")},
+  ].map(r=>`<div class="recap-item"><span class="recap-ico">${r.i}</span><div><div class="recap-lbl">${r.l}</div><div class="recap-val">${r.v}</div></div></div>`).join("");
+
+  document.getElementById("recap-activites").innerHTML=prefOrder.map((id,i)=>{
+    const a=ACTS.find(x=>x.id===id);if(!a)return"";
+    return`<div class="recap-act"><div class="rk">${i+1}</div><div><div style="font-weight:500;font-size:13px">${a.nom}</div><div style="font-size:12px;color:#888;margin-top:2px">${fd(a.date)} · ${a.deb}–${a.fin} · ${a.lieu}</div></div></div>`;
+  }).join("");
+}
+
+renderActs();showStep(1);
+</script>
+</body>
+</html>

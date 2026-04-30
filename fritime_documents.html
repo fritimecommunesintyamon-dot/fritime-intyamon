@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fri-Time Intyamon — Outils & Documents</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#f5f5f3;color:#1a1a1a;font-size:14px}
+.container{max-width:980px;margin:0 auto;padding:1.5rem}
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem}
+h1{font-size:20px;font-weight:600}
+.subtitle{font-size:13px;color:#666;margin-top:2px}
+.btn{padding:7px 14px;border-radius:8px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:13px;font-family:inherit;transition:background .15s}
+.btn:hover{background:#f5f5f3}
+.btn-primary{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.btn-primary:hover{background:#333}
+.btn-sm{padding:4px 10px;font-size:12px}
+.btn-danger{color:#7a1f1f;border-color:#f4c0c0}
+.btn-danger:hover{background:#fcebeb}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.5rem}
+.metric{background:#fff;border-radius:10px;padding:12px;border:1px solid #eee}
+.metric-val{font-size:22px;font-weight:600}
+.metric-lbl{font-size:11px;color:#888;margin-top:2px}
+.toolbar{display:flex;gap:8px;margin-bottom:1.25rem;flex-wrap:wrap;align-items:center}
+.search{flex:1;min-width:160px;padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit}
+.sort-select{padding:6px 10px;border:1px solid #ddd;border-radius:8px;font-size:12px;font-family:inherit;background:#fff}
+/* Sidebar + main layout */
+.layout{display:grid;grid-template-columns:220px 1fr;gap:16px;align-items:flex-start}
+.sidebar{background:#fff;border:1px solid #eee;border-radius:12px;overflow:hidden;position:sticky;top:1rem}
+.sidebar-header{padding:10px 14px;background:#fafaf8;border-bottom:1px solid #eee;display:flex;align-items:center;justify-content:space-between}
+.sidebar-title{font-size:12px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.05em}
+.cat-item{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;cursor:pointer;border-bottom:0.5px solid #f5f5f3;font-size:13px;transition:background .1s}
+.cat-item:hover{background:#fafaf8}
+.cat-item.active{background:#1a1a1a;color:#fff}
+.cat-item.active .cat-count{background:rgba(255,255,255,.2);color:#fff}
+.cat-item.active .cat-edit-btn{color:#fff;opacity:.6}
+.cat-name{flex:1}
+.cat-count{font-size:11px;background:#f5f5f3;color:#888;padding:1px 7px;border-radius:20px;margin-left:6px}
+.cat-edit-btn{background:none;border:none;cursor:pointer;color:#aaa;font-size:13px;padding:0 2px;line-height:1}
+.cat-edit-btn:hover{color:#1a1a1a}
+.add-cat-row{padding:10px 14px;border-top:1px solid #eee}
+/* Doc grid */
+.doc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.doc-card{background:#fff;border:1px solid #eee;border-radius:10px;padding:1rem;cursor:pointer;transition:border-color .15s;display:flex;flex-direction:column;gap:8px}
+.doc-card:hover{border-color:#ccc}
+.doc-ico{font-size:32px;text-align:center;padding:8px 0}
+.doc-name{font-size:13px;font-weight:500;line-height:1.3;text-align:center;word-break:break-word}
+.doc-meta{font-size:11px;color:#aaa;text-align:center}
+.doc-type-badge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;text-align:center;display:inline-block;margin:0 auto}
+.badge-pdf{background:#fcebeb;color:#791f1f}
+.badge-word{background:#e6f1fb;color:#0c447c}
+.badge-excel{background:#eaf3de;color:#275a0a}
+.badge-ppt{background:#faeeda;color:#633806}
+.badge-autre{background:#f5f5f3;color:#666}
+/* Upload zone */
+.upload-zone{border:2px dashed #ddd;border-radius:12px;padding:2rem;text-align:center;cursor:pointer;transition:all .15s;background:#fff;margin-bottom:1.25rem}
+.upload-zone:hover{border-color:#aaa;background:#fafaf8}
+.upload-zone.dragover{border-color:#1a1a1a;background:#f5f5f3}
+.upload-ico{font-size:32px;margin-bottom:8px}
+.upload-text{font-size:13px;color:#888}
+.upload-sub{font-size:11px;color:#bbb;margin-top:4px}
+/* Modal */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;align-items:flex-start;justify-content:center;padding:2rem 1rem;overflow-y:auto}
+.modal{background:#fff;border-radius:12px;border:1px solid #eee;padding:1.5rem;width:min(500px,100%)}
+.modal-title{font-size:16px;font-weight:600;margin-bottom:1.25rem;padding-bottom:1rem;border-bottom:1px solid #eee}
+.fg{margin-bottom:.75rem}
+.fl{font-size:12px;color:#666;margin-bottom:4px;display:block}
+.fi{width:100%;padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit}
+.fi:focus{outline:none;border-color:#aaa}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mf{display:flex;justify-content:space-between;align-items:center;margin-top:1.25rem;padding-top:1rem;border-top:1px solid #eee}
+.empty{text-align:center;padding:3rem;color:#888;font-size:13px}
+.file-selected{background:#eaf3de;border-radius:8px;padding:8px 12px;font-size:12px;color:#275a0a;display:flex;align-items:center;gap:8px;margin-top:6px}
+</style>
+  <script src="fritime_data.js"></script>
+  <script src="fritime_sync.js"></script>
+  <script src="fritime_auth.js"></script>
+</head>
+<body class="ft-body-offset">
+<!-- SHARED NAV - Fri-Time Intyamon -->
+<style>
+.ft-topbar{background:#1a1a1a;color:#fff;padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:52px;position:fixed;top:0;left:0;right:0;z-index:1000}
+.ft-logo{font-size:15px;font-weight:700;letter-spacing:.05em;color:#fff;text-decoration:none;white-space:nowrap}
+.ft-topbar-right{display:flex;align-items:center;gap:12px}
+.ft-user-name{font-size:12px;opacity:.6;display:none}
+.ft-avatar{width:30px;height:30px;border-radius:50%;background:#333;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;cursor:pointer;position:relative}
+.ft-avatar-menu{display:none;position:absolute;top:36px;right:0;background:#fff;border:1px solid #eee;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.1);min-width:180px;z-index:100;overflow:hidden}
+.ft-avatar-menu.open{display:block}
+.ft-avatar-menu-item{padding:10px 14px;font-size:13px;color:#1a1a1a;cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .1s}
+.ft-avatar-menu-item:hover{background:#f5f5f3}
+.ft-avatar-menu-item.red{color:#791f1f}
+.ft-avatar-divider{height:1px;background:#eee;margin:4px 0}
+.ft-sidebar{position:fixed;top:52px;left:0;width:210px;height:calc(100vh - 52px);background:#fff;border-right:1px solid #eee;overflow-y:auto;z-index:999;transform:translateX(-100%);transition:transform .2s}
+.ft-sidebar.open{transform:translateX(0)}
+.ft-sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:998;top:52px}
+.ft-sidebar-overlay.open{display:block}
+.ft-nav-section{padding:6px 14px;font-size:10px;font-weight:700;color:#bbb;text-transform:uppercase;letter-spacing:.08em;margin-top:8px}
+.ft-nav-item{display:flex;align-items:center;gap:9px;padding:9px 14px;font-size:13px;color:#555;cursor:pointer;transition:all .1s;text-decoration:none;border-left:3px solid transparent;white-space:nowrap}
+.ft-nav-item:hover{background:#fafaf8;color:#1a1a1a}
+.ft-nav-item.active{background:#f5f5f3;color:#1a1a1a;font-weight:600;border-left-color:#1a1a1a}
+.ft-nav-ico{font-size:15px;flex-shrink:0;opacity:.7}
+.ft-nav-badge{margin-left:auto;font-size:10px;background:#fcebeb;color:#791f1f;padding:1px 6px;border-radius:20px;font-weight:700}
+.ft-nav-badge.green{background:#eaf3de;color:#275a0a}
+.ft-nav-badge.blue{background:#e6f1fb;color:#0c447c}
+.ft-menu-btn{background:none;border:none;color:#fff;cursor:pointer;font-size:20px;padding:4px 8px;display:flex;align-items:center;justify-content:center;opacity:.8}
+.ft-menu-btn:hover{opacity:1}
+.ft-body-offset{padding-top:52px}
+.ft-layout{display:flex;min-height:calc(100vh - 52px)}
+.ft-sidebar-desktop{width:210px;flex-shrink:0;background:#fff;border-right:1px solid #eee;position:sticky;top:52px;height:calc(100vh - 52px);overflow-y:auto;flex-shrink:0}
+.ft-main{flex:1;overflow-x:hidden;min-width:0}
+@media(max-width:768px){
+  .ft-sidebar-desktop{display:none!important}
+  .ft-user-name{display:none}
+  .ft-main{padding:1rem!important}
+}
+@media(min-width:769px){
+  .ft-sidebar{display:none!important}
+  .ft-sidebar-overlay{display:none!important}
+  .ft-menu-btn{display:none!important}
+  .ft-sidebar-desktop{display:block!important}
+}
+</style>
+
+<div class="ft-topbar">
+  <div style="display:flex;align-items:center;gap:10px">
+    <button class="ft-menu-btn" onclick="toggleSidebar()" id="ft-menu-btn">☰</button>
+    <a href="fritime_dashboard.html" class="ft-logo">Fri-Time Intyamon</a>
+  </div>
+  <div class="ft-topbar-right">
+    <span class="ft-user-name" id="ft-user-name">—</span>
+    <div class="ft-avatar" id="ft-avatar" onclick="toggleAvatarMenu()">
+      <span id="ft-avatar-initials">?</span>
+      <div class="ft-avatar-menu" id="ft-avatar-menu">
+        <div class="ft-avatar-menu-item" style="background:#f5f5f3;cursor:default">
+          <div>
+            <div style="font-weight:600;font-size:13px" id="ft-menu-name">—</div>
+            <div style="font-size:11px;color:#888" id="ft-menu-role">—</div>
+          </div>
+        </div>
+        <div class="ft-avatar-divider"></div>
+        <a href="fritime_dashboard.html" class="ft-avatar-menu-item">🏠 Tableau de bord</a>
+        <div class="ft-avatar-menu-item" onclick="doLogout()">🔒 Se déconnecter</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="ft-sidebar-overlay" id="ft-sidebar-overlay" onclick="toggleSidebar()"></div>
+
+<div class="ft-sidebar" id="ft-sidebar">
+  <div class="ft-nav-section">Principal</div>
+  <a class="ft-nav-item" href="fritime_dashboard.html" data-page="dashboard"><span class="ft-nav-ico">🏠</span> Tableau de bord</a>
+  <a class="ft-nav-item" href="fritime_activites.html" data-page="activites"><span class="ft-nav-ico">🎯</span> Activités</a>
+  <a class="ft-nav-item" href="fritime_inscriptions.html" data-page="inscriptions"><span class="ft-nav-ico">📋</span> Inscriptions</a>
+  <a class="ft-nav-item" href="fritime_enfants.html" data-page="enfants"><span class="ft-nav-ico">👦</span> Enfants</a>
+
+  <div class="ft-nav-section">Organisation</div>
+  <a class="ft-nav-item" href="fritime_taches.html" data-page="taches"><span class="ft-nav-ico">✅</span> Tâches</a>
+  <a class="ft-nav-item" href="fritime_comite.html" data-page="comite"><span class="ft-nav-ico">👥</span> Comité</a>
+  <a class="ft-nav-item" href="fritime_campagnes.html" data-page="campagnes"><span class="ft-nav-ico">📧</span> Campagnes</a>
+  <a class="ft-nav-item" href="fritime_sondages.html" data-page="sondages"><span class="ft-nav-ico">⭐</span> Sondages</a>
+
+  <div class="ft-nav-section">Finances & Partenaires</div>
+  <a class="ft-nav-item" href="fritime_budget.html" data-page="budget"><span class="ft-nav-ico">💰</span> Budget</a>
+  <a class="ft-nav-item" href="fritime_prestataires.html" data-page="prestataires"><span class="ft-nav-ico">🤝</span> Prestataires</a>
+
+  <div class="ft-nav-section">Contenu</div>
+  <a class="ft-nav-item" href="fritime_idees.html" data-page="idees"><span class="ft-nav-ico">💡</span> Banque d'idées</a>
+  <a class="ft-nav-item" href="fritime_documents.html" data-page="documents"><span class="ft-nav-ico">📁</span> Documents</a>
+
+  <div class="ft-nav-section">Sécurité</div>
+  <a class="ft-nav-item" href="fritime_incidents.html" data-page="incidents"><span class="ft-nav-ico">⚠️</span> Incidents</a>
+  <a class="ft-nav-item" href="fritime_urgences.html" data-page="urgences"><span class="ft-nav-ico">🚨</span> Urgences</a>
+  <a class="ft-nav-item" href="fritime_modifications.html" data-page="modifications"><span class="ft-nav-ico">🔄</span> Demandes</a>
+</div>
+
+<script>
+(function(){
+  // Auth check
+  const user = sessionStorage.getItem("ft-user");
+  const publicPages = ["fritime_login.html","fritime_inscription_publique.html","fritime_sondage_parent.html"];
+  const currentPage = window.location.pathname.split("/").pop();
+  if(!user && !publicPages.includes(currentPage)){
+    window.location.href = "fritime_login.html";
+    return;
+  }
+  if(user){
+    const u = JSON.parse(user);
+    const ini = ((u.nom||"").split(" ").map(p=>p[0]||"").join("")).substring(0,2).toUpperCase();
+    document.getElementById("ft-avatar-initials").textContent = ini||"?";
+    document.getElementById("ft-user-name").textContent = u.nom||"";
+    document.getElementById("ft-menu-name").textContent = u.nom||"";
+    document.getElementById("ft-menu-role").textContent = u.role||"";
+    document.getElementById("ft-user-name").style.display = "block";
+  }
+
+  // Active nav item
+  document.querySelectorAll(".ft-nav-item[data-page]").forEach(function(el){
+    if(currentPage.includes(el.dataset.page)) el.classList.add("active");
+  });
+})();
+
+function toggleSidebar(){
+  document.getElementById("ft-sidebar").classList.toggle("open");
+  document.getElementById("ft-sidebar-overlay").classList.toggle("open");
+}
+function toggleAvatarMenu(){
+  document.getElementById("ft-avatar-menu").classList.toggle("open");
+}
+document.addEventListener("click", function(e){
+  const menu = document.getElementById("ft-avatar-menu");
+  const avatar = document.getElementById("ft-avatar");
+  if(menu && !avatar.contains(e.target)) menu.classList.remove("open");
+});
+function doLogout(){
+  sessionStorage.removeItem("ft-user");
+  window.location.href = "fritime_login.html";
+}
+</script>
+
+<div class="container">
+
+<div class="header">
+  <div><h1>Outils & Documents</h1><div class="subtitle">Documents de référence et outils — Fri-Time</div></div>
+  <button class="btn btn-primary" onclick="openAddDoc()">+ Ajouter un document</button>
+</div>
+
+<div class="metrics" id="metrics"></div>
+
+<div class="toolbar">
+  <input class="search" id="search" placeholder="Rechercher un document..." oninput="renderDocs()" />
+  <select class="sort-select" id="sort" onchange="renderDocs()">
+    <option value="nom">Trier par nom</option>
+    <option value="date">Trier par date</option>
+    <option value="type">Trier par type</option>
+  </select>
+  <button class="btn btn-sm" onclick="openManageCats()">⚙️ Gérer les catégories</button>
+</div>
+
+<div class="layout">
+  <!-- Sidebar catégories -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <span class="sidebar-title">Catégories</span>
+    </div>
+    <div id="cat-list"></div>
+    <div class="add-cat-row">
+      <div style="display:flex;gap:6px">
+        <input class="fi" id="new-cat-input" placeholder="Nouvelle catégorie..." style="flex:1;font-size:12px;padding:5px 8px" onkeydown="if(event.key==='Enter')addCatInline()" />
+        <button class="btn btn-sm" onclick="addCatInline()">+</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Zone principale -->
+  <div>
+    <div class="upload-zone" onclick="document.getElementById('file-input-global').click()" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+      <input type="file" id="file-input-global" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv" style="display:none" onchange="handleFileSelect(this)" />
+      <div class="upload-ico">📂</div>
+      <div class="upload-text">Glisser-déposer des fichiers ici ou cliquer pour parcourir</div>
+      <div class="upload-sub">PDF, Word, Excel, PowerPoint acceptés</div>
+    </div>
+    <div class="doc-grid" id="doc-grid"></div>
+  </div>
+</div>
+
+</div>
+
+<!-- Modal ajouter/modifier document -->
+<div id="mDoc" class="overlay" onclick="if(event.target.id==='mDoc')closeMDoc()">
+<div class="modal" onclick="event.stopPropagation()">
+  <div class="modal-title" id="doc-modal-title">Ajouter un document</div>
+  <div class="fg">
+    <label class="fl">Fichier</label>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-sm" onclick="document.getElementById('file-input-modal').click()" style="flex-shrink:0">📎 Choisir un fichier</button>
+      <input type="file" id="file-input-modal" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv" style="display:none" onchange="handleModalFile(this)" />
+      <span id="file-selected-name" style="font-size:12px;color:#888;align-self:center">Aucun fichier choisi</span>
+    </div>
+    <div id="file-selected-info" style="display:none" class="file-selected"></div>
+  </div>
+  <div class="fg"><label class="fl">Nom du document *</label><input class="fi" id="d-nom" placeholder="Ex: Règlement intérieur 2025-2026" /></div>
+  <div class="fr">
+    <div class="fg"><label class="fl">Catégorie</label>
+      <select class="fi" id="d-cat"></select>
+    </div>
+    <div class="fg"><label class="fl">Type</label>
+      <select class="fi" id="d-type">
+        <option value="pdf">PDF</option>
+        <option value="word">Word (.docx)</option>
+        <option value="excel">Excel (.xlsx)</option>
+        <option value="ppt">PowerPoint (.pptx)</option>
+        <option value="autre">Autre</option>
+      </select>
+    </div>
+  </div>
+  <div class="fg"><label class="fl">Description (optionnel)</label><input class="fi" id="d-desc" placeholder="Brève description du document..." /></div>
+  <div class="fg"><label class="fl">URL / lien (si document en ligne)</label><input class="fi" type="url" id="d-url" placeholder="https://drive.google.com/..." /></div>
+  <div class="mf">
+    <button class="btn btn-danger btn-sm" id="d-del-btn" style="display:none" onclick="deleteDoc()">Supprimer</button>
+    <div style="display:flex;gap:8px">
+      <button class="btn" onclick="closeMDoc()">Annuler</button>
+      <button class="btn btn-primary" onclick="saveDoc()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- Modal gérer catégories -->
+<div id="mCats" class="overlay" onclick="if(event.target.id==='mCats')closeMCats()">
+<div class="modal" onclick="event.stopPropagation()">
+  <div class="modal-title">Gérer les catégories</div>
+  <div id="cats-edit-list" style="margin-bottom:1rem"></div>
+  <div style="display:flex;gap:8px">
+    <input class="fi" id="new-cat-modal" placeholder="Nouvelle catégorie..." style="flex:1" onkeydown="if(event.key==='Enter')addCatModal()" />
+    <button class="btn btn-primary btn-sm" onclick="addCatModal()">Ajouter</button>
+  </div>
+  <div class="mf">
+    <div></div>
+    <button class="btn btn-primary" onclick="closeMCats()">Fermer</button>
+  </div>
+</div>
+</div>
+
+<script>
+let categories=[
+  {id:1,nom:"Administration"},
+  {id:2,nom:"Activités"},
+  {id:3,nom:"Finances"},
+  {id:4,nom:"Communication"},
+  {id:5,nom:"Procédures"},
+  {id:6,nom:"Formulaires"},
+];
+let docs=[
+  {id:1,nom:"Règlement intérieur Fri-Time",cat:1,type:"pdf",desc:"Version 2025-2026",url:"",date:"2025-09-01",taille:"245 KB"},
+  {id:2,nom:"Budget prévisionnel 2025-2026",cat:3,type:"excel",desc:"Tableau de suivi annuel",url:"",date:"2025-09-15",taille:"82 KB"},
+  {id:3,nom:"Formulaire inscription enfant",cat:6,type:"word",desc:"À imprimer et remplir par les parents",url:"",date:"2025-08-20",taille:"48 KB"},
+  {id:4,nom:"Procédure d'urgence (imprimable)",cat:5,type:"pdf",desc:"Guide à emporter lors de chaque activité",url:"",date:"2026-01-10",taille:"180 KB"},
+  {id:5,nom:"Rapport annuel 2024-2025",cat:1,type:"pdf",desc:"Bilan des activités et finances",url:"",date:"2025-06-30",taille:"512 KB"},
+  {id:6,nom:"Modèle invitation activité",cat:4,type:"word",desc:"Template communication parents",url:"",date:"2025-10-01",taille:"35 KB"},
+];
+let nCat=7,nDoc=7;
+let selectedCat="toutes";
+let editDocId=null;
+
+const TYPE_ICO={pdf:"📄",word:"📝",excel:"📊",ppt:"📑",autre:"📎"};
+const TYPE_LABEL={pdf:"PDF",word:"Word",excel:"Excel",ppt:"PowerPoint",autre:"Fichier"};
+
+function fmtDate(d){if(!d)return"";const[y,m,j]=d.split("-");return`${j}.${m}.${y}`;}
+
+function renderMetrics(){
+  document.getElementById("metrics").innerHTML=[
+    {val:docs.length,lbl:"Documents"},
+    {val:categories.length,lbl:"Catégories"},
+    {val:docs.filter(d=>d.type==="pdf").length,lbl:"PDF"},
+    {val:docs.filter(d=>d.type==="excel").length,lbl:"Excel"},
+  ].map(x=>`<div class="metric"><div class="metric-val">${x.val}</div><div class="metric-lbl">${x.lbl}</div></div>`).join("");
+}
+
+function renderCats(){
+  const list=document.getElementById("cat-list");
+  const allCount=docs.length;
+  list.innerHTML=`<div class="cat-item${selectedCat==="toutes"?" active":""}" onclick="selectCat('toutes')">
+    <span class="cat-name">Tous les documents</span>
+    <span class="cat-count">${allCount}</span>
+  </div>`+categories.map(c=>{
+    const count=docs.filter(d=>d.cat===c.id).length;
+    return`<div class="cat-item${selectedCat===c.id?" active":""}" onclick="selectCat(${c.id})">
+      <span class="cat-name">${c.nom}</span>
+      <span class="cat-count">${count}</span>
+      <button class="cat-edit-btn" onclick="event.stopPropagation();editCatInline(${c.id})" title="Renommer">✎</button>
+    </div>`;
+  }).join("");
+}
+
+function selectCat(id){
+  selectedCat=id;
+  renderCats();
+  renderDocs();
+}
+
+function addCatInline(){
+  const v=document.getElementById("new-cat-input").value.trim();
+  if(!v)return;
+  categories.push({id:nCat++,nom:v});
+  document.getElementById("new-cat-input").value="";
+  renderCats();
+  updateCatSelects();
+}
+
+function editCatInline(id){
+  const cat=categories.find(c=>c.id===id);if(!cat)return;
+  const newNom=prompt("Renommer la catégorie :",cat.nom);
+  if(newNom&&newNom.trim()){
+    categories=categories.map(c=>c.id===id?{...c,nom:newNom.trim()}:c);
+    renderCats();
+    renderDocs();
+    updateCatSelects();
+  }
+}
+
+function renderDocs(){
+  const q=(document.getElementById("search")||{value:""}).value.toLowerCase();
+  const sort=document.getElementById("sort").value;
+  let filtered=docs.filter(d=>{
+    const mc=selectedCat==="toutes"||d.cat===selectedCat;
+    const ms=!q||d.nom.toLowerCase().includes(q)||(d.desc||"").toLowerCase().includes(q);
+    return mc&&ms;
+  });
+  if(sort==="nom")filtered=[...filtered].sort((a,b)=>a.nom.localeCompare(b.nom));
+  else if(sort==="date")filtered=[...filtered].sort((a,b)=>b.date.localeCompare(a.date));
+  else if(sort==="type")filtered=[...filtered].sort((a,b)=>a.type.localeCompare(b.type));
+
+  const g=document.getElementById("doc-grid");
+  if(!filtered.length){
+    g.innerHTML=`<div class="empty" style="grid-column:1/-1">Aucun document trouvé</div>`;
+    return;
+  }
+  g.innerHTML=filtered.map(d=>{
+    const cat=categories.find(c=>c.id===d.cat);
+    return`<div class="doc-card" onclick="openEditDoc(${d.id})">
+      <div class="doc-ico">${TYPE_ICO[d.type]||"📎"}</div>
+      <span class="doc-type-badge badge-${d.type}">${TYPE_LABEL[d.type]}</span>
+      <div class="doc-name">${d.nom}</div>
+      ${d.desc?`<div class="doc-meta">${d.desc}</div>`:""}
+      <div class="doc-meta">
+        ${cat?`<span>${cat.nom}</span> · `:""}${fmtDate(d.date)}${d.taille?" · "+d.taille:""}
+      </div>
+      ${d.url?`<a href="${d.url}" target="_blank" onclick="event.stopPropagation()" class="btn btn-sm" style="font-size:11px;text-align:center">🔗 Ouvrir</a>`:""}
+    </div>`;
+  }).join("");
+}
+
+function updateCatSelects(){
+  ["d-cat"].forEach(id=>{
+    const sel=document.getElementById(id);
+    if(!sel)return;
+    const cur=sel.value;
+    sel.innerHTML=`<option value="">— Choisir —</option>`+categories.map(c=>`<option value="${c.id}"${c.id==cur?" selected":""}>${c.nom}</option>`).join("");
+  });
+}
+
+function openAddDoc(){
+  editDocId=null;
+  document.getElementById("doc-modal-title").textContent="Ajouter un document";
+  document.getElementById("d-del-btn").style.display="none";
+  document.getElementById("d-nom").value="";
+  document.getElementById("d-desc").value="";
+  document.getElementById("d-url").value="";
+  document.getElementById("d-type").value="pdf";
+  document.getElementById("file-selected-name").textContent="Aucun fichier choisi";
+  document.getElementById("file-selected-info").style.display="none";
+  updateCatSelects();
+  if(selectedCat!=="toutes")document.getElementById("d-cat").value=selectedCat;
+  document.getElementById("mDoc").style.display="flex";
+}
+
+function openEditDoc(id){
+  editDocId=id;
+  const d=docs.find(x=>x.id===id);if(!d)return;
+  document.getElementById("doc-modal-title").textContent="Modifier le document";
+  document.getElementById("d-del-btn").style.display="inline-block";
+  document.getElementById("d-nom").value=d.nom;
+  document.getElementById("d-desc").value=d.desc||"";
+  document.getElementById("d-url").value=d.url||"";
+  document.getElementById("d-type").value=d.type;
+  document.getElementById("file-selected-name").textContent="Fichier déjà enregistré";
+  document.getElementById("file-selected-info").style.display="none";
+  updateCatSelects();
+  document.getElementById("d-cat").value=d.cat||"";
+  document.getElementById("mDoc").style.display="flex";
+}
+
+function closeMDoc(){document.getElementById("mDoc").style.display="none";}
+
+function handleModalFile(input){
+  const file=input.files[0];if(!file)return;
+  document.getElementById("file-selected-name").textContent=file.name;
+  const info=document.getElementById("file-selected-info");
+  info.style.display="flex";
+  info.textContent="✓ "+file.name+" ("+formatSize(file.size)+")";
+  // Auto-fill name if empty
+  if(!document.getElementById("d-nom").value){
+    document.getElementById("d-nom").value=file.name.replace(/\.[^.]+$/,"");
+  }
+  // Auto-detect type
+  const ext=file.name.split(".").pop().toLowerCase();
+  const typeMap={pdf:"pdf",doc:"word",docx:"word",xls:"excel",xlsx:"excel",ppt:"ppt",pptx:"ppt"};
+  if(typeMap[ext])document.getElementById("d-type").value=typeMap[ext];
+}
+
+function formatSize(bytes){
+  if(bytes<1024)return bytes+" B";
+  if(bytes<1048576)return Math.round(bytes/1024)+" KB";
+  return (bytes/1048576).toFixed(1)+" MB";
+}
+
+function saveDoc(){
+  const nom=document.getElementById("d-nom").value.trim();
+  if(!nom){alert("Le nom est obligatoire");return;}
+  const data={nom,cat:parseInt(document.getElementById("d-cat").value)||null,type:document.getElementById("d-type").value,desc:document.getElementById("d-desc").value.trim(),url:document.getElementById("d-url").value.trim(),date:new Date().toISOString().split("T")[0],taille:""};
+  if(editDocId){docs=docs.map(d=>d.id===editDocId?{...d,...data}:d);}
+  else{docs.push({id:nDoc++,...data});}
+  closeMDoc();
+  renderAll();
+}
+
+function deleteDoc(){
+  if(confirm("Supprimer ce document ?")){docs=docs.filter(d=>d.id!==editDocId);closeMDoc();renderAll();}
+}
+
+// Drag & drop
+function handleDragOver(e){e.preventDefault();e.currentTarget.classList.add("dragover");}
+function handleDragLeave(e){e.currentTarget.classList.remove("dragover");}
+function handleDrop(e){
+  e.preventDefault();
+  e.currentTarget.classList.remove("dragover");
+  const files=Array.from(e.dataTransfer.files);
+  if(files.length){processDroppedFiles(files);}
+}
+function handleFileSelect(input){
+  const files=Array.from(input.files);
+  if(files.length)processDroppedFiles(files);
+}
+function processDroppedFiles(files){
+  files.forEach(file=>{
+    const ext=file.name.split(".").pop().toLowerCase();
+    const typeMap={pdf:"pdf",doc:"word",docx:"word",xls:"excel",xlsx:"excel",ppt:"ppt",pptx:"ppt"};
+    const type=typeMap[ext]||"autre";
+    docs.push({id:nDoc++,nom:file.name.replace(/\.[^.]+$/,""),cat:selectedCat!=="toutes"?selectedCat:null,type,desc:"",url:"",date:new Date().toISOString().split("T")[0],taille:formatSize(file.size)});
+  });
+  renderAll();
+  if(files.length===1)alert("1 document ajouté.");
+  else alert(files.length+" documents ajoutés.");
+}
+
+// Gérer catégories modal
+function openManageCats(){
+  renderCatsEdit();
+  document.getElementById("new-cat-modal").value="";
+  document.getElementById("mCats").style.display="flex";
+}
+function closeMCats(){document.getElementById("mCats").style.display="none";renderCats();}
+function renderCatsEdit(){
+  document.getElementById("cats-edit-list").innerHTML=categories.map(c=>`
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+      <input class="fi" value="${c.nom}" id="cat-edit-${c.id}" style="flex:1;font-size:13px;padding:6px 10px" />
+      <button class="btn btn-sm" onclick="saveCatEdit(${c.id})">✓</button>
+      <button class="btn btn-sm btn-danger" onclick="deleteCat(${c.id})">✕</button>
+    </div>`).join("");
+}
+function saveCatEdit(id){
+  const v=document.getElementById("cat-edit-"+id).value.trim();
+  if(!v)return;
+  categories=categories.map(c=>c.id===id?{...c,nom:v}:c);
+  renderCatsEdit();
+  updateCatSelects();
+}
+function addCatModal(){
+  const v=document.getElementById("new-cat-modal").value.trim();
+  if(!v)return;
+  categories.push({id:nCat++,nom:v});
+  document.getElementById("new-cat-modal").value="";
+  renderCatsEdit();
+  updateCatSelects();
+}
+function deleteCat(id){
+  const count=docs.filter(d=>d.cat===id).length;
+  if(count>0){
+    if(!confirm(`Cette catégorie contient ${count} document(s). Ils seront sans catégorie. Continuer ?`))return;
+    docs=docs.map(d=>d.cat===id?{...d,cat:null}:d);
+  }
+  categories=categories.filter(c=>c.id!==id);
+  if(selectedCat===id)selectedCat="toutes";
+  renderCatsEdit();
+  updateCatSelects();
+}
+
+function renderAll(){renderMetrics();renderCats();renderDocs();}
+renderAll();
+</script>
+</body>
+</html>

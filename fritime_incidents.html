@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fri-Time Intyamon — Rapports d'incident</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#f5f5f3;color:#1a1a1a;font-size:14px}
+.container{max-width:980px;margin:0 auto;padding:1.5rem}
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem}
+h1{font-size:20px;font-weight:600}
+.subtitle{font-size:13px;color:#666;margin-top:2px}
+.btn{padding:7px 14px;border-radius:8px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:13px;font-family:inherit;transition:background .15s}
+.btn:hover{background:#f5f5f3}
+.btn-primary{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.btn-primary:hover{background:#333}
+.btn-sm{padding:4px 10px;font-size:12px}
+.btn-danger{color:#7a1f1f;border-color:#f4c0c0}
+.btn-danger:hover{background:#fcebeb}
+.metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:1.5rem}
+.metric{background:#fff;border-radius:10px;padding:12px;border:1px solid #eee}
+.metric-val{font-size:22px;font-weight:600}
+.metric-lbl{font-size:11px;color:#888;margin-top:2px}
+.toolbar{display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap;align-items:center}
+.search{flex:1;min-width:160px;padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit}
+.filter-btn{padding:4px 12px;border-radius:20px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:12px;color:#666}
+.filter-btn.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.table-wrap{background:#fff;border:1px solid #eee;border-radius:12px;overflow:hidden}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:#888;border-bottom:1px solid #eee;background:#fafaf8;text-transform:uppercase;letter-spacing:.05em}
+td{padding:10px 14px;border-bottom:1px solid #eee;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafaf8;cursor:pointer}
+.badge{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500;white-space:nowrap}
+.badge-ouvert{background:#fcebeb;color:#791f1f}
+.badge-traitement{background:#faeeda;color:#633806}
+.badge-cloture{background:#eaf3de;color:#275a0a}
+.grav-mineur{background:#eaf3de;color:#275a0a;font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500}
+.grav-modere{background:#faeeda;color:#633806;font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500}
+.grav-serieux{background:#fcebeb;color:#791f1f;font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500}
+.grav-critique{background:#791f1f;color:#fff;font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;align-items:flex-start;justify-content:center;padding:2rem 1rem;overflow-y:auto}
+.modal{background:#fff;border-radius:12px;border:1px solid #eee;padding:1.5rem;width:min(660px,100%)}
+.modal-title{font-size:16px;font-weight:600;margin-bottom:1.25rem;padding-bottom:1rem;border-bottom:1px solid #eee}
+.sec{font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.06em;margin:1rem 0 .75rem;padding-top:1rem;border-top:1px solid #eee}
+.sec-first{border-top:none;padding-top:0;margin-top:0}
+.fg{margin-bottom:.75rem}
+.fl{font-size:12px;color:#666;margin-bottom:4px;display:block}
+.fi{width:100%;padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit}
+.fi:focus{outline:none;border-color:#aaa}
+textarea.fi{resize:vertical;min-height:70px}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fr3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.mf{display:flex;justify-content:space-between;align-items:center;margin-top:1.25rem;padding-top:1rem;border-top:1px solid #eee}
+.dl{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px;margin-top:8px}
+.dv{font-size:13px;margin-bottom:4px}
+.toggle-group{display:flex;flex-direction:column;gap:8px}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:8px;border:1px solid #eee}
+.toggle-row.urgence{background:#fff8f0;border-color:#f4c0c0}
+.toggle-row.notif{background:#f0f8ff;border-color:#b5d4f4}
+.toggle-label{font-size:13px;font-weight:500}
+.toggle-sub{font-size:11px;color:#888;margin-top:2px}
+.toggle{position:relative;width:36px;height:20px;cursor:pointer;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;inset:0;background:#ddd;border-radius:20px;transition:background .2s}
+.toggle-slider:before{content:"";position:absolute;width:14px;height:14px;left:3px;top:3px;background:#fff;border-radius:50%;transition:transform .2s}
+.toggle input:checked+.toggle-slider{background:#1a1a1a}
+.toggle input:checked+.toggle-slider:before{transform:translateX(16px)}
+.urgence-check input:checked+.toggle-slider{background:#791f1f}
+.notif-check input:checked+.toggle-slider{background:#0c447c}
+.status-select{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.status-btn{padding:5px 12px;border-radius:20px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:12px;color:#666}
+.status-btn.sel-ouvert{background:#fcebeb;color:#791f1f;border-color:#f7c1c1}
+.status-btn.sel-traitement{background:#faeeda;color:#633806;border-color:#fac775}
+.status-btn.sel-cloture{background:#eaf3de;color:#275a0a;border-color:#c0dd97}
+.alert-critique{background:#791f1f;color:#fff;border-radius:10px;padding:12px 16px;margin-bottom:1.5rem;font-size:13px;font-weight:500;display:flex;align-items:center;gap:10px}
+.check-icon{display:inline-flex;width:18px;height:18px;border-radius:50%;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.check-ok{background:#eaf3de;color:#275a0a}
+.check-no{background:#eee;color:#aaa}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:0}
+</style>
+  <script src="fritime_data.js"></script>
+  <script src="fritime_sync.js"></script>
+  <script src="fritime_auth.js"></script>
+</head>
+<body class="ft-body-offset">
+<!-- SHARED NAV - Fri-Time Intyamon -->
+<style>
+.ft-topbar{background:#1a1a1a;color:#fff;padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:52px;position:fixed;top:0;left:0;right:0;z-index:1000}
+.ft-logo{font-size:15px;font-weight:700;letter-spacing:.05em;color:#fff;text-decoration:none;white-space:nowrap}
+.ft-topbar-right{display:flex;align-items:center;gap:12px}
+.ft-user-name{font-size:12px;opacity:.6;display:none}
+.ft-avatar{width:30px;height:30px;border-radius:50%;background:#333;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;cursor:pointer;position:relative}
+.ft-avatar-menu{display:none;position:absolute;top:36px;right:0;background:#fff;border:1px solid #eee;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.1);min-width:180px;z-index:100;overflow:hidden}
+.ft-avatar-menu.open{display:block}
+.ft-avatar-menu-item{padding:10px 14px;font-size:13px;color:#1a1a1a;cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .1s}
+.ft-avatar-menu-item:hover{background:#f5f5f3}
+.ft-avatar-menu-item.red{color:#791f1f}
+.ft-avatar-divider{height:1px;background:#eee;margin:4px 0}
+.ft-sidebar{position:fixed;top:52px;left:0;width:210px;height:calc(100vh - 52px);background:#fff;border-right:1px solid #eee;overflow-y:auto;z-index:999;transform:translateX(-100%);transition:transform .2s}
+.ft-sidebar.open{transform:translateX(0)}
+.ft-sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:998;top:52px}
+.ft-sidebar-overlay.open{display:block}
+.ft-nav-section{padding:6px 14px;font-size:10px;font-weight:700;color:#bbb;text-transform:uppercase;letter-spacing:.08em;margin-top:8px}
+.ft-nav-item{display:flex;align-items:center;gap:9px;padding:9px 14px;font-size:13px;color:#555;cursor:pointer;transition:all .1s;text-decoration:none;border-left:3px solid transparent;white-space:nowrap}
+.ft-nav-item:hover{background:#fafaf8;color:#1a1a1a}
+.ft-nav-item.active{background:#f5f5f3;color:#1a1a1a;font-weight:600;border-left-color:#1a1a1a}
+.ft-nav-ico{font-size:15px;flex-shrink:0;opacity:.7}
+.ft-nav-badge{margin-left:auto;font-size:10px;background:#fcebeb;color:#791f1f;padding:1px 6px;border-radius:20px;font-weight:700}
+.ft-nav-badge.green{background:#eaf3de;color:#275a0a}
+.ft-nav-badge.blue{background:#e6f1fb;color:#0c447c}
+.ft-menu-btn{background:none;border:none;color:#fff;cursor:pointer;font-size:20px;padding:4px 8px;display:flex;align-items:center;justify-content:center;opacity:.8}
+.ft-menu-btn:hover{opacity:1}
+.ft-body-offset{padding-top:52px}
+.ft-layout{display:flex;min-height:calc(100vh - 52px)}
+.ft-sidebar-desktop{width:210px;flex-shrink:0;background:#fff;border-right:1px solid #eee;position:sticky;top:52px;height:calc(100vh - 52px);overflow-y:auto;flex-shrink:0}
+.ft-main{flex:1;overflow-x:hidden;min-width:0}
+@media(max-width:768px){
+  .ft-sidebar-desktop{display:none!important}
+  .ft-user-name{display:none}
+  .ft-main{padding:1rem!important}
+}
+@media(min-width:769px){
+  .ft-sidebar{display:none!important}
+  .ft-sidebar-overlay{display:none!important}
+  .ft-menu-btn{display:none!important}
+  .ft-sidebar-desktop{display:block!important}
+}
+</style>
+
+<div class="ft-topbar">
+  <div style="display:flex;align-items:center;gap:10px">
+    <button class="ft-menu-btn" onclick="toggleSidebar()" id="ft-menu-btn">☰</button>
+    <a href="fritime_dashboard.html" class="ft-logo">Fri-Time Intyamon</a>
+  </div>
+  <div class="ft-topbar-right">
+    <span class="ft-user-name" id="ft-user-name">—</span>
+    <div class="ft-avatar" id="ft-avatar" onclick="toggleAvatarMenu()">
+      <span id="ft-avatar-initials">?</span>
+      <div class="ft-avatar-menu" id="ft-avatar-menu">
+        <div class="ft-avatar-menu-item" style="background:#f5f5f3;cursor:default">
+          <div>
+            <div style="font-weight:600;font-size:13px" id="ft-menu-name">—</div>
+            <div style="font-size:11px;color:#888" id="ft-menu-role">—</div>
+          </div>
+        </div>
+        <div class="ft-avatar-divider"></div>
+        <a href="fritime_dashboard.html" class="ft-avatar-menu-item">🏠 Tableau de bord</a>
+        <div class="ft-avatar-menu-item" onclick="doLogout()">🔒 Se déconnecter</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="ft-sidebar-overlay" id="ft-sidebar-overlay" onclick="toggleSidebar()"></div>
+
+<div class="ft-sidebar" id="ft-sidebar">
+  <div class="ft-nav-section">Principal</div>
+  <a class="ft-nav-item" href="fritime_dashboard.html" data-page="dashboard"><span class="ft-nav-ico">🏠</span> Tableau de bord</a>
+  <a class="ft-nav-item" href="fritime_activites.html" data-page="activites"><span class="ft-nav-ico">🎯</span> Activités</a>
+  <a class="ft-nav-item" href="fritime_inscriptions.html" data-page="inscriptions"><span class="ft-nav-ico">📋</span> Inscriptions</a>
+  <a class="ft-nav-item" href="fritime_enfants.html" data-page="enfants"><span class="ft-nav-ico">👦</span> Enfants</a>
+
+  <div class="ft-nav-section">Organisation</div>
+  <a class="ft-nav-item" href="fritime_taches.html" data-page="taches"><span class="ft-nav-ico">✅</span> Tâches</a>
+  <a class="ft-nav-item" href="fritime_comite.html" data-page="comite"><span class="ft-nav-ico">👥</span> Comité</a>
+  <a class="ft-nav-item" href="fritime_campagnes.html" data-page="campagnes"><span class="ft-nav-ico">📧</span> Campagnes</a>
+  <a class="ft-nav-item" href="fritime_sondages.html" data-page="sondages"><span class="ft-nav-ico">⭐</span> Sondages</a>
+
+  <div class="ft-nav-section">Finances & Partenaires</div>
+  <a class="ft-nav-item" href="fritime_budget.html" data-page="budget"><span class="ft-nav-ico">💰</span> Budget</a>
+  <a class="ft-nav-item" href="fritime_prestataires.html" data-page="prestataires"><span class="ft-nav-ico">🤝</span> Prestataires</a>
+
+  <div class="ft-nav-section">Contenu</div>
+  <a class="ft-nav-item" href="fritime_idees.html" data-page="idees"><span class="ft-nav-ico">💡</span> Banque d'idées</a>
+  <a class="ft-nav-item" href="fritime_documents.html" data-page="documents"><span class="ft-nav-ico">📁</span> Documents</a>
+
+  <div class="ft-nav-section">Sécurité</div>
+  <a class="ft-nav-item" href="fritime_incidents.html" data-page="incidents"><span class="ft-nav-ico">⚠️</span> Incidents</a>
+  <a class="ft-nav-item" href="fritime_urgences.html" data-page="urgences"><span class="ft-nav-ico">🚨</span> Urgences</a>
+  <a class="ft-nav-item" href="fritime_modifications.html" data-page="modifications"><span class="ft-nav-ico">🔄</span> Demandes</a>
+</div>
+
+<script>
+(function(){
+  // Auth check
+  const user = sessionStorage.getItem("ft-user");
+  const publicPages = ["fritime_login.html","fritime_inscription_publique.html","fritime_sondage_parent.html"];
+  const currentPage = window.location.pathname.split("/").pop();
+  if(!user && !publicPages.includes(currentPage)){
+    window.location.href = "fritime_login.html";
+    return;
+  }
+  if(user){
+    const u = JSON.parse(user);
+    const ini = ((u.nom||"").split(" ").map(p=>p[0]||"").join("")).substring(0,2).toUpperCase();
+    document.getElementById("ft-avatar-initials").textContent = ini||"?";
+    document.getElementById("ft-user-name").textContent = u.nom||"";
+    document.getElementById("ft-menu-name").textContent = u.nom||"";
+    document.getElementById("ft-menu-role").textContent = u.role||"";
+    document.getElementById("ft-user-name").style.display = "block";
+  }
+
+  // Active nav item
+  document.querySelectorAll(".ft-nav-item[data-page]").forEach(function(el){
+    if(currentPage.includes(el.dataset.page)) el.classList.add("active");
+  });
+})();
+
+function toggleSidebar(){
+  document.getElementById("ft-sidebar").classList.toggle("open");
+  document.getElementById("ft-sidebar-overlay").classList.toggle("open");
+}
+function toggleAvatarMenu(){
+  document.getElementById("ft-avatar-menu").classList.toggle("open");
+}
+document.addEventListener("click", function(e){
+  const menu = document.getElementById("ft-avatar-menu");
+  const avatar = document.getElementById("ft-avatar");
+  if(menu && !avatar.contains(e.target)) menu.classList.remove("open");
+});
+function doLogout(){
+  sessionStorage.removeItem("ft-user");
+  window.location.href = "fritime_login.html";
+}
+</script>
+
+<div class="container">
+
+<div class="header">
+  <div><h1>Rapports d'incident</h1><div class="subtitle">Suivi des incidents lors des activités — Fri-Time</div></div>
+  <button class="btn btn-primary" onclick="openCreate()">+ Nouveau rapport</button>
+</div>
+
+<div id="alerte-critique"></div>
+
+<div class="metrics" id="metrics"></div>
+
+<div class="toolbar">
+  <input class="search" id="search" placeholder="Rechercher un incident..." oninput="render()" />
+  <button class="filter-btn active" onclick="setFilter('tous',this)">Tous</button>
+  <button class="filter-btn" onclick="setFilter('ouvert',this)">Ouverts</button>
+  <button class="filter-btn" onclick="setFilter('traitement',this)">En traitement</button>
+  <button class="filter-btn" onclick="setFilter('cloture',this)">Clôturés</button>
+  <button class="filter-btn" onclick="setFilter('critique',this)">🔴 Critiques</button>
+</div>
+
+<div class="table-wrap">
+  <table>
+    <thead><tr>
+      <th>Date / Heure</th><th>Activité</th><th>Type</th>
+      <th>Gravité</th><th>Rapporté par</th><th>Actions</th><th>Statut</th>
+    </tr></thead>
+    <tbody id="tbody"></tbody>
+  </table>
+</div>
+
+</div>
+
+<!-- Modal création / édition -->
+<div id="mCreate" class="overlay" onclick="if(event.target.id==='mCreate')closeCreate()">
+<div class="modal" onclick="event.stopPropagation()">
+  <div class="modal-title" id="create-title">Nouveau rapport d'incident</div>
+
+  <div class="sec sec-first">Identification</div>
+  <div class="fr">
+    <div class="fg"><label class="fl">Date de l'incident *</label><input class="fi" type="date" id="f-date" /></div>
+    <div class="fg"><label class="fl">Heure</label><input class="fi" type="time" id="f-heure" /></div>
+  </div>
+  <div class="fr">
+    <div class="fg"><label class="fl">Activité concernée</label>
+      <select class="fi" id="f-activite">
+        <option value="">— Choisir —</option>
+        <option>Atelier poterie</option><option>Sortie nature Lac Noir</option>
+        <option>Cours de cirque</option><option>Cuisine du monde</option>
+        <option>Autre / Hors activité</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">Lieu précis</label><input class="fi" id="f-lieu" placeholder="Ex: Salle principale, terrain de jeux..." /></div>
+  </div>
+  <div class="fr">
+    <div class="fg"><label class="fl">Type d'incident</label>
+      <select class="fi" id="f-type">
+        <option>Accident / blessure</option>
+        <option>Malaise / problème médical</option>
+        <option>Conflit entre enfants</option>
+        <option>Comportement inapproprié</option>
+        <option>Incident matériel / dégât</option>
+        <option>Disparition / enfant non récupéré</option>
+        <option>Incident avec un tiers</option>
+        <option>Autre</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">Niveau de gravité *</label>
+      <select class="fi" id="f-gravite">
+        <option value="mineur">Mineur</option>
+        <option value="modere">Modéré</option>
+        <option value="serieux">Sérieux</option>
+        <option value="critique">Critique</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="sec">Personnes concernées</div>
+  <div class="fg"><label class="fl">Enfants impliqués</label><input class="fi" id="f-enfants" placeholder="Prénom Nom, Prénom Nom..." /></div>
+  <div class="fg"><label class="fl">Adultes impliqués</label><input class="fi" id="f-adultes" placeholder="Membres du comité, prestataires concernés..." /></div>
+  <div class="fg"><label class="fl">Témoins</label><input class="fi" id="f-temoins" placeholder="Noms des personnes présentes..." /></div>
+  <div class="fg"><label class="fl">Rapport établi par *</label>
+    <select class="fi" id="f-rapporteur">
+      <option value="">— Choisir —</option>
+      <option>Marie Dupont</option><option>Jean Martin</option>
+      <option>Sophie Remy</option><option>Lara Blanc</option>
+      <option>Paul Morel</option><option>Ana Favre</option>
+    </select>
+  </div>
+
+  <div class="sec">Description</div>
+  <div class="fg"><label class="fl">Description détaillée de l'incident *</label>
+    <textarea class="fi" id="f-desc" rows="4" placeholder="Décrivez les faits de manière objective et chronologique..."></textarea>
+  </div>
+  <div class="fg"><label class="fl">Actions prises sur le moment</label>
+    <textarea class="fi" id="f-actions" rows="3" placeholder="Premiers soins, appels passés, mesures immédiates..."></textarea>
+  </div>
+
+  <div class="sec">Notifications & suivi</div>
+  <div class="toggle-group">
+    <div class="toggle-row urgence">
+      <div><div class="toggle-label">🚨 Services d'urgence appelés</div><div class="toggle-sub">Police, ambulance, pompiers</div></div>
+      <label class="toggle urgence-check"><input type="checkbox" id="t-urgence"><span class="toggle-slider"></span></label>
+    </div>
+    <div class="toggle-row notif">
+      <div><div class="toggle-label">📞 Parents contactés et notifiés</div><div class="toggle-sub">Les familles des enfants concernés ont été informées</div></div>
+      <label class="toggle notif-check"><input type="checkbox" id="t-parents"><span class="toggle-slider"></span></label>
+    </div>
+    <div class="toggle-row notif">
+      <div><div class="toggle-label">📋 Comité notifié</div><div class="toggle-sub">Tous les membres du comité ont été informés</div></div>
+      <label class="toggle notif-check"><input type="checkbox" id="t-comite"><span class="toggle-slider"></span></label>
+    </div>
+  </div>
+
+  <div class="fg" style="margin-top:.75rem"><label class="fl">Statut du rapport</label>
+    <select class="fi" id="f-statut" style="width:60%">
+      <option value="ouvert">Ouvert</option>
+      <option value="traitement">En traitement</option>
+      <option value="cloture">Clôturé</option>
+    </select>
+  </div>
+
+  <div class="fg"><label class="fl">Notes additionnelles</label>
+    <textarea class="fi" id="f-notes" rows="2" placeholder="Suivi prévu, observations complémentaires..."></textarea>
+  </div>
+
+  <div class="mf">
+    <button class="btn btn-danger btn-sm" id="f-del-btn" style="display:none" onclick="deleteRapport()">Supprimer</button>
+    <div style="display:flex;gap:8px">
+      <button class="btn" onclick="closeCreate()">Annuler</button>
+      <button class="btn btn-primary" onclick="saveRapport()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- Modal détail -->
+<div id="mDetail" class="overlay" onclick="if(event.target.id==='mDetail')closeDetail()">
+<div class="modal" onclick="event.stopPropagation()"><div id="det"></div></div>
+</div>
+
+<script>
+const STATUT_LABELS={ouvert:"Ouvert",traitement:"En traitement",cloture:"Clôturé"};
+const GRAV_LABELS={mineur:"Mineur",modere:"Modéré",serieux:"Sérieux",critique:"Critique"};
+
+let rapports=[
+  {id:1,date:"2026-05-20",heure:"10:30",activite:"Atelier poterie",lieu:"Atelier communal",type:"Accident / blessure",gravite:"mineur",enfants:"Luca Bernard",adultes:"Marie Dupont",temoins:"Sophie Remy, 3 enfants présents",rapporteur:"Marie Dupont",desc:"Luca s'est coupé légèrement le doigt avec un outil de modelage. Coupure superficielle, saignement arrêté rapidement.",actions:"Nettoyage de la plaie, pansement appliqué. Enfant rassuré et a pu continuer l'atelier.",urgence:false,parents:true,comite:false,statut:"cloture",notes:"Aucune suite nécessaire."},
+  {id:2,date:"2026-04-15",heure:"14:15",activite:"Sortie nature Lac Noir",lieu:"Sentier balisé, km 3",type:"Malaise / problème médical",gravite:"modere",enfants:"Emma Favre",adultes:"Jean Martin, Guide Pro Rando",temoins:"Paul Morel, groupe complet",rapporteur:"Jean Martin",desc:"Emma a eu une légère réaction allergique après contact avec une plante. Rougeurs sur les bras, léger gonflement.",actions:"Antihistaminique administré (trousse de secours). Parents appelés. Enfant surveillée pendant 30 min.",urgence:false,parents:true,comite:true,statut:"cloture",notes:"Famille informée de prévoir un EpiPen lors des prochaines sorties."},
+  {id:3,date:"2026-05-28",heure:"09:45",activite:"Cours de cirque",lieu:"Salle communale",type:"Conflit entre enfants",gravite:"mineur",enfants:"Noah Morel, Tom Remy",adultes:"Sophie Remy",temoins:"Ana Favre",rapporteur:"Sophie Remy",desc:"Altercation verbale entre deux enfants ayant dégénéré en bousculade. Aucune blessure physique.",actions:"Séparation immédiate. Discussion avec chaque enfant. Activité reprise après 10 min.",urgence:false,parents:false,comite:false,statut:"traitement",notes:"Prévoir discussion avec les familles des deux enfants."},
+];
+let nid=4;
+let editId=null;
+let selId=null;
+let filtre="tous";
+
+function fmtDate(d){if(!d)return"";const[y,m,j]=d.split("-");return`${j}.${m}.${y}`;}
+
+function renderMetrics(){
+  const ouverts=rapports.filter(r=>r.statut==="ouvert").length;
+  const enCours=rapports.filter(r=>r.statut==="traitement").length;
+  const clos=rapports.filter(r=>r.statut==="cloture").length;
+  const critiques=rapports.filter(r=>r.gravite==="critique").length;
+  document.getElementById("metrics").innerHTML=[
+    {val:rapports.length,lbl:"Total"},
+    {val:ouverts,lbl:"Ouverts",color:ouverts?"#791f1f":"inherit"},
+    {val:enCours,lbl:"En traitement",color:enCours?"#633806":"inherit"},
+    {val:clos,lbl:"Clôturés"},
+    {val:critiques,lbl:"Critiques",color:critiques?"#791f1f":"inherit"},
+  ].map(x=>`<div class="metric"><div class="metric-val" style="color:${x.color||"inherit"}">${x.val}</div><div class="metric-lbl">${x.lbl}</div></div>`).join("");
+
+  // Alerte critiques
+  const crits=rapports.filter(r=>r.gravite==="critique"&&r.statut!=="cloture");
+  const box=document.getElementById("alerte-critique");
+  box.innerHTML=crits.length?`<div class="alert-critique">🚨 <span>${crits.length} incident(s) critique(s) non clôturé(s) — intervention requise</span></div>`:"";
+}
+
+function getFiltered(){
+  const q=(document.getElementById("search")||{value:""}).value.toLowerCase();
+  return rapports.filter(r=>{
+    const mf=filtre==="tous"||r.statut===filtre||(filtre==="critique"&&r.gravite==="critique");
+    const ms=!q||r.activite.toLowerCase().includes(q)||r.type.toLowerCase().includes(q)||(r.enfants||"").toLowerCase().includes(q)||(r.rapporteur||"").toLowerCase().includes(q);
+    return mf&&ms;
+  }).sort((a,b)=>b.date.localeCompare(a.date));
+}
+
+function render(){
+  renderMetrics();
+  const rows=getFiltered();
+  const tb=document.getElementById("tbody");
+  if(!rows.length){tb.innerHTML=`<tr><td colspan="7" style="text-align:center;padding:2rem;color:#888">Aucun incident enregistré</td></tr>`;return;}
+  tb.innerHTML=rows.map(r=>`<tr onclick="openDetail(${r.id})">
+    <td><div style="font-weight:500">${fmtDate(r.date)}</div><div style="font-size:11px;color:#888">${r.heure||""}</div></td>
+    <td>${r.activite||"—"}</td>
+    <td style="font-size:12px">${r.type}</td>
+    <td><span class="grav-${r.gravite}">${GRAV_LABELS[r.gravite]}</span></td>
+    <td style="font-size:12px">${r.rapporteur||"—"}</td>
+    <td style="font-size:12px">
+      ${r.urgence?`<span title="Urgences appelées" style="margin-right:4px">🚨</span>`:""}
+      ${r.parents?`<span title="Parents notifiés" style="margin-right:4px">📞</span>`:""}
+      ${r.comite?`<span title="Comité notifié">📋</span>`:""}
+    </td>
+    <td><span class="badge badge-${r.statut}">${STATUT_LABELS[r.statut]}</span></td>
+  </tr>`).join("");
+}
+
+function setFilter(f,btn){
+  filtre=f;
+  document.querySelectorAll(".filter-btn").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  render();
+}
+
+function openCreate(){
+  editId=null;
+  document.getElementById("create-title").textContent="Nouveau rapport d'incident";
+  document.getElementById("f-del-btn").style.display="none";
+  document.getElementById("f-date").value=new Date().toISOString().split("T")[0];
+  document.getElementById("f-heure").value=new Date().toTimeString().slice(0,5);
+  ["f-lieu","f-enfants","f-adultes","f-temoins","f-desc","f-actions","f-notes"].forEach(id=>document.getElementById(id).value="");
+  document.getElementById("f-activite").selectedIndex=0;
+  document.getElementById("f-type").selectedIndex=0;
+  document.getElementById("f-gravite").value="mineur";
+  document.getElementById("f-rapporteur").selectedIndex=0;
+  document.getElementById("f-statut").value="ouvert";
+  ["t-urgence","t-parents","t-comite"].forEach(id=>document.getElementById(id).checked=false);
+  document.getElementById("mCreate").style.display="flex";
+}
+function closeCreate(){document.getElementById("mCreate").style.display="none";}
+
+function openEdit(id){
+  editId=id;
+  const r=rapports.find(x=>x.id===id);
+  document.getElementById("create-title").textContent="Modifier le rapport";
+  document.getElementById("f-del-btn").style.display="inline-block";
+  document.getElementById("f-date").value=r.date;
+  document.getElementById("f-heure").value=r.heure||"";
+  document.getElementById("f-activite").value=r.activite||"";
+  document.getElementById("f-lieu").value=r.lieu||"";
+  document.getElementById("f-type").value=r.type;
+  document.getElementById("f-gravite").value=r.gravite;
+  document.getElementById("f-enfants").value=r.enfants||"";
+  document.getElementById("f-adultes").value=r.adultes||"";
+  document.getElementById("f-temoins").value=r.temoins||"";
+  document.getElementById("f-rapporteur").value=r.rapporteur||"";
+  document.getElementById("f-desc").value=r.desc||"";
+  document.getElementById("f-actions").value=r.actions||"";
+  document.getElementById("t-urgence").checked=r.urgence||false;
+  document.getElementById("t-parents").checked=r.parents||false;
+  document.getElementById("t-comite").checked=r.comite||false;
+  document.getElementById("f-statut").value=r.statut;
+  document.getElementById("f-notes").value=r.notes||"";
+  closeDetail();
+  document.getElementById("mCreate").style.display="flex";
+}
+
+function saveRapport(){
+  const date=document.getElementById("f-date").value;
+  const desc=document.getElementById("f-desc").value.trim();
+  const rapporteur=document.getElementById("f-rapporteur").value;
+  if(!date||!desc||!rapporteur){alert("Date, description et rapporteur sont obligatoires.");return;}
+  const data={date,heure:document.getElementById("f-heure").value,activite:document.getElementById("f-activite").value,lieu:document.getElementById("f-lieu").value.trim(),type:document.getElementById("f-type").value,gravite:document.getElementById("f-gravite").value,enfants:document.getElementById("f-enfants").value.trim(),adultes:document.getElementById("f-adultes").value.trim(),temoins:document.getElementById("f-temoins").value.trim(),rapporteur,desc,actions:document.getElementById("f-actions").value.trim(),urgence:document.getElementById("t-urgence").checked,parents:document.getElementById("t-parents").checked,comite:document.getElementById("t-comite").checked,statut:document.getElementById("f-statut").value,notes:document.getElementById("f-notes").value.trim()};
+  if(editId){rapports=rapports.map(r=>r.id===editId?{...r,...data}:r);}
+  else{rapports.push({id:nid++,...data});}
+  closeCreate();render();
+}
+
+function deleteRapport(){
+  if(confirm("Supprimer ce rapport ?")){rapports=rapports.filter(r=>r.id!==editId);closeCreate();render();}
+}
+
+function openDetail(id){selId=id;renderDet();document.getElementById("mDetail").style.display="flex";}
+function closeDetail(){document.getElementById("mDetail").style.display="none";}
+
+function changeStatut(s){
+  rapports=rapports.map(r=>r.id===selId?{...r,statut:s}:r);
+  renderDet();render();
+}
+
+function renderDet(){
+  const r=rapports.find(x=>x.id===selId);if(!r)return;
+  const gravColors={mineur:"#eaf3de",modere:"#faeeda",serieux:"#fcebeb",critique:"#791f1f"};
+  const gravTextColors={mineur:"#275a0a",modere:"#633806",serieux:"#791f1f",critique:"#fff"};
+  document.getElementById("det").innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem">
+      <div>
+        <div style="font-size:15px;font-weight:600;margin-bottom:4px">${r.type}</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+          <span class="badge badge-${r.statut}">${STATUT_LABELS[r.statut]}</span>
+          <span style="font-size:11px;padding:2px 10px;border-radius:20px;font-weight:600;background:${gravColors[r.gravite]};color:${gravTextColors[r.gravite]}">${GRAV_LABELS[r.gravite]}</span>
+        </div>
+      </div>
+      <button class="btn btn-sm" onclick="closeDetail()">✕</button>
+    </div>
+
+    <div class="dl">Changer le statut</div>
+    <div class="status-select">
+      ${["ouvert","traitement","cloture"].map(s=>`<button class="status-btn${r.statut===s?" sel-"+s:""}" onclick="changeStatut('${s}')">${STATUT_LABELS[s]}</button>`).join("")}
+    </div>
+
+    <div class="grid-2">
+      <div><div class="dl">Date</div><div class="dv">${fmtDate(r.date)}${r.heure?" à "+r.heure:""}</div></div>
+      <div><div class="dl">Activité</div><div class="dv">${r.activite||"—"}</div></div>
+      <div><div class="dl">Lieu</div><div class="dv">${r.lieu||"—"}</div></div>
+      <div><div class="dl">Rapporté par</div><div class="dv">${r.rapporteur||"—"}</div></div>
+    </div>
+
+    <div class="dl">Enfants impliqués</div><div class="dv">${r.enfants||"—"}</div>
+    <div class="dl">Adultes impliqués</div><div class="dv">${r.adultes||"—"}</div>
+    <div class="dl">Témoins</div><div class="dv">${r.temoins||"—"}</div>
+
+    <div style="background:#fafaf8;border-radius:8px;padding:12px;margin:10px 0">
+      <div class="dl" style="margin-top:0">Description</div>
+      <div style="font-size:13px;color:#333;line-height:1.6;margin-top:4px">${r.desc}</div>
+    </div>
+    ${r.actions?`<div style="background:#f0f8ff;border-radius:8px;padding:12px;margin-bottom:10px">
+      <div class="dl" style="margin-top:0">Actions prises</div>
+      <div style="font-size:13px;color:#333;line-height:1.6;margin-top:4px">${r.actions}</div>
+    </div>`:""}
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:10px 0">
+      <div style="padding:10px;border-radius:8px;border:1px solid #eee;text-align:center;background:${r.urgence?"#fcebeb":"#fafaf8"}">
+        <div style="font-size:18px">🚨</div>
+        <div style="font-size:11px;font-weight:600;margin-top:4px;color:${r.urgence?"#791f1f":"#aaa"}">Urgences appelées</div>
+        <div class="check-icon ${r.urgence?"check-ok":"check-no"}" style="margin:4px auto 0">${r.urgence?"✓":"—"}</div>
+      </div>
+      <div style="padding:10px;border-radius:8px;border:1px solid #eee;text-align:center;background:${r.parents?"#e6f1fb":"#fafaf8"}">
+        <div style="font-size:18px">📞</div>
+        <div style="font-size:11px;font-weight:600;margin-top:4px;color:${r.parents?"#0c447c":"#aaa"}">Parents notifiés</div>
+        <div class="check-icon ${r.parents?"check-ok":"check-no"}" style="margin:4px auto 0">${r.parents?"✓":"—"}</div>
+      </div>
+      <div style="padding:10px;border-radius:8px;border:1px solid #eee;text-align:center;background:${r.comite?"#eaf3de":"#fafaf8"}">
+        <div style="font-size:18px">📋</div>
+        <div style="font-size:11px;font-weight:600;margin-top:4px;color:${r.comite?"#275a0a":"#aaa"}">Comité notifié</div>
+        <div class="check-icon ${r.comite?"check-ok":"check-no"}" style="margin:4px auto 0">${r.comite?"✓":"—"}</div>
+      </div>
+    </div>
+
+    ${r.notes?`<div style="background:#fafaf8;border-radius:8px;padding:10px 12px;font-size:13px;color:#555;margin-bottom:10px">${r.notes}</div>`:""}
+
+    <div class="mf">
+      <button class="btn btn-sm btn-danger" onclick="closeDetail();editId=selId;deleteRapport()">Supprimer</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-sm" onclick="openEdit(${r.id})">Modifier</button>
+        <button class="btn btn-sm btn-primary" onclick="closeDetail()">Fermer</button>
+      </div>
+    </div>`;
+}
+
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fri-Time Intyamon — Tableau de bord</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#f5f5f3;color:#1a1a1a;font-size:14px;min-height:100vh}
+
+/* Topbar */
+.topbar{background:#1a1a1a;color:#fff;padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:50}
+.topbar-logo{font-size:16px;font-weight:700;letter-spacing:.06em;display:flex;align-items:center;gap:10px}
+.topbar-logo span{font-size:11px;font-weight:400;opacity:.5;letter-spacing:.04em}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.topbar-user{font-size:12px;opacity:.6}
+.topbar-avatar{width:32px;height:32px;border-radius:50%;background:#333;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
+
+/* Sidebar nav */
+/* old layout removed */
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 14px;font-size:13px;color:#555;cursor:pointer;transition:all .1s;text-decoration:none;border-left:3px solid transparent}
+.nav-item:hover{background:#fafaf8;color:#1a1a1a}
+.nav-item.active{background:#f5f5f3;color:#1a1a1a;font-weight:600;border-left-color:#1a1a1a}
+.nav-item.active .nav-ico{opacity:1}
+.nav-ico{font-size:16px;flex-shrink:0;opacity:.6}
+.nav-badge{margin-left:auto;font-size:10px;background:#fcebeb;color:#791f1f;padding:1px 6px;border-radius:20px;font-weight:700}
+.nav-badge.green{background:#eaf3de;color:#275a0a}
+.nav-badge.blue{background:#e6f1fb;color:#0c447c}
+
+/* Main content */
+/* old main removed */
+.page-header{margin-bottom:1.5rem}
+.page-title{font-size:22px;font-weight:700}
+.page-sub{font-size:13px;color:#888;margin-top:3px}
+
+/* Metrics row */
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:1.75rem}
+.metric{background:#fff;border-radius:12px;padding:16px;border:1px solid #eee}
+.metric-val{font-size:26px;font-weight:700;margin-bottom:2px}
+.metric-lbl{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.05em}
+.metric-sub{font-size:12px;color:#aaa;margin-top:4px}
+.metric.highlight{background:#eaf3de;color:#1a1a1a;border-left:3px solid #275a0a}
+.metric.highlight .metric-lbl{color:#275a0a}
+.metric.highlight .metric-sub{color:#639922}
+.metric.highlight .metric-val{color:#1a5a0a}
+.metric.green{border-left:3px solid #275a0a}
+.metric.orange{border-left:3px solid #ef9f27}
+.metric.red{border-left:3px solid #791f1f}
+.metric.blue{border-left:3px solid #0c447c}
+
+/* Grid 2 cols */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:1.5rem}
+.grid3{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:1.5rem}
+
+/* Section card */
+.section{background:#fff;border:1px solid #eee;border-radius:12px;overflow:hidden}
+.section-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #eee;background:#fafaf8}
+.section-title{font-size:13px;font-weight:600}
+.section-link{font-size:12px;color:#0c447c;text-decoration:none;cursor:pointer}
+.section-link:hover{text-decoration:underline}
+
+/* Table */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{padding:9px 14px;text-align:left;font-size:10px;font-weight:700;color:#aaa;border-bottom:1px solid #eee;text-transform:uppercase;letter-spacing:.05em}
+td{padding:9px 14px;border-bottom:1px solid #f5f5f3;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafaf8}
+
+/* Badges */
+.badge{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500;white-space:nowrap}
+.badge-approuvee{background:#e6f1fb;color:#0c447c}
+.badge-planifiee{background:#faeeda;color:#633806}
+.badge-validee{background:#eaf3de;color:#275a0a}
+.badge-terminee{background:#f5f5f3;color:#666}
+
+/* Budget bar */
+.budget-wrap{padding:1.25rem}
+.budget-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.budget-label{font-size:12px;color:#888}
+.budget-val{font-size:13px;font-weight:600}
+.prog-wrap{height:8px;background:#eee;border-radius:20px;overflow:hidden;margin-bottom:14px}
+.prog-bar{height:8px;border-radius:20px;transition:width .3s}
+.prog-green{background:#275a0a}
+.prog-orange{background:#ef9f27}
+.prog-red{background:#791f1f}
+.budget-solde{background:#f5f5f3;border-radius:10px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;margin-top:4px}
+.budget-solde-val{font-size:20px;font-weight:700}
+
+/* Inscriptions recap */
+.insc-item{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid #f5f5f3}
+.insc-item:last-child{border-bottom:none}
+.insc-act{font-size:13px;font-weight:500}
+.insc-sub{font-size:11px;color:#888;margin-top:1px}
+.insc-stats{display:flex;gap:8px;align-items:center}
+.insc-stat{text-align:center}
+.insc-stat-val{font-size:15px;font-weight:700}
+.insc-stat-lbl{font-size:10px;color:#888;text-transform:uppercase;letter-spacing:.04em}
+.insc-bar{width:80px;height:5px;background:#eee;border-radius:20px;overflow:hidden;margin-top:5px}
+.insc-fill{height:5px;border-radius:20px;background:#275a0a}
+
+/* Prestataires */
+.prest-item{display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid #f5f5f3}
+.prest-item:last-child{border-bottom:none}
+.prest-avatar{width:34px;height:34px;border-radius:50%;background:#e6f1fb;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#0c447c;flex-shrink:0}
+.prest-name{font-size:13px;font-weight:500}
+.prest-sub{font-size:11px;color:#888;margin-top:1px}
+.prest-act{font-size:11px;background:#eaf3de;color:#275a0a;padding:2px 8px;border-radius:20px;font-weight:500;white-space:nowrap}
+
+/* Alertes */
+.alert-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-bottom:1px solid #f5f5f3}
+.alert-item:last-child{border-bottom:none}
+.alert-ico{font-size:18px;flex-shrink:0;margin-top:1px}
+.alert-title{font-size:13px;font-weight:500}
+.alert-sub{font-size:12px;color:#888;margin-top:1px}
+.alert-item.urgent .alert-title{color:#791f1f}
+.alert-date{font-size:11px;color:#bbb;margin-left:auto;flex-shrink:0}
+
+/* Période selector */
+.periode-bar{display:flex;align-items:center;gap:8px;margin-bottom:1.5rem;flex-wrap:wrap}
+.periode-btn{padding:5px 14px;border-radius:20px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:12px;color:#666;transition:all .15s}
+.periode-btn.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.periode-info{font-size:12px;color:#888;margin-left:auto}
+
+/* Quick actions */
+.quick-actions{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-bottom:1.75rem}
+.qa-btn{background:#fff;border:1px solid #eee;border-radius:10px;padding:14px 10px;text-align:center;cursor:pointer;transition:all .15s;text-decoration:none;color:#1a1a1a}
+.qa-btn:hover{border-color:#ccc;background:#fafaf8;transform:translateY(-1px)}
+.qa-ico{font-size:24px;margin-bottom:6px}
+.qa-lbl{font-size:12px;font-weight:500;line-height:1.3}
+</style>
+  <script src="fritime_data.js"></script>
+  <script src="fritime_sync.js"></script>
+  <script src="fritime_auth.js"></script>
+</head>
+<body class="ft-body-offset">
+<!-- SHARED NAV - Fri-Time Intyamon -->
+<style>
+.ft-topbar{background:#1a1a1a;color:#fff;padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:52px;position:fixed;top:0;left:0;right:0;z-index:1000}
+.ft-logo{font-size:15px;font-weight:700;letter-spacing:.05em;color:#fff;text-decoration:none;white-space:nowrap}
+.ft-topbar-right{display:flex;align-items:center;gap:12px}
+.ft-user-name{font-size:12px;opacity:.6;display:none}
+.ft-avatar{width:30px;height:30px;border-radius:50%;background:#333;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;cursor:pointer;position:relative}
+.ft-avatar-menu{display:none;position:absolute;top:36px;right:0;background:#fff;border:1px solid #eee;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.1);min-width:180px;z-index:100;overflow:hidden}
+.ft-avatar-menu.open{display:block}
+.ft-avatar-menu-item{padding:10px 14px;font-size:13px;color:#1a1a1a;cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .1s}
+.ft-avatar-menu-item:hover{background:#f5f5f3}
+.ft-avatar-menu-item.red{color:#791f1f}
+.ft-avatar-divider{height:1px;background:#eee;margin:4px 0}
+.ft-sidebar{position:fixed;top:52px;left:0;width:210px;height:calc(100vh - 52px);background:#fff;border-right:1px solid #eee;overflow-y:auto;z-index:999;transform:translateX(-100%);transition:transform .2s}
+.ft-sidebar.open{transform:translateX(0)}
+.ft-sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:998;top:52px}
+.ft-sidebar-overlay.open{display:block}
+.ft-nav-section{padding:6px 14px;font-size:10px;font-weight:700;color:#bbb;text-transform:uppercase;letter-spacing:.08em;margin-top:8px}
+.ft-nav-item{display:flex;align-items:center;gap:9px;padding:9px 14px;font-size:13px;color:#555;cursor:pointer;transition:all .1s;text-decoration:none;border-left:3px solid transparent;white-space:nowrap}
+.ft-nav-item:hover{background:#fafaf8;color:#1a1a1a}
+.ft-nav-item.active{background:#f5f5f3;color:#1a1a1a;font-weight:600;border-left-color:#1a1a1a}
+.ft-nav-ico{font-size:15px;flex-shrink:0;opacity:.7}
+.ft-nav-badge{margin-left:auto;font-size:10px;background:#fcebeb;color:#791f1f;padding:1px 6px;border-radius:20px;font-weight:700}
+.ft-nav-badge.green{background:#eaf3de;color:#275a0a}
+.ft-nav-badge.blue{background:#e6f1fb;color:#0c447c}
+.ft-menu-btn{background:none;border:none;color:#fff;cursor:pointer;font-size:20px;padding:4px 8px;display:flex;align-items:center;justify-content:center;opacity:.8}
+.ft-menu-btn:hover{opacity:1}
+.ft-body-offset{padding-top:52px}
+.ft-layout{display:flex;min-height:calc(100vh - 52px)}
+.ft-sidebar-desktop{width:210px;flex-shrink:0;background:#fff;border-right:1px solid #eee;position:sticky;top:52px;height:calc(100vh - 52px);overflow-y:auto;flex-shrink:0}
+.ft-main{flex:1;overflow-x:hidden;min-width:0}
+@media(max-width:768px){
+  .ft-sidebar-desktop{display:none!important}
+  .ft-user-name{display:none}
+  .ft-main{padding:1rem!important}
+}
+@media(min-width:769px){
+  .ft-sidebar{display:none!important}
+  .ft-sidebar-overlay{display:none!important}
+  .ft-menu-btn{display:none!important}
+  .ft-sidebar-desktop{display:block!important}
+}
+</style>
+
+<div class="ft-topbar">
+  <div style="display:flex;align-items:center;gap:10px">
+    <button class="ft-menu-btn" onclick="toggleSidebar()" id="ft-menu-btn">☰</button>
+    <a href="fritime_dashboard.html" class="ft-logo">Fri-Time Intyamon</a>
+  </div>
+  <div class="ft-topbar-right">
+    <span class="ft-user-name" id="ft-user-name">—</span>
+    <div class="ft-avatar" id="ft-avatar" onclick="toggleAvatarMenu()">
+      <span id="ft-avatar-initials">?</span>
+      <div class="ft-avatar-menu" id="ft-avatar-menu">
+        <div class="ft-avatar-menu-item" style="background:#f5f5f3;cursor:default">
+          <div>
+            <div style="font-weight:600;font-size:13px" id="ft-menu-name">—</div>
+            <div style="font-size:11px;color:#888" id="ft-menu-role">—</div>
+          </div>
+        </div>
+        <div class="ft-avatar-divider"></div>
+        <a href="fritime_dashboard.html" class="ft-avatar-menu-item">🏠 Tableau de bord</a>
+        <div class="ft-avatar-menu-item" onclick="doLogout()">🔒 Se déconnecter</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="ft-sidebar-overlay" id="ft-sidebar-overlay" onclick="toggleSidebar()"></div>
+
+<div class="ft-sidebar" id="ft-sidebar">
+  <div class="ft-nav-section">Principal</div>
+  <a class="ft-nav-item" href="fritime_dashboard.html" data-page="dashboard" class="ft-nav-item active" style="border-left-color:#1a1a1a;background:#f5f5f3;color:#1a1a1a;font-weight:600"><span class="ft-nav-ico">🏠</span> Tableau de bord</a>
+  <a class="ft-nav-item" href="fritime_activites.html" data-page="activites"><span class="ft-nav-ico">🎯</span> Activités</a>
+  <a class="ft-nav-item" href="fritime_inscriptions.html" data-page="inscriptions"><span class="ft-nav-ico">📋</span> Inscriptions</a>
+  <a class="ft-nav-item" href="fritime_enfants.html" data-page="enfants"><span class="ft-nav-ico">👦</span> Enfants</a>
+
+  <div class="ft-nav-section">Organisation</div>
+  <a class="ft-nav-item" href="fritime_taches.html" data-page="taches"><span class="ft-nav-ico">✅</span> Tâches</a>
+  <a class="ft-nav-item" href="fritime_comite.html" data-page="comite"><span class="ft-nav-ico">👥</span> Comité</a>
+  <a class="ft-nav-item" href="fritime_campagnes.html" data-page="campagnes"><span class="ft-nav-ico">📧</span> Campagnes</a>
+  <a class="ft-nav-item" href="fritime_sondages.html" data-page="sondages"><span class="ft-nav-ico">⭐</span> Sondages</a>
+
+  <div class="ft-nav-section">Finances & Partenaires</div>
+  <a class="ft-nav-item" href="fritime_budget.html" data-page="budget"><span class="ft-nav-ico">💰</span> Budget</a>
+  <a class="ft-nav-item" href="fritime_prestataires.html" data-page="prestataires"><span class="ft-nav-ico">🤝</span> Prestataires</a>
+
+  <div class="ft-nav-section">Contenu</div>
+  <a class="ft-nav-item" href="fritime_idees.html" data-page="idees"><span class="ft-nav-ico">💡</span> Banque d'idées</a>
+  <a class="ft-nav-item" href="fritime_documents.html" data-page="documents"><span class="ft-nav-ico">📁</span> Documents</a>
+
+  <div class="ft-nav-section">Sécurité</div>
+  <a class="ft-nav-item" href="fritime_incidents.html" data-page="incidents"><span class="ft-nav-ico">⚠️</span> Incidents</a>
+  <a class="ft-nav-item" href="fritime_urgences.html" data-page="urgences"><span class="ft-nav-ico">🚨</span> Urgences</a>
+  <a class="ft-nav-item" href="fritime_modifications.html" data-page="modifications"><span class="ft-nav-ico">🔄</span> Demandes</a>
+</div>
+
+<script>
+(function(){
+  // Auth check
+  const user = sessionStorage.getItem("ft-user");
+  const publicPages = ["fritime_login.html","fritime_inscription_publique.html","fritime_sondage_parent.html"];
+  const currentPage = window.location.pathname.split("/").pop();
+  if(!user && !publicPages.includes(currentPage)){
+    window.location.href = "fritime_login.html";
+    return;
+  }
+  if(user){
+    const u = JSON.parse(user);
+    const ini = ((u.nom||"").split(" ").map(p=>p[0]||"").join("")).substring(0,2).toUpperCase();
+    document.getElementById("ft-avatar-initials").textContent = ini||"?";
+    document.getElementById("ft-user-name").textContent = u.nom||"";
+    document.getElementById("ft-menu-name").textContent = u.nom||"";
+    document.getElementById("ft-menu-role").textContent = u.role||"";
+    document.getElementById("ft-user-name").style.display = "block";
+  }
+
+  // Active nav item
+  document.querySelectorAll(".ft-nav-item[data-page]").forEach(function(el){
+    if(currentPage.includes(el.dataset.page)) el.classList.add("active");
+  });
+})();
+
+function toggleSidebar(){
+  document.getElementById("ft-sidebar").classList.toggle("open");
+  document.getElementById("ft-sidebar-overlay").classList.toggle("open");
+}
+function toggleAvatarMenu(){
+  document.getElementById("ft-avatar-menu").classList.toggle("open");
+}
+document.addEventListener("click", function(e){
+  const menu = document.getElementById("ft-avatar-menu");
+  const avatar = document.getElementById("ft-avatar");
+  if(menu && !avatar.contains(e.target)) menu.classList.remove("open");
+});
+function doLogout(){
+  sessionStorage.removeItem("ft-user");
+  window.location.href = "fritime_login.html";
+}
+</script>
+
+
+  <div class="topbar-right">
+    <div class="topbar-user">Marie Dupont · Présidente</div>
+    <div class="topbar-avatar">MD</div>
+  </div>
+</div>
+
+<div class="ft-layout">
+
+    <!-- Main content -->
+  <main class="ft-main" style="padding:1.5rem">
+
+    <div class="page-header">
+      <div class="page-title">Tableau de bord</div>
+      <div class="page-sub">Année 2025–2026 · Dernière mise à jour : aujourd'hui</div>
+    </div>
+
+    <!-- Sélecteur période -->
+    <div class="periode-bar">
+      <button class="periode-btn active" onclick="setPeriode('printemps',this)">Printemps 2026</button>
+      <button class="periode-btn" onclick="setPeriode('hiver',this)">Hiver 2025</button>
+      <button class="periode-btn" onclick="setPeriode('annee',this)">Année complète</button>
+      <span class="periode-info">Période sélectionnée : <strong id="periode-label">Printemps 2026</strong></span>
+    </div>
+
+    <!-- Métriques principales -->
+    <div class="metrics" id="metrics"></div>
+
+    <!-- Alertes juste sous les métriques -->
+    <div class="section" style="margin-bottom:1.5rem">
+      <div class="section-header" style="background:#fdf0f0;border-bottom-color:#f7c1c1">
+        <span class="section-title" style="color:#791f1f">⚡ Points d'attention</span>
+        <span style="font-size:12px;color:#888" id="alertes-count"></span>
+      </div>
+      <div id="alertes-list"></div>
+    </div>
+
+    <!-- Actions rapides -->
+    <div class="quick-actions">
+      <a class="qa-btn" href="fritime_activites.html">
+        <div class="qa-ico">🎯</div><div class="qa-lbl">Nouvelle activité</div>
+      </a>
+      <a class="qa-btn" href="fritime_inscriptions.html">
+        <div class="qa-ico">📋</div><div class="qa-lbl">Gérer les inscriptions</div>
+      </a>
+      <a class="qa-btn" href="fritime_inscription_publique.html" target="_blank">
+        <div class="qa-ico">🔗</div><div class="qa-lbl">Formulaire public</div>
+      </a>
+      <a class="qa-btn" href="fritime_incidents.html">
+        <div class="qa-ico">⚠️</div><div class="qa-lbl">Rapport d'incident</div>
+      </a>
+      <a class="qa-btn" href="fritime_campagnes.html">
+        <div class="qa-ico">📧</div><div class="qa-lbl">Nouvelle campagne</div>
+      </a>
+      <a class="qa-btn" href="fritime_budget.html">
+        <div class="qa-ico">💰</div><div class="qa-lbl">Voir le budget</div>
+      </a>
+    </div>
+
+    <!-- Activités validées + Inscriptions -->
+    <div class="grid3">
+      <!-- Activités confirmées -->
+      <div class="section">
+        <div class="section-header">
+          <span class="section-title">Activités validées par le comité</span>
+          <a class="section-link" href="fritime_activites.html">Voir tout →</a>
+        </div>
+        <table>
+          <thead><tr>
+            <th>Activité</th><th>Date</th><th>Prestataire</th><th>Inscrits</th><th>Statut</th>
+          </tr></thead>
+          <tbody id="activites-tbody"></tbody>
+        </table>
+      </div>
+
+      <!-- Budget + Alertes colonne droite -->
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div class="section">
+          <div class="section-header">
+            <span class="section-title">Budget</span>
+            <a class="section-link" href="fritime_budget.html">Détail →</a>
+          </div>
+          <div class="budget-wrap" id="budget-wrap"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Inscriptions + Prestataires -->
+    <div class="grid2">
+      <!-- Inscriptions par activité -->
+      <div class="section">
+        <div class="section-header">
+          <span class="section-title">Inscriptions reçues — période en cours</span>
+          <a class="section-link" href="fritime_inscriptions.html">Gérer →</a>
+        </div>
+        <div id="inscriptions-list"></div>
+      </div>
+
+      <!-- Prestataires confirmés -->
+      <div class="section">
+        <div class="section-header">
+          <span class="section-title">Prestataires confirmés</span>
+          <a class="section-link" href="fritime_prestataires.html">Voir tout →</a>
+        </div>
+        <div id="prestataires-list"></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+const DATA={
+  printemps:{
+    label:"Printemps 2026",
+    metrics:[
+      {val:"3",lbl:"Activités confirmées",sub:"sur 3 prévues",cls:"green"},
+      {val:"9",lbl:"Inscriptions reçues",sub:"5 familles différentes",cls:"blue"},
+      {val:"4",lbl:"Prestataires confirmés",sub:"sur 4 activités",cls:"green"},
+      {val:"2",lbl:"Tâches en attente",sub:"à traiter cette semaine",cls:"orange"},
+      {val:"6'375",lbl:"Budget restant (CHF)",sub:"sur 8'000 total",cls:"highlight"},
+    ],
+    activites:[
+      {nom:"Atelier poterie",date:"20.05.2026",prestataire:"Julie Favre",inscrits:8,places:12,statut:"planifiee"},
+      {nom:"Sortie Lac Noir",date:"14.06.2026",prestataire:"Marc Dupont",inscrits:15,places:20,statut:"validee"},
+      {nom:"Cours de cirque",date:"08.07.2026",prestataire:"Sophie Blanc",inscrits:0,places:15,statut:"approuvee"},
+    ],
+    budget:{
+      entrees:7800,
+      depenses:1425,
+      total:8000,
+      solde:6375,
+      pct:18,
+    },
+    inscriptions:[
+      {act:"Atelier poterie",confirmes:3,attente:2,places:12,date:"20.05.2026"},
+      {act:"Sortie Lac Noir",confirmes:4,attente:1,places:20,date:"14.06.2026"},
+      {act:"Cours de cirque",confirmes:0,attente:0,places:15,date:"08.07.2026"},
+    ],
+    prestataires:[
+      {nom:"Julie Favre",entreprise:"Atelier Terracotta",activite:"Atelier poterie",statut:"actif"},
+      {nom:"Marc Dupont",entreprise:"Guide Pro Rando",activite:"Sortie Lac Noir",statut:"actif"},
+      {nom:"Sophie Blanc",entreprise:"Cirque en",activite:"Cours de cirque",statut:"actif"},
+    ],
+    alertes:[
+      {ico:"🔴",titre:"Demande de modification en attente",sub:"Changement statut activité — soumis par Sophie Remy",urgent:true,date:"10.05.2026"},
+      {ico:"📅",titre:"Date limite inscription — Atelier poterie",sub:"Clôture des inscriptions dans 5 jours",urgent:false,date:"15.05.2026"},
+      {ico:"📋",titre:"Rapport d'incident ouvert",sub:"Incident du 28.04 — statut : en traitement",urgent:false,date:"28.04.2026"},
+      {ico:"💰",titre:"Facture prestataire à valider",sub:"Guide Pro Rando — 625 CHF à confirmer",urgent:false,date:"01.06.2026"},
+    ],
+  },
+  hiver:{
+    label:"Hiver 2025",
+    metrics:[
+      {val:"2",lbl:"Activités réalisées",sub:"sur 2 prévues",cls:"green"},
+      {val:"28",lbl:"Participants",sub:"sur 2 activités",cls:"blue"},
+      {val:"2",lbl:"Prestataires",sub:"activités terminées",cls:"green"},
+      {val:"0",lbl:"Incidents",sub:"aucun incident",cls:"green"},
+      {val:"7'100",lbl:"Budget restant (CHF)",sub:"sur 8'000 total",cls:"highlight"},
+    ],
+    activites:[
+      {nom:"Journée ski Charmey",date:"15.02.2026",prestataire:"Charmey Tourisme",inscrits:23,places:25,statut:"terminee"},
+      {nom:"Cuisine du monde",date:"30.05.2026",prestataire:"Cuisine du Monde ASBL",inscrits:10,places:10,statut:"terminee"},
+    ],
+    budget:{entrees:7800,depenses:900,total:8000,solde:7100,pct:11},
+    inscriptions:[
+      {act:"Journée ski",confirmes:23,attente:0,places:25,date:"15.02.2026"},
+      {act:"Cuisine du monde",confirmes:10,attente:0,places:10,date:"30.05.2026"},
+    ],
+    prestataires:[
+      {nom:"Charmey Tourisme",entreprise:"Charmey SA",activite:"Journée ski",statut:"actif"},
+      {nom:"Ana Martin",entreprise:"Cuisine du Monde ASBL",activite:"Cuisine du monde",statut:"actif"},
+    ],
+    alertes:[
+      {ico:"⭐",titre:"Sondages à envoyer",sub:"2 activités terminées sans sondage de satisfaction",urgent:false,date:""},
+    ],
+  },
+  annee:{
+    label:"Année 2025–2026",
+    metrics:[
+      {val:"5",lbl:"Activités au total",sub:"2 terminées · 3 à venir",cls:"green"},
+      {val:"37",lbl:"Participations",sub:"enfants distincts",cls:"blue"},
+      {val:"4",lbl:"Prestataires actifs",sub:"sur l'année",cls:"green"},
+      {val:"1",lbl:"Incident signalé",sub:"clôturé",cls:"orange"},
+      {val:"6'375",lbl:"Budget restant (CHF)",sub:"dépenses : 1'625 CHF",cls:"highlight"},
+    ],
+    activites:[
+      {nom:"Journée ski",date:"15.02.2026",prestataire:"Charmey Tourisme",inscrits:23,places:25,statut:"terminee"},
+      {nom:"Cuisine du monde",date:"30.05.2026",prestataire:"Cuisine du Monde ASBL",inscrits:10,places:10,statut:"terminee"},
+      {nom:"Atelier poterie",date:"20.05.2026",prestataire:"Julie Favre",inscrits:8,places:12,statut:"planifiee"},
+      {nom:"Sortie Lac Noir",date:"14.06.2026",prestataire:"Marc Dupont",inscrits:15,places:20,statut:"validee"},
+      {nom:"Cours de cirque",date:"08.07.2026",prestataire:"Sophie Blanc",inscrits:0,places:15,statut:"approuvee"},
+    ],
+    budget:{entrees:7800,depenses:1625,total:8000,solde:6375,pct:20},
+    inscriptions:[
+      {act:"Journée ski",confirmes:23,attente:0,places:25,date:"15.02.2026"},
+      {act:"Cuisine du monde",confirmes:10,attente:0,places:10,date:"30.05.2026"},
+      {act:"Atelier poterie",confirmes:3,attente:2,places:12,date:"20.05.2026"},
+      {act:"Sortie Lac Noir",confirmes:4,attente:1,places:20,date:"14.06.2026"},
+    ],
+    prestataires:[
+      {nom:"Julie Favre",entreprise:"Atelier Terracotta",activite:"Atelier poterie",statut:"actif"},
+      {nom:"Marc Dupont",entreprise:"Guide Pro Rando",activite:"Sortie Lac Noir",statut:"actif"},
+      {nom:"Sophie Blanc",entreprise:"Cirque en",activite:"Cours de cirque",statut:"actif"},
+      {nom:"Charmey Tourisme",entreprise:"Charmey SA",activite:"Journée ski",statut:"actif"},
+    ],
+    alertes:[
+      {ico:"🔴",titre:"Demande de modification en attente",sub:"Changement statut activité — par Sophie Remy",urgent:true,date:"10.05.2026"},
+      {ico:"📋",titre:"Rapport d'incident ouvert",sub:"Incident du 28.04 — en traitement",urgent:false,date:"28.04.2026"},
+      {ico:"⭐",titre:"Sondages satisfaction à envoyer",sub:"2 activités terminées sans sondage",urgent:false,date:""},
+      {ico:"💰",titre:"Facture à valider — Guide Pro Rando",sub:"625 CHF",urgent:false,date:"01.06.2026"},
+    ],
+  }
+};
+
+let currentPeriode="printemps";
+
+function setPeriode(p,btn){
+  currentPeriode=p;
+  document.querySelectorAll(".periode-btn").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  render();
+}
+
+function ini(nom){const p=nom.split(" ");return((p[0]||"")[0]+(p[1]||"")[0]).toUpperCase();}
+function chf(n){return n.toLocaleString("fr-CH")+" CHF";}
+function pctCls(p){return p>=80?"prog-red":p>=50?"prog-orange":"prog-green";}
+
+function render(){
+  const d=DATA[currentPeriode];
+  document.getElementById("periode-label").textContent=d.label;
+
+  // Metrics
+  document.getElementById("metrics").innerHTML=d.metrics.map(m=>`
+    <div class="metric ${m.cls==="highlight"?"highlight":m.cls==="green"?"green":m.cls==="orange"?"orange":m.cls==="red"?"red":"blue"}">
+      <div class="metric-val">${m.val}</div>
+      <div class="metric-lbl">${m.lbl}</div>
+      ${m.sub?`<div class="metric-sub">${m.sub}</div>`:""}
+    </div>`).join("");
+
+  // Activités
+  const STATUT={approuvee:"Approuvée",planifiee:"Planifiée",validee:"Validée",terminee:"Terminée"};
+  document.getElementById("activites-tbody").innerHTML=d.activites.map(a=>`<tr>
+    <td style="font-weight:500">${a.nom}</td>
+    <td style="color:#888">${a.date}</td>
+    <td style="font-size:12px">${a.prestataire}</td>
+    <td>
+      <div style="font-weight:600">${a.inscrits}<span style="color:#aaa;font-weight:400">/${a.places}</span></div>
+      <div style="width:60px;height:4px;background:#eee;border-radius:20px;overflow:hidden;margin-top:3px">
+        <div style="width:${Math.min(100,Math.round(a.inscrits/a.places*100))}%;height:4px;background:#275a0a;border-radius:20px"></div>
+      </div>
+    </td>
+    <td><span class="badge badge-${a.statut}">${STATUT[a.statut]||a.statut}</span></td>
+  </tr>`).join("");
+
+  // Budget
+  const b=d.budget;
+  const pct=Math.round(b.depenses/b.total*100);
+  document.getElementById("budget-wrap").innerHTML=`
+    <div class="budget-row"><span class="budget-label">Dépenses réalisées</span><span class="budget-val">${chf(b.depenses)}</span></div>
+    <div class="prog-wrap"><div class="prog-bar ${pctCls(pct)}" style="width:${pct}%"></div></div>
+    <div class="budget-row"><span class="budget-label">Entrées reçues</span><span class="budget-val">${chf(b.entrees)}</span></div>
+    <div class="prog-wrap"><div class="prog-bar prog-green" style="width:${Math.round(b.entrees/b.total*100)}%"></div></div>
+    <div class="budget-solde">
+      <div><div style="font-size:11px;color:#888;margin-bottom:2px;text-transform:uppercase;letter-spacing:.05em">Solde disponible</div>
+      <div class="budget-solde-val ${b.solde<1000?"":"" }">${chf(b.solde)}</div></div>
+      <div style="font-size:12px;color:#888">${pct}% consommé</div>
+    </div>`;
+
+  // Inscriptions
+  document.getElementById("inscriptions-list").innerHTML=d.inscriptions.map(i=>{
+    const total=i.confirmes+i.attente;
+    const pct=Math.min(100,Math.round(i.confirmes/i.places*100));
+    return`<div class="insc-item">
+      <div style="flex:1">
+        <div class="insc-act">${i.act}</div>
+        <div class="insc-sub">${i.date}</div>
+        <div class="insc-bar"><div class="insc-fill" style="width:${pct}%"></div></div>
+      </div>
+      <div class="insc-stats">
+        <div class="insc-stat"><div class="insc-stat-val" style="color:#275a0a">${i.confirmes}</div><div class="insc-stat-lbl">Confirmés</div></div>
+        <div style="color:#eee;font-size:16px">|</div>
+        <div class="insc-stat"><div class="insc-stat-val" style="color:#633806">${i.attente}</div><div class="insc-stat-lbl">Attente</div></div>
+        <div style="color:#eee;font-size:16px">|</div>
+        <div class="insc-stat"><div class="insc-stat-val" style="color:#aaa">${i.places}</div><div class="insc-stat-lbl">Places</div></div>
+      </div>
+    </div>`;
+  }).join("");
+
+  // Prestataires
+  document.getElementById("prestataires-list").innerHTML=d.prestataires.map(p=>`
+    <div class="prest-item">
+      <div class="prest-avatar">${ini(p.nom)}</div>
+      <div style="flex:1">
+        <div class="prest-name">${p.nom}</div>
+        <div class="prest-sub">${p.entreprise}</div>
+      </div>
+      <span class="prest-act">${p.activite}</span>
+    </div>`).join("");
+
+  // Alertes
+  document.getElementById("alertes-count").textContent=d.alertes.length+" point(s)";
+  document.getElementById("alertes-list").innerHTML=d.alertes.length?d.alertes.map(a=>`
+    <div class="alert-item${a.urgent?" urgent":""}">
+      <span class="alert-ico">${a.ico}</span>
+      <div style="flex:1">
+        <div class="alert-title">${a.titre}</div>
+        <div class="alert-sub">${a.sub}</div>
+      </div>
+      ${a.date?`<span class="alert-date">${a.date}</span>`:""}
+    </div>`).join(""):`<div style="text-align:center;padding:1.5rem;color:#bbb;font-size:13px">Aucun point d'attention</div>`;
+}
+
+render();
+</script>
+</body>
+</html>

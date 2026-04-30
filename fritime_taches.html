@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fri-Time Intyamon — Tâches</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#f5f5f3;color:#1a1a1a;font-size:14px}
+.container{max-width:980px;margin:0 auto;padding:1.5rem}
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem}
+h1{font-size:20px;font-weight:600}
+.subtitle{font-size:13px;color:#666;margin-top:2px}
+.btn{padding:7px 14px;border-radius:8px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:13px;font-family:inherit;transition:background .15s}
+.btn:hover{background:#f5f5f3}
+.btn-primary{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.btn-primary:hover{background:#333}
+.btn-sm{padding:4px 10px;font-size:12px}
+.btn-danger{color:#7a1f1f;border-color:#f4c0c0}
+.btn-danger:hover{background:#fcebeb}
+.metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:1.5rem}
+.metric{background:#fff;border-radius:10px;padding:12px;border:1px solid #eee}
+.metric-val{font-size:22px;font-weight:600}
+.metric-lbl{font-size:11px;color:#888;margin-top:2px}
+.toolbar{display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap;align-items:center}
+.search{flex:1;min-width:160px;padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit}
+.filter-btn{padding:4px 12px;border-radius:20px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:12px;color:#666}
+.filter-btn.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.views{display:flex;gap:6px;margin-left:auto}
+.view-btn{padding:5px 10px;border-radius:8px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:12px;color:#666}
+.view-btn.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+/* Table view */
+.table-wrap{background:#fff;border:1px solid #eee;border-radius:12px;overflow:hidden}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:#888;border-bottom:1px solid #eee;background:#fafaf8;text-transform:uppercase;letter-spacing:.05em}
+td{padding:10px 14px;border-bottom:1px solid #eee;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafaf8;cursor:pointer}
+/* Kanban view */
+.kanban{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.kanban-col{background:#fff;border:1px solid #eee;border-radius:12px;overflow:hidden}
+.kanban-header{padding:10px 12px;font-size:12px;font-weight:600;border-bottom:1px solid #eee;display:flex;align-items:center;justify-content:space-between}
+.kanban-body{padding:8px;min-height:120px}
+.kanban-card{background:#fafaf8;border:1px solid #eee;border-radius:8px;padding:10px;margin-bottom:6px;cursor:pointer;font-size:12px}
+.kanban-card:hover{border-color:#ccc}
+.kanban-card-title{font-weight:500;margin-bottom:4px;font-size:13px}
+/* Badges */
+.badge{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500;white-space:nowrap}
+.badge-ouverte{background:#f1efea;color:#44441}
+.badge-assignee{background:#e6f1fb;color:#0c447c}
+.badge-encours{background:#faeeda;color:#633806}
+.badge-terminee{background:#eaf3de;color:#275a0a}
+.badge-archivee{background:#eee;color:#666}
+.prio-haute{color:#791f1f;font-size:11px;font-weight:600}
+.prio-moyenne{color:#633806;font-size:11px;font-weight:600}
+.prio-basse{color:#275a0a;font-size:11px;font-weight:600}
+.avatar-sm{width:24px;height:24px;border-radius:50%;background:#e6f1fb;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:#1a5fa0;flex-shrink:0}
+/* Modal */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;align-items:flex-start;justify-content:center;padding:2rem 1rem;overflow-y:auto}
+.modal{background:#fff;border-radius:12px;border:1px solid #eee;padding:1.5rem;width:min(560px,100%)}
+.modal-title{font-size:16px;font-weight:600;margin-bottom:1.25rem;padding-bottom:1rem;border-bottom:1px solid #eee}
+.sec{font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.06em;margin:1rem 0 .75rem;padding-top:1rem;border-top:1px solid #eee}
+.fg{margin-bottom:.75rem}
+.fl{font-size:12px;color:#666;margin-bottom:4px;display:block}
+.fi{width:100%;padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit}
+.fi:focus{outline:none;border-color:#aaa}
+textarea.fi{resize:vertical;min-height:60px}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mf{display:flex;justify-content:space-between;align-items:center;margin-top:1.25rem;padding-top:1rem;border-top:1px solid #eee}
+.dl{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px}
+.dv{font-size:13px;margin-bottom:10px}
+.status-select{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;margin-bottom:12px}
+.status-btn{padding:4px 10px;border-radius:20px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:12px;color:#666}
+.status-btn.sel-ouverte{background:#f1efea;color:#444;border-color:#d3d1c7}
+.status-btn.sel-assignee{background:#e6f1fb;color:#0c447c;border-color:#b5d4f4}
+.status-btn.sel-encours{background:#faeeda;color:#633806;border-color:#fac775}
+.status-btn.sel-terminee{background:#eaf3de;color:#275a0a;border-color:#c0dd97}
+.status-btn.sel-archivee{background:#eee;color:#666;border-color:#ccc}
+.act-badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:20px;background:#f1efea;color:#444;margin-top:2px}
+.empty{text-align:center;padding:2rem;color:#888;font-size:13px}
+.overdue{color:#791f1f}
+</style>
+  <script src="fritime_data.js"></script>
+  <script src="fritime_sync.js"></script>
+  <script src="fritime_auth.js"></script>
+</head>
+<body class="ft-body-offset">
+<!-- SHARED NAV - Fri-Time Intyamon -->
+<style>
+.ft-topbar{background:#1a1a1a;color:#fff;padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:52px;position:fixed;top:0;left:0;right:0;z-index:1000}
+.ft-logo{font-size:15px;font-weight:700;letter-spacing:.05em;color:#fff;text-decoration:none;white-space:nowrap}
+.ft-topbar-right{display:flex;align-items:center;gap:12px}
+.ft-user-name{font-size:12px;opacity:.6;display:none}
+.ft-avatar{width:30px;height:30px;border-radius:50%;background:#333;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;cursor:pointer;position:relative}
+.ft-avatar-menu{display:none;position:absolute;top:36px;right:0;background:#fff;border:1px solid #eee;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.1);min-width:180px;z-index:100;overflow:hidden}
+.ft-avatar-menu.open{display:block}
+.ft-avatar-menu-item{padding:10px 14px;font-size:13px;color:#1a1a1a;cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .1s}
+.ft-avatar-menu-item:hover{background:#f5f5f3}
+.ft-avatar-menu-item.red{color:#791f1f}
+.ft-avatar-divider{height:1px;background:#eee;margin:4px 0}
+.ft-sidebar{position:fixed;top:52px;left:0;width:210px;height:calc(100vh - 52px);background:#fff;border-right:1px solid #eee;overflow-y:auto;z-index:999;transform:translateX(-100%);transition:transform .2s}
+.ft-sidebar.open{transform:translateX(0)}
+.ft-sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:998;top:52px}
+.ft-sidebar-overlay.open{display:block}
+.ft-nav-section{padding:6px 14px;font-size:10px;font-weight:700;color:#bbb;text-transform:uppercase;letter-spacing:.08em;margin-top:8px}
+.ft-nav-item{display:flex;align-items:center;gap:9px;padding:9px 14px;font-size:13px;color:#555;cursor:pointer;transition:all .1s;text-decoration:none;border-left:3px solid transparent;white-space:nowrap}
+.ft-nav-item:hover{background:#fafaf8;color:#1a1a1a}
+.ft-nav-item.active{background:#f5f5f3;color:#1a1a1a;font-weight:600;border-left-color:#1a1a1a}
+.ft-nav-ico{font-size:15px;flex-shrink:0;opacity:.7}
+.ft-nav-badge{margin-left:auto;font-size:10px;background:#fcebeb;color:#791f1f;padding:1px 6px;border-radius:20px;font-weight:700}
+.ft-nav-badge.green{background:#eaf3de;color:#275a0a}
+.ft-nav-badge.blue{background:#e6f1fb;color:#0c447c}
+.ft-menu-btn{background:none;border:none;color:#fff;cursor:pointer;font-size:20px;padding:4px 8px;display:flex;align-items:center;justify-content:center;opacity:.8}
+.ft-menu-btn:hover{opacity:1}
+.ft-body-offset{padding-top:52px}
+.ft-layout{display:flex;min-height:calc(100vh - 52px)}
+.ft-sidebar-desktop{width:210px;flex-shrink:0;background:#fff;border-right:1px solid #eee;position:sticky;top:52px;height:calc(100vh - 52px);overflow-y:auto;flex-shrink:0}
+.ft-main{flex:1;overflow-x:hidden;min-width:0}
+@media(max-width:768px){
+  .ft-sidebar-desktop{display:none!important}
+  .ft-user-name{display:none}
+  .ft-main{padding:1rem!important}
+}
+@media(min-width:769px){
+  .ft-sidebar{display:none!important}
+  .ft-sidebar-overlay{display:none!important}
+  .ft-menu-btn{display:none!important}
+  .ft-sidebar-desktop{display:block!important}
+}
+</style>
+
+<div class="ft-topbar">
+  <div style="display:flex;align-items:center;gap:10px">
+    <button class="ft-menu-btn" onclick="toggleSidebar()" id="ft-menu-btn">☰</button>
+    <a href="fritime_dashboard.html" class="ft-logo">Fri-Time Intyamon</a>
+  </div>
+  <div class="ft-topbar-right">
+    <span class="ft-user-name" id="ft-user-name">—</span>
+    <div class="ft-avatar" id="ft-avatar" onclick="toggleAvatarMenu()">
+      <span id="ft-avatar-initials">?</span>
+      <div class="ft-avatar-menu" id="ft-avatar-menu">
+        <div class="ft-avatar-menu-item" style="background:#f5f5f3;cursor:default">
+          <div>
+            <div style="font-weight:600;font-size:13px" id="ft-menu-name">—</div>
+            <div style="font-size:11px;color:#888" id="ft-menu-role">—</div>
+          </div>
+        </div>
+        <div class="ft-avatar-divider"></div>
+        <a href="fritime_dashboard.html" class="ft-avatar-menu-item">🏠 Tableau de bord</a>
+        <div class="ft-avatar-menu-item" onclick="doLogout()">🔒 Se déconnecter</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="ft-sidebar-overlay" id="ft-sidebar-overlay" onclick="toggleSidebar()"></div>
+
+<div class="ft-sidebar" id="ft-sidebar">
+  <div class="ft-nav-section">Principal</div>
+  <a class="ft-nav-item" href="fritime_dashboard.html" data-page="dashboard"><span class="ft-nav-ico">🏠</span> Tableau de bord</a>
+  <a class="ft-nav-item" href="fritime_activites.html" data-page="activites"><span class="ft-nav-ico">🎯</span> Activités</a>
+  <a class="ft-nav-item" href="fritime_inscriptions.html" data-page="inscriptions"><span class="ft-nav-ico">📋</span> Inscriptions</a>
+  <a class="ft-nav-item" href="fritime_enfants.html" data-page="enfants"><span class="ft-nav-ico">👦</span> Enfants</a>
+
+  <div class="ft-nav-section">Organisation</div>
+  <a class="ft-nav-item" href="fritime_taches.html" data-page="taches"><span class="ft-nav-ico">✅</span> Tâches</a>
+  <a class="ft-nav-item" href="fritime_comite.html" data-page="comite"><span class="ft-nav-ico">👥</span> Comité</a>
+  <a class="ft-nav-item" href="fritime_campagnes.html" data-page="campagnes"><span class="ft-nav-ico">📧</span> Campagnes</a>
+  <a class="ft-nav-item" href="fritime_sondages.html" data-page="sondages"><span class="ft-nav-ico">⭐</span> Sondages</a>
+
+  <div class="ft-nav-section">Finances & Partenaires</div>
+  <a class="ft-nav-item" href="fritime_budget.html" data-page="budget"><span class="ft-nav-ico">💰</span> Budget</a>
+  <a class="ft-nav-item" href="fritime_prestataires.html" data-page="prestataires"><span class="ft-nav-ico">🤝</span> Prestataires</a>
+
+  <div class="ft-nav-section">Contenu</div>
+  <a class="ft-nav-item" href="fritime_idees.html" data-page="idees"><span class="ft-nav-ico">💡</span> Banque d'idées</a>
+  <a class="ft-nav-item" href="fritime_documents.html" data-page="documents"><span class="ft-nav-ico">📁</span> Documents</a>
+
+  <div class="ft-nav-section">Sécurité</div>
+  <a class="ft-nav-item" href="fritime_incidents.html" data-page="incidents"><span class="ft-nav-ico">⚠️</span> Incidents</a>
+  <a class="ft-nav-item" href="fritime_urgences.html" data-page="urgences"><span class="ft-nav-ico">🚨</span> Urgences</a>
+  <a class="ft-nav-item" href="fritime_modifications.html" data-page="modifications"><span class="ft-nav-ico">🔄</span> Demandes</a>
+</div>
+
+<script>
+(function(){
+  // Auth check
+  const user = sessionStorage.getItem("ft-user");
+  const publicPages = ["fritime_login.html","fritime_inscription_publique.html","fritime_sondage_parent.html"];
+  const currentPage = window.location.pathname.split("/").pop();
+  if(!user && !publicPages.includes(currentPage)){
+    window.location.href = "fritime_login.html";
+    return;
+  }
+  if(user){
+    const u = JSON.parse(user);
+    const ini = ((u.nom||"").split(" ").map(p=>p[0]||"").join("")).substring(0,2).toUpperCase();
+    document.getElementById("ft-avatar-initials").textContent = ini||"?";
+    document.getElementById("ft-user-name").textContent = u.nom||"";
+    document.getElementById("ft-menu-name").textContent = u.nom||"";
+    document.getElementById("ft-menu-role").textContent = u.role||"";
+    document.getElementById("ft-user-name").style.display = "block";
+  }
+
+  // Active nav item
+  document.querySelectorAll(".ft-nav-item[data-page]").forEach(function(el){
+    if(currentPage.includes(el.dataset.page)) el.classList.add("active");
+  });
+})();
+
+function toggleSidebar(){
+  document.getElementById("ft-sidebar").classList.toggle("open");
+  document.getElementById("ft-sidebar-overlay").classList.toggle("open");
+}
+function toggleAvatarMenu(){
+  document.getElementById("ft-avatar-menu").classList.toggle("open");
+}
+document.addEventListener("click", function(e){
+  const menu = document.getElementById("ft-avatar-menu");
+  const avatar = document.getElementById("ft-avatar");
+  if(menu && !avatar.contains(e.target)) menu.classList.remove("open");
+});
+function doLogout(){
+  sessionStorage.removeItem("ft-user");
+  window.location.href = "fritime_login.html";
+}
+</script>
+
+<div class="container">
+<div class="header">
+  <div><h1>Tâches</h1><div class="subtitle">Gestion et attribution des tâches — Fri-Time</div></div>
+  <button class="btn btn-primary" onclick="openCreate()">+ Nouvelle tâche</button>
+</div>
+
+<div class="metrics" id="metrics"></div>
+
+<div class="toolbar">
+  <input class="search" id="search" placeholder="Rechercher une tâche..." oninput="render()" />
+  <button class="filter-btn active" onclick="setFilter('toutes',this)">Toutes</button>
+  <button class="filter-btn" onclick="setFilter('ouverte',this)">Ouvertes</button>
+  <button class="filter-btn" onclick="setFilter('assignee',this)">Assignées</button>
+  <button class="filter-btn" onclick="setFilter('encours',this)">En cours</button>
+  <button class="filter-btn" onclick="setFilter('terminee',this)">Terminées</button>
+  <div class="views">
+    <button class="view-btn active" id="vt" onclick="setView('table',this)">Liste</button>
+    <button class="view-btn" id="vk" onclick="setView('kanban',this)">Kanban</button>
+  </div>
+</div>
+
+<div id="view-table">
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Tâche</th><th>Assignée à</th><th>Activité liée</th><th>Priorité</th><th>Échéance</th><th>Statut</th></tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<div id="view-kanban" style="display:none">
+  <div class="kanban" id="kanban"></div>
+</div>
+</div>
+
+<!-- Modal création -->
+<div id="mCreate" class="overlay" onclick="if(event.target.id==='mCreate')closeCreate()">
+<div class="modal" onclick="event.stopPropagation()">
+  <div class="modal-title">Nouvelle tâche</div>
+  <div class="fg"><label class="fl">Titre *</label><input class="fi" id="ct" placeholder="Ex: Contacter le prestataire" /></div>
+  <div class="fg"><label class="fl">Description</label><textarea class="fi" id="cd" placeholder="Détails de la tâche..."></textarea></div>
+  <div class="fr">
+    <div class="fg"><label class="fl">Assignée à</label>
+      <select class="fi" id="ca">
+        <option value="">— Non assignée —</option>
+        <option>Marie Dupont</option><option>Jean Martin</option><option>Sophie Remy</option>
+        <option>Lara Blanc</option><option>Paul Morel</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">Priorité</label>
+      <select class="fi" id="cp">
+        <option value="moyenne">Moyenne</option>
+        <option value="haute">Haute</option>
+        <option value="basse">Basse</option>
+      </select>
+    </div>
+  </div>
+  <div class="fr">
+    <div class="fg"><label class="fl">Activité liée (optionnel)</label>
+      <select class="fi" id="cal">
+        <option value="">— Aucune —</option>
+        <option value="1">Atelier poterie</option>
+        <option value="2">Sortie nature Lac Noir</option>
+        <option value="3">Cours de cirque</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">Date limite (optionnel)</label><input class="fi" type="date" id="cdl" /></div>
+  </div>
+  <div class="fg"><label class="fl">Notes</label><textarea class="fi" id="cno" rows="2" placeholder="Informations complémentaires..."></textarea></div>
+  <div class="mf"><button class="btn" onclick="closeCreate()">Annuler</button><button class="btn btn-primary" onclick="saveCreate()">Créer la tâche</button></div>
+</div>
+</div>
+
+<!-- Modal détail / édition -->
+<div id="mDetail" class="overlay" onclick="if(event.target.id==='mDetail')closeDetail()">
+<div class="modal" onclick="event.stopPropagation()"><div id="det"></div></div>
+</div>
+
+<!-- Modal édition -->
+<div id="mEdit" class="overlay" onclick="if(event.target.id==='mEdit')closeEdit()">
+<div class="modal" onclick="event.stopPropagation()">
+  <div class="modal-title">Modifier la tâche</div>
+  <div class="fg"><label class="fl">Titre *</label><input class="fi" id="et" /></div>
+  <div class="fg"><label class="fl">Description</label><textarea class="fi" id="ed"></textarea></div>
+  <div class="fr">
+    <div class="fg"><label class="fl">Assignée à</label>
+      <select class="fi" id="ea">
+        <option value="">— Non assignée —</option>
+        <option>Marie Dupont</option><option>Jean Martin</option><option>Sophie Remy</option>
+        <option>Lara Blanc</option><option>Paul Morel</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">Priorité</label>
+      <select class="fi" id="ep">
+        <option value="moyenne">Moyenne</option>
+        <option value="haute">Haute</option>
+        <option value="basse">Basse</option>
+      </select>
+    </div>
+  </div>
+  <div class="fr">
+    <div class="fg"><label class="fl">Activité liée</label>
+      <select class="fi" id="eal">
+        <option value="">— Aucune —</option>
+        <option value="1">Atelier poterie</option>
+        <option value="2">Sortie nature Lac Noir</option>
+        <option value="3">Cours de cirque</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">Date limite</label><input class="fi" type="date" id="edl" /></div>
+  </div>
+  <div class="fg"><label class="fl">Notes</label><textarea class="fi" id="eno" rows="2"></textarea></div>
+  <div class="mf">
+    <button class="btn btn-danger btn-sm" onclick="deleteTask()">Supprimer</button>
+    <div style="display:flex;gap:8px"><button class="btn" onclick="closeEdit()">Annuler</button><button class="btn btn-primary" onclick="saveEdit()">Enregistrer</button></div>
+  </div>
+</div>
+</div>
+
+<script>
+const STATUTS=['ouverte','assignee','encours','terminee','archivee'];
+const STATUT_LABELS={ouverte:'Ouverte',assignee:'Assignée',encours:'En cours',terminee:'Terminée',archivee:'Archivée'};
+const STATUT_CLS={ouverte:'badge-ouverte',assignee:'badge-assignee',encours:'badge-encours',terminee:'badge-terminee',archivee:'badge-archivee'};
+const ACTES={1:'Atelier poterie',2:'Sortie Lac Noir',3:'Cours de cirque'};
+
+let taches=[
+  {id:1,titre:'Contacter le prestataire poterie',desc:'Confirmer les détails de la session et le nombre de participants.',assignee:'Marie Dupont',priorite:'haute',activite:1,dateLimite:'2026-05-05',notes:'',statut:'terminee'},
+  {id:2,titre:'Réserver la salle communale',desc:'',assignee:'Jean Martin',priorite:'moyenne',activite:null,dateLimite:'2026-05-15',notes:'',statut:'encours'},
+  {id:3,titre:'Préparer la liste des participants',desc:'Générer la liste depuis le module enfants après sélection.',assignee:'Sophie Remy',priorite:'haute',activite:2,dateLimite:'2026-06-01',notes:'',statut:'assignee'},
+  {id:4,titre:'Commander les tabliers',desc:'Commande pour 12 enfants + 2 encadrants.',assignee:'',priorite:'basse',activite:1,dateLimite:'',notes:'',statut:'ouverte'},
+  {id:5,titre:'Envoyer les confirmations aux familles',desc:'',assignee:'Lara Blanc',priorite:'moyenne',activite:2,dateLimite:'2026-06-05',notes:'',statut:'ouverte'},
+  {id:6,titre:'Rapport de fin d\'année',desc:'Synthèse des activités réalisées sur l\'année 2025-2026.',assignee:'Paul Morel',priorite:'basse',activite:null,dateLimite:'2026-06-30',notes:'',statut:'assignee'},
+];
+let nid=7,selId=null,filtre='toutes',vue='table';
+
+function ini(nom){if(!nom)return'?';const p=nom.split(' ');return((p[0]||'')[0]+(p[1]||'')[0]).toUpperCase();}
+function fmtDate(d){if(!d)return'';const[y,m,j]=d.split('-');return`${j}.${m}.${y}`;}
+function isOverdue(d){if(!d)return false;return new Date(d)<new Date();}
+function prioLabel(p){return p==='haute'?'Haute':p==='basse'?'Basse':'Moyenne';}
+function prioCls(p){return p==='haute'?'prio-haute':p==='basse'?'prio-basse':'prio-moyenne';}
+
+function renderMetrics(){
+  const counts={};STATUTS.forEach(s=>counts[s]=taches.filter(t=>t.statut===s).length);
+  document.getElementById('metrics').innerHTML=STATUTS.map(s=>`<div class="metric"><div class="metric-val">${counts[s]}</div><div class="metric-lbl">${STATUT_LABELS[s]}</div></div>`).join('');
+}
+
+function getFiltered(){
+  const q=(document.getElementById('search')||{value:''}).value.toLowerCase();
+  return taches.filter(t=>{
+    const mf=filtre==='toutes'||t.statut===filtre;
+    const ms=!q||t.titre.toLowerCase().includes(q)||(t.assignee||'').toLowerCase().includes(q);
+    return mf&&ms;
+  });
+}
+
+function renderTable(){
+  const rows=getFiltered(),tb=document.getElementById('tbody');
+  if(!rows.length){tb.innerHTML=`<tr><td colspan="6" style="text-align:center;padding:2rem;color:#888">Aucune tâche trouvée</td></tr>`;return;}
+  tb.innerHTML=rows.map(t=>`<tr onclick="openDetail(${t.id})">
+    <td><div style="font-weight:500">${t.titre}</div>${t.desc?`<div style="font-size:12px;color:#888;margin-top:2px">${t.desc.substring(0,60)}${t.desc.length>60?'…':''}</div>`:''}</td>
+    <td>${t.assignee?`<div style="display:flex;align-items:center;gap:6px"><div class="avatar-sm">${ini(t.assignee)}</div><span style="font-size:12px">${t.assignee}</span></div>`:'<span style="color:#bbb;font-size:12px">—</span>'}</td>
+    <td>${t.activite?`<span class="act-badge">${ACTES[t.activite]}</span>`:'<span style="color:#bbb;font-size:12px">—</span>'}</td>
+    <td><span class="${prioCls(t.priorite)}">${prioLabel(t.priorite)}</span></td>
+    <td class="${isOverdue(t.dateLimite)&&t.statut!=='terminee'&&t.statut!=='archivee'?'overdue':''}">${t.dateLimite?fmtDate(t.dateLimite):'<span style="color:#bbb">—</span>'}</td>
+    <td><span class="badge ${STATUT_CLS[t.statut]}">${STATUT_LABELS[t.statut]}</span></td>
+  </tr>`).join('');
+}
+
+function renderKanban(){
+  const kb=document.getElementById('kanban');
+  const colColors={ouverte:'#f1efea',assignee:'#e6f1fb',encours:'#faeeda',terminee:'#eaf3de',archivee:'#eee'};
+  kb.innerHTML=STATUTS.map(s=>{
+    const cards=taches.filter(t=>t.statut===s);
+    return`<div class="kanban-col">
+      <div class="kanban-header" style="background:${colColors[s]}">
+        <span>${STATUT_LABELS[s]}</span><span style="font-size:12px;color:#888">${cards.length}</span>
+      </div>
+      <div class="kanban-body">
+        ${cards.length?cards.map(t=>`<div class="kanban-card" onclick="openDetail(${t.id})">
+          <div class="kanban-card-title">${t.titre}</div>
+          ${t.assignee?`<div style="display:flex;align-items:center;gap:4px;margin-top:4px"><div class="avatar-sm">${ini(t.assignee)}</div><span style="font-size:11px;color:#888">${t.assignee.split(' ')[0]}</span></div>`:''}
+          ${t.dateLimite?`<div style="font-size:11px;margin-top:4px" class="${isOverdue(t.dateLimite)&&s!=='terminee'&&s!=='archivee'?'overdue':''}">📅 ${fmtDate(t.dateLimite)}</div>`:''}
+          ${t.activite?`<div style="font-size:11px;color:#888;margin-top:3px">🔗 ${ACTES[t.activite]}</div>`:''}
+        </div>`).join(''):'<div style="font-size:12px;color:#bbb;padding:8px">Aucune</div>'}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function render(){renderMetrics();if(vue==='table'){renderTable();}else{renderKanban();}}
+function setFilter(f,btn){filtre=f;document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');render();}
+function setView(v,btn){vue=v;document.querySelectorAll('.view-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');document.getElementById('view-table').style.display=v==='table'?'block':'none';document.getElementById('view-kanban').style.display=v==='kanban'?'block':'none';render();}
+
+function openCreate(){document.getElementById('mCreate').style.display='flex';}
+function closeCreate(){
+  document.getElementById('mCreate').style.display='none';
+  ['ct','cd','ca','cp','cal','cdl','cno'].forEach(id=>{const el=document.getElementById(id);if(el){if(el.tagName==='SELECT')el.selectedIndex=0;else el.value='';}});
+  document.getElementById('cp').value='moyenne';
+}
+function saveCreate(){
+  const t=document.getElementById('ct').value.trim();
+  if(!t){alert('Le titre est obligatoire');return;}
+  const statut=document.getElementById('ca').value?'assignee':'ouverte';
+  taches.push({id:nid++,titre:t,desc:document.getElementById('cd').value.trim(),assignee:document.getElementById('ca').value,priorite:document.getElementById('cp').value,activite:parseInt(document.getElementById('cal').value)||null,dateLimite:document.getElementById('cdl').value,notes:document.getElementById('cno').value.trim(),statut});
+  closeCreate();render();
+}
+
+function openDetail(id){selId=id;renderDet();document.getElementById('mDetail').style.display='flex';}
+function closeDetail(){document.getElementById('mDetail').style.display='none';}
+function renderDet(){
+  const t=taches.find(x=>x.id===selId);if(!t)return;
+  document.getElementById('det').innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem">
+      <div style="flex:1;margin-right:12px">
+        <div style="font-size:15px;font-weight:600;margin-bottom:4px">${t.titre}</div>
+        <span class="badge ${STATUT_CLS[t.statut]}">${STATUT_LABELS[t.statut]}</span>
+      </div>
+      <button class="btn btn-sm" onclick="closeDetail()">✕</button>
+    </div>
+    <div class="dl">Changer le statut</div>
+    <div class="status-select">
+      ${STATUTS.map(s=>`<button class="status-btn${t.statut===s?' sel-'+s:''}" onclick="changeStatut('${s}')">${STATUT_LABELS[s]}</button>`).join('')}
+    </div>
+    ${t.desc?`<div class="dl">Description</div><div style="font-size:13px;color:#555;line-height:1.6;margin-bottom:10px">${t.desc}</div>`:''}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;margin-bottom:8px">
+      <div><div class="dl">Assignée à</div><div class="dv">${t.assignee?`<div style="display:flex;align-items:center;gap:6px"><div class="avatar-sm">${ini(t.assignee)}</div>${t.assignee}</div>`:'—'}</div></div>
+      <div><div class="dl">Priorité</div><div class="dv"><span class="${prioCls(t.priorite)}">${prioLabel(t.priorite)}</span></div></div>
+      <div><div class="dl">Activité liée</div><div class="dv">${t.activite?`<span class="act-badge">${ACTES[t.activite]}</span>`:'—'}</div></div>
+      <div><div class="dl">Date limite</div><div class="dv ${isOverdue(t.dateLimite)&&t.statut!=='terminee'?'overdue':''}">${t.dateLimite?fmtDate(t.dateLimite):'—'}</div></div>
+    </div>
+    ${t.notes?`<div class="dl">Notes</div><div style="font-size:13px;background:#fafaf8;padding:8px 10px;border-radius:8px;margin-bottom:10px">${t.notes}</div>`:''}
+    <div class="mf">
+      <button class="btn btn-sm" onclick="openEdit(${t.id})">Modifier</button>
+      <button class="btn btn-sm btn-primary" onclick="closeDetail()">Fermer</button>
+    </div>`;
+}
+function changeStatut(s){taches=taches.map(t=>t.id===selId?{...t,statut:s}:t);renderDet();render();}
+
+function openEdit(id){
+  selId=id;
+  const t=taches.find(x=>x.id===id);if(!t)return;
+  document.getElementById('et').value=t.titre;
+  document.getElementById('ed').value=t.desc||'';
+  document.getElementById('ea').value=t.assignee||'';
+  document.getElementById('ep').value=t.priorite;
+  document.getElementById('eal').value=t.activite||'';
+  document.getElementById('edl').value=t.dateLimite||'';
+  document.getElementById('eno').value=t.notes||'';
+  closeDetail();
+  document.getElementById('mEdit').style.display='flex';
+}
+function closeEdit(){document.getElementById('mEdit').style.display='none';}
+function saveEdit(){
+  const titre=document.getElementById('et').value.trim();
+  if(!titre){alert('Le titre est obligatoire');return;}
+  const assignee=document.getElementById('ea').value;
+  taches=taches.map(t=>t.id===selId?{...t,
+    titre,desc:document.getElementById('ed').value.trim(),
+    assignee,priorite:document.getElementById('ep').value,
+    activite:parseInt(document.getElementById('eal').value)||null,
+    dateLimite:document.getElementById('edl').value,
+    notes:document.getElementById('eno').value.trim(),
+    statut:t.statut==='ouverte'&&assignee?'assignee':t.statut
+  }:t);
+  closeEdit();render();
+}
+function deleteTask(){
+  if(confirm('Supprimer cette tâche ?')){taches=taches.filter(t=>t.id!==selId);closeEdit();render();}
+}
+
+render();
+</script>
+</body>
+</html>

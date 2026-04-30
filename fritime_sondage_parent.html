@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Votre avis — Fri-Time</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#f5f5f3;color:#1a1a1a;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1.5rem}
+.card{background:#fff;border-radius:16px;padding:2rem;width:min(420px,100%);box-shadow:0 4px 24px rgba(0,0,0,.08);text-align:center}
+.logo{font-size:13px;font-weight:700;letter-spacing:.1em;color:#888;text-transform:uppercase;margin-bottom:1.5rem}
+.activity{font-size:20px;font-weight:700;margin-bottom:6px;line-height:1.3}
+.question{font-size:15px;color:#444;margin-bottom:1.75rem;line-height:1.5}
+/* Smileys */
+.smileys{display:flex;justify-content:center;gap:10px;margin-bottom:2rem}
+.smiley-btn{width:58px;height:58px;border-radius:50%;border:2.5px solid #eee;background:#fff;font-size:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;position:relative}
+.smiley-btn:hover{transform:scale(1.12);border-color:#ddd}
+.smiley-btn.selected{border-color:#1a1a1a;background:#1a1a1a;transform:scale(1.15)}
+.smiley-btn.selected::after{content:"";position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);width:6px;height:6px;background:#1a1a1a;border-radius:50%}
+.smiley-label{font-size:10px;color:#bbb;margin-top:4px;display:block;text-align:center}
+.smileys-wrap{display:flex;justify-content:center;gap:10px}
+.smiley-item{display:flex;flex-direction:column;align-items:center}
+/* Comment */
+.comment-section{margin-bottom:1.5rem;text-align:left}
+.comment-label{font-size:13px;color:#888;margin-bottom:6px;display:block}
+.comment-input{width:100%;padding:10px 12px;border:1.5px solid #eee;border-radius:10px;font-size:14px;font-family:inherit;resize:none;color:#1a1a1a;transition:border-color .15s}
+.comment-input:focus{outline:none;border-color:#aaa}
+/* Submit */
+.submit-btn{width:100%;padding:14px;background:#1a1a1a;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;transition:background .15s}
+.submit-btn:hover{background:#333}
+.submit-btn:disabled{background:#ccc;cursor:not-allowed}
+/* States */
+.state{display:none}
+.state.active{display:block}
+/* Success */
+.success-ico{font-size:64px;margin-bottom:1rem}
+.success-title{font-size:20px;font-weight:700;margin-bottom:8px}
+.success-sub{font-size:14px;color:#666;line-height:1.6}
+/* Progress */
+.progress-bar{width:100%;height:3px;background:#eee;border-radius:20px;margin-bottom:2rem;overflow:hidden}
+.progress-fill{height:3px;background:#1a1a1a;border-radius:20px;transition:width .3s}
+/* Refaire */
+.refaire-group{display:flex;gap:10px;justify-content:center;margin-bottom:1.5rem}
+.refaire-btn{flex:1;padding:11px 6px;border-radius:10px;border:2px solid #eee;background:#fff;font-size:20px;cursor:pointer;font-family:inherit;font-weight:500;transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:4px}
+.refaire-btn span{font-size:12px;color:#888;font-weight:400}
+.refaire-btn:hover{border-color:#ccc;transform:scale(1.03)}
+.refaire-btn.selected-oui{border-color:#275a0a;background:#eaf3de}
+.refaire-btn.selected-oui span{color:#275a0a}
+.refaire-btn.selected-peutetre{border-color:#633806;background:#faeeda}
+.refaire-btn.selected-peutetre span{color:#633806}
+.refaire-btn.selected-non{border-color:#791f1f;background:#fcebeb}
+.refaire-btn.selected-non span{color:#791f1f}
+</style>
+</head>
+<body>
+<div class="card">
+
+  <!-- State: Sondage -->
+  <div class="state active" id="state-form">
+    <div class="logo">Fri-Time Intyamon</div>
+    <div class="activity" id="activity-name">Atelier poterie</div>
+    <div style="font-size:12px;color:#888;margin-bottom:1.25rem" id="activity-date">20 mai 2026</div>
+
+    <div class="progress-bar"><div class="progress-fill" id="progress" style="width:0%"></div></div>
+
+    <div class="question">Comment s'est passée la journée pour votre enfant ?</div>
+
+    <div class="smileys-wrap" id="smileys">
+      <div class="smiley-item">
+        <button class="smiley-btn" onclick="selectNote(1)" id="s1">😞</button>
+        <span class="smiley-label">Décevant</span>
+      </div>
+      <div class="smiley-item">
+        <button class="smiley-btn" onclick="selectNote(2)" id="s2">😕</button>
+        <span class="smiley-label">Moyen</span>
+      </div>
+      <div class="smiley-item">
+        <button class="smiley-btn" onclick="selectNote(3)" id="s3">😐</button>
+        <span class="smiley-label">Correct</span>
+      </div>
+      <div class="smiley-item">
+        <button class="smiley-btn" onclick="selectNote(4)" id="s4">🙂</button>
+        <span class="smiley-label">Bien</span>
+      </div>
+      <div class="smiley-item">
+        <button class="smiley-btn" onclick="selectNote(5)" id="s5">😄</button>
+        <span class="smiley-label">Excellent !</span>
+      </div>
+    </div>
+
+    <div id="refaire-section" style="display:none;margin-top:1.5rem;text-align:left">
+      <div style="font-size:14px;font-weight:500;margin-bottom:10px;text-align:center">Votre enfant aimerait-il refaire cette activité ?</div>
+      <div class="refaire-group">
+        <button class="refaire-btn" id="r-oui" onclick="selectRefaire('oui')">👍<span>Oui !</span></button>
+        <button class="refaire-btn" id="r-peutetre" onclick="selectRefaire('peutetre')">🤔<span>Peut-être</span></button>
+        <button class="refaire-btn" id="r-non" onclick="selectRefaire('non')">👎<span>Non</span></button>
+      </div>
+    </div>
+
+    <div class="comment-section" id="comment-section" style="display:none;margin-top:1rem;text-align:left">
+      <label class="comment-label">Un commentaire ? <span style="color:#bbb">(optionnel)</span></label>
+      <textarea class="comment-input" id="comment" rows="3" placeholder="Qu'est-ce que votre enfant a aimé ? Y a-t-il quelque chose à améliorer ?"></textarea>
+    </div>
+
+    <button class="submit-btn" id="submit-btn" onclick="submitForm()" disabled>Envoyer mon avis</button>
+    <div style="font-size:11px;color:#bbb;margin-top:12px">Votre réponse est confidentielle et visible uniquement par le comité Fri-Time.</div>
+  </div>
+
+  <!-- State: Succès -->
+  <div class="state" id="state-success">
+    <div class="success-ico">🎉</div>
+    <div class="success-title">Merci pour votre retour !</div>
+    <div class="success-sub">Votre avis aide le comité Fri-Time à améliorer les activités pour tous les enfants.<br><br>À bientôt !</div>
+    <div style="margin-top:1.5rem;font-size:12px;color:#bbb">Fri-Time — Intyamon</div>
+  </div>
+
+  <!-- State: Déjà répondu -->
+  <div class="state" id="state-already">
+    <div class="success-ico">✅</div>
+    <div class="success-title">Déjà répondu</div>
+    <div class="success-sub">Vous avez déjà répondu à ce sondage. Merci pour votre participation !</div>
+  </div>
+
+</div>
+
+<script>
+let selectedNote=null;
+
+// Simulate URL params
+const params=new URLSearchParams(window.location.search);
+const activite=params.get("activite")||"Atelier poterie";
+const date=params.get("date")||"20 mai 2026";
+const famille=params.get("famille")||"";
+
+document.getElementById("activity-name").textContent=activite;
+document.getElementById("activity-date").textContent=date;
+
+function selectNote(n){
+  selectedNote=n;
+  for(let i=1;i<=5;i++){
+    const btn=document.getElementById("s"+i);
+    btn.classList.toggle("selected",i===n);
+  }
+  // Show refaire section
+  document.getElementById("refaire-section").style.display="block";
+  // Update progress
+  document.getElementById("progress").style.width="40%";
+  // Enable submit
+  document.getElementById("submit-btn").disabled=false;
+  document.getElementById("submit-btn").textContent="Envoyer mon avis →";
+}
+
+let selectedRefaire=null;
+
+function selectRefaire(val){
+  selectedRefaire=val;
+  ["oui","peutetre","non"].forEach(v=>{
+    const btn=document.getElementById("r-"+v);
+    btn.className="refaire-btn"+(v===val?" selected-"+v:"");
+    if(v===val){const spans=btn.querySelectorAll("span");spans.forEach(s=>s.style.color="");}
+  });
+  document.getElementById("comment-section").style.display="block";
+  document.getElementById("progress").style.width="75%";
+}
+
+document.getElementById("comment").addEventListener("input",function(){
+  if(selectedNote){
+    document.getElementById("progress").style.width=this.value?"95%":"75%";
+  }
+});
+
+function submitForm(){
+  if(!selectedNote)return;
+  // Simulate sending
+  document.getElementById("progress").style.width="100%";
+  document.getElementById("submit-btn").textContent="Envoi en cours...";
+  document.getElementById("submit-btn").disabled=true;
+
+  setTimeout(()=>{
+    document.getElementById("state-form").classList.remove("active");
+    document.getElementById("state-success").classList.add("active");
+  },800);
+}
+</script>
+</body>
+</html>
