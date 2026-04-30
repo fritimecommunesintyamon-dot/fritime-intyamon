@@ -315,7 +315,7 @@ function doLogout(){
     <div class="fg"><label class="fl">Assignée à</label>
       <select class="fi" id="ca">
         <option value="">— Non assignée —</option>
-        <option>Marie Dupont</option><option>Jean Martin</option><option>Sophie Remy</option>
+        <!-- membres chargés dynamiquement -->
         <option>Lara Blanc</option><option>Paul Morel</option>
       </select>
     </div>
@@ -331,8 +331,7 @@ function doLogout(){
     <div class="fg"><label class="fl">Activité liée (optionnel)</label>
       <select class="fi" id="cal">
         <option value="">— Aucune —</option>
-        <option value="1">Atelier poterie</option>
-        <option value="2">Sortie nature Lac Noir</option>
+<!-- activités chargées dynamiquement -->
         <option value="3">Cours de cirque</option>
       </select>
     </div>
@@ -358,7 +357,7 @@ function doLogout(){
     <div class="fg"><label class="fl">Assignée à</label>
       <select class="fi" id="ea">
         <option value="">— Non assignée —</option>
-        <option>Marie Dupont</option><option>Jean Martin</option><option>Sophie Remy</option>
+        <!-- membres chargés dynamiquement -->
         <option>Lara Blanc</option><option>Paul Morel</option>
       </select>
     </div>
@@ -374,8 +373,7 @@ function doLogout(){
     <div class="fg"><label class="fl">Activité liée</label>
       <select class="fi" id="eal">
         <option value="">— Aucune —</option>
-        <option value="1">Atelier poterie</option>
-        <option value="2">Sortie nature Lac Noir</option>
+<!-- activités chargées dynamiquement -->
         <option value="3">Cours de cirque</option>
       </select>
     </div>
@@ -393,7 +391,7 @@ function doLogout(){
 const STATUTS=['ouverte','assignee','encours','terminee','archivee'];
 const STATUT_LABELS={ouverte:'Ouverte',assignee:'Assignée',encours:'En cours',terminee:'Terminée',archivee:'Archivée'};
 const STATUT_CLS={ouverte:'badge-ouverte',assignee:'badge-assignee',encours:'badge-encours',terminee:'badge-terminee',archivee:'badge-archivee'};
-const ACTES={1:'Atelier poterie',2:'Sortie Lac Noir',3:'Cours de cirque'};
+var ACTES={};  // chargé dynamiquement
 
 let taches=[];
 let nid=7,selId=null,filtre='toutes',vue='table';
@@ -453,10 +451,12 @@ function renderKanban(){
 }
 
 function render(){renderMetrics();if(vue==='table'){renderTable();}else{renderKanban();}}
-function setFilter(f,btn){filtre=f;document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');render();}
+function setFilter(f,btn){filtre=f;document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');loadMembresEtActivites();
+render();}
 function setView(v,btn){vue=v;document.querySelectorAll('.view-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');document.getElementById('view-table').style.display=v==='table'?'block':'none';document.getElementById('view-kanban').style.display=v==='kanban'?'block':'none';render();}
 
-function openCreate(){document.getElementById('mCreate').style.display='flex';}
+function openCreate(){loadMembresEtActivites();
+  document.getElementById('mCreate').style.display='flex';}
 function closeCreate(){
   document.getElementById('mCreate').style.display='none';
   ['ct','cd','ca','cp','cal','cdl','cno'].forEach(id=>{const el=document.getElementById(id);if(el){if(el.tagName==='SELECT')el.selectedIndex=0;else el.value='';}});
@@ -512,6 +512,7 @@ function openEdit(id){
   document.getElementById('edl').value=t.dateLimite||'';
   document.getElementById('eno').value=t.notes||'';
   closeDetail();
+  loadMembresEtActivites();
   document.getElementById('mEdit').style.display='flex';
 }
 function closeEdit(){document.getElementById('mEdit').style.display='none';}
@@ -542,9 +543,10 @@ render();
 </div>
 <script>
 (function(){
-var cp=window.location.pathname.split("/").pop();
-document.querySelectorAll("
-});
+  var p=window.location.pathname.split("/").pop();
+  document.querySelectorAll("#ft-sb a").forEach(function(a){
+    if(a.getAttribute("href")===p){a.className="on";}
+  });
 })();
 </script>
 </div>
@@ -556,6 +558,45 @@ document.querySelectorAll("
     if(a.getAttribute("href")===p){a.className="on";}
   });
 })();
+
+function loadMembresEtActivites(){
+  var ftData = localStorage.getItem("ft_data");
+  var membres = [];
+  var activites = [];
+  if(ftData){
+    try{
+      var d = JSON.parse(ftData);
+      membres = d.membres || [];
+      activites = d.activites || [];
+    } catch(e){}
+  }
+  // Fallback
+  if(!membres.length) membres = [{prenom:"Karine", nom:"Rebelo"}];
+
+  // Fill all assignee selects
+  var membreOpts = '<option value="">— Non assignée —</option>' +
+    membres.map(function(m){ return '<option value="'+m.prenom+' '+m.nom+'">'+m.prenom+' '+m.nom+'</option>'; }).join("");
+
+  document.querySelectorAll('#ca, #ea').forEach(function(sel){
+    var current = sel.value;
+    sel.innerHTML = membreOpts;
+    if(current) sel.value = current;
+  });
+
+  // Fill all activite selects
+  var actOpts = '<option value="">— Aucune —</option>' +
+    activites.map(function(a){ return '<option value="'+a.id+'">'+a.nom+'</option>'; }).join("");
+
+  document.querySelectorAll('#cal, #eal').forEach(function(sel){
+    var current = sel.value;
+    sel.innerHTML = actOpts;
+    if(current) sel.value = current;
+  });
+
+  // Update ACTES lookup
+  activites.forEach(function(a){ ACTES[a.id] = a.nom; });
+}
+
 </script>
 </body>
 </html>
