@@ -434,15 +434,11 @@ function confirmBan(){
 }
 function debannir(id){enfants=enfants.map(e=>e.id===id?{...e,statut:'actif',banMotif:''}:e);renderDet();render();}
 function deleteEnfant(id){
-  const e=enfants.find(x=>x.id===id);
+  var e=enfants.find(function(x){return x.id===id;});
   if(!e)return;
-  const hasInsc=inscriptions.filter(i=>i.enfantId===id).length;
-  let msg=`Supprimer définitivement ${e.prenom} ${e.nom} ?`;
-  if(hasInsc>0) msg+=`\n\nAttention : cet enfant est inscrit à ${hasInsc} activité(s). Ses inscriptions seront aussi supprimées.`;
-  msg+='\n\nCette action est irréversible.';
+  var msg='Supprimer '+e.prenom+' '+e.nom+' ?\n\nCette action supprimera aussi ses inscriptions aux activités.\n\nCette action est irréversible.';
   if(confirm(msg)){
-    enfants=enfants.filter(x=>x.id!==id);
-    inscriptions=inscriptions.filter(i=>i.enfantId!==id);
+    enfants=enfants.filter(function(x){return x.id!==id;});
     closeDetail();
     render();
   }
