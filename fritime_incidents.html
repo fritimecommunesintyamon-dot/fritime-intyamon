@@ -414,11 +414,7 @@ function doLogout(){
 const STATUT_LABELS={ouvert:"Ouvert",traitement:"En traitement",cloture:"Clôturé"};
 const GRAV_LABELS={mineur:"Mineur",modere:"Modéré",serieux:"Sérieux",critique:"Critique"};
 
-let rapports=[
-  {id:1,date:"2026-05-20",heure:"10:30",activite:"Atelier poterie",lieu:"Atelier communal",type:"Accident / blessure",gravite:"mineur",enfants:"Luca Bernard",adultes:"Marie Dupont",temoins:"Sophie Remy, 3 enfants présents",rapporteur:"Marie Dupont",desc:"Luca s'est coupé légèrement le doigt avec un outil de modelage. Coupure superficielle, saignement arrêté rapidement.",actions:"Nettoyage de la plaie, pansement appliqué. Enfant rassuré et a pu continuer l'atelier.",urgence:false,parents:true,comite:false,statut:"cloture",notes:"Aucune suite nécessaire."},
-  {id:2,date:"2026-04-15",heure:"14:15",activite:"Sortie nature Lac Noir",lieu:"Sentier balisé, km 3",type:"Malaise / problème médical",gravite:"modere",enfants:"Emma Favre",adultes:"Jean Martin, Guide Pro Rando",temoins:"Paul Morel, groupe complet",rapporteur:"Jean Martin",desc:"Emma a eu une légère réaction allergique après contact avec une plante. Rougeurs sur les bras, léger gonflement.",actions:"Antihistaminique administré (trousse de secours). Parents appelés. Enfant surveillée pendant 30 min.",urgence:false,parents:true,comite:true,statut:"cloture",notes:"Famille informée de prévoir un EpiPen lors des prochaines sorties."},
-  {id:3,date:"2026-05-28",heure:"09:45",activite:"Cours de cirque",lieu:"Salle communale",type:"Conflit entre enfants",gravite:"mineur",enfants:"Noah Morel, Tom Remy",adultes:"Sophie Remy",temoins:"Ana Favre",rapporteur:"Sophie Remy",desc:"Altercation verbale entre deux enfants ayant dégénéré en bousculade. Aucune blessure physique.",actions:"Séparation immédiate. Discussion avec chaque enfant. Activité reprise après 10 min.",urgence:false,parents:false,comite:false,statut:"traitement",notes:"Prévoir discussion avec les familles des deux enfants."},
-];
+let rapports=[];
 let nid=4;
 let editId=null;
 let selId=null;

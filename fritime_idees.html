@@ -424,12 +424,7 @@ let editId=null;
 let selId=null;
 let filtre="toutes";
 
-let idees=[
-  {id:1,titre:"Journée escalade indoor",cat:"Sport",souscat:"Intérieur",desc:"Une journée dans une salle d'escalade pour enfants, avec initiation et parcours adaptés à chaque niveau.",image:null,ageMin:7,ageMax:14,cout:25,source:"Marie Dupont",statut:"approuvee",utilise:false,notes:"Contacter le Bloc à Bulle.",votes:["Marie Dupont","Jean Martin","Sophie Remy"],date:"2026-01-15"},
-  {id:2,titre:"Atelier peinture nature",cat:"Arts",souscat:"Plein air",desc:"Peindre en pleine nature, s'inspirer des paysages de la.",image:null,ageMin:5,ageMax:12,cout:15,source:"Lara Blanc",statut:"idee",utilise:false,notes:"",votes:["Lara Blanc","Paul Morel"],date:"2026-02-03"},
-  {id:3,titre:"Visite ferme pédagogique",cat:"Nature",souscat:"Découverte",desc:"Découvrir la vie à la ferme, les animaux et la production fromagère locale.",image:null,ageMin:4,ageMax:10,cout:0,source:"Parent bénévole",statut:"discussion",utilise:true,notes:"Ferme Moléson contactée, tarif gratuit pour groupes scolaires.",votes:["Marie Dupont","Sophie Remy","Ana Favre","Paul Morel"],date:"2025-11-20"},
-  {id:4,titre:"Tournoi de jeux de société",cat:"Autre",souscat:"Intérieur",desc:"Un après-midi de jeux de société en équipes mixtes, avec petits prix.",image:null,ageMin:6,ageMax:15,cout:30,source:"Jean Martin",statut:"idee",utilise:false,notes:"",votes:["Jean Martin"],date:"2026-03-10"},
-];
+let idees=[];
 let nid=5;
 
 function fmtDate(d){if(!d)return"";const[y,m,j]=d.split("-");return`${j}.${m}.${y}`;}

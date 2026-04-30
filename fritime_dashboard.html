@@ -405,102 +405,47 @@ const DATA={
   printemps:{
     label:"Printemps 2026",
     metrics:[
-      {val:"3",lbl:"Activités confirmées",sub:"sur 3 prévues",cls:"green"},
-      {val:"9",lbl:"Inscriptions reçues",sub:"5 familles différentes",cls:"blue"},
-      {val:"4",lbl:"Prestataires confirmés",sub:"sur 4 activités",cls:"green"},
-      {val:"2",lbl:"Tâches en attente",sub:"à traiter cette semaine",cls:"orange"},
-      {val:"6'375",lbl:"Budget restant (CHF)",sub:"sur 8'000 total",cls:"highlight"},
+      {val:"0",lbl:"Activités confirmées",sub:"aucune activité planifiée",cls:"green"},
+      {val:"0",lbl:"Inscriptions reçues",sub:"aucune inscription",cls:"blue"},
+      {val:"0",lbl:"Prestataires confirmés",sub:"aucun prestataire",cls:"green"},
+      {val:"0",lbl:"Tâches en attente",sub:"aucune tâche",cls:"orange"},
+      {val:"0",lbl:"Budget restant (CHF)",sub:"budget à définir",cls:"highlight"},
     ],
-    activites:[
-      {nom:"Atelier poterie",date:"20.05.2026",prestataire:"Julie Favre",inscrits:8,places:12,statut:"planifiee"},
-      {nom:"Sortie Lac Noir",date:"14.06.2026",prestataire:"Marc Dupont",inscrits:15,places:20,statut:"validee"},
-      {nom:"Cours de cirque",date:"08.07.2026",prestataire:"Sophie Blanc",inscrits:0,places:15,statut:"approuvee"},
-    ],
-    budget:{
-      entrees:7800,
-      depenses:1425,
-      total:8000,
-      solde:6375,
-      pct:18,
-    },
-    inscriptions:[
-      {act:"Atelier poterie",confirmes:3,attente:2,places:12,date:"20.05.2026"},
-      {act:"Sortie Lac Noir",confirmes:4,attente:1,places:20,date:"14.06.2026"},
-      {act:"Cours de cirque",confirmes:0,attente:0,places:15,date:"08.07.2026"},
-    ],
-    prestataires:[
-      {nom:"Julie Favre",entreprise:"Atelier Terracotta",activite:"Atelier poterie",statut:"actif"},
-      {nom:"Marc Dupont",entreprise:"Guide Pro Rando",activite:"Sortie Lac Noir",statut:"actif"},
-      {nom:"Sophie Blanc",entreprise:"Cirque en",activite:"Cours de cirque",statut:"actif"},
-    ],
-    alertes:[
-      {ico:"🔴",titre:"Demande de modification en attente",sub:"Changement statut activité — soumis par Sophie Remy",urgent:true,date:"10.05.2026"},
-      {ico:"📅",titre:"Date limite inscription — Atelier poterie",sub:"Clôture des inscriptions dans 5 jours",urgent:false,date:"15.05.2026"},
-      {ico:"📋",titre:"Rapport d'incident ouvert",sub:"Incident du 28.04 — statut : en traitement",urgent:false,date:"28.04.2026"},
-      {ico:"💰",titre:"Facture prestataire à valider",sub:"Guide Pro Rando — 625 CHF à confirmer",urgent:false,date:"01.06.2026"},
-    ],
+    activites:[],
+    budget:{entrees:0,depenses:0,total:0,solde:0,pct:0},
+    inscriptions:[],
+    prestataires:[],
+    alertes:[],
   },
   hiver:{
     label:"Hiver 2025",
     metrics:[
-      {val:"2",lbl:"Activités réalisées",sub:"sur 2 prévues",cls:"green"},
-      {val:"28",lbl:"Participants",sub:"sur 2 activités",cls:"blue"},
-      {val:"2",lbl:"Prestataires",sub:"activités terminées",cls:"green"},
-      {val:"0",lbl:"Incidents",sub:"aucun incident",cls:"green"},
-      {val:"7'100",lbl:"Budget restant (CHF)",sub:"sur 8'000 total",cls:"highlight"},
+      {val:"0",lbl:"Activités réalisées",sub:"aucune activité",cls:"green"},
+      {val:"0",lbl:"Participants",sub:"",cls:"blue"},
+      {val:"0",lbl:"Prestataires",sub:"",cls:"green"},
+      {val:"0",lbl:"Incidents",sub:"",cls:"green"},
+      {val:"0",lbl:"Budget restant (CHF)",sub:"budget à définir",cls:"highlight"},
     ],
-    activites:[
-      {nom:"Journée ski Charmey",date:"15.02.2026",prestataire:"Charmey Tourisme",inscrits:23,places:25,statut:"terminee"},
-      {nom:"Cuisine du monde",date:"30.05.2026",prestataire:"Cuisine du Monde ASBL",inscrits:10,places:10,statut:"terminee"},
-    ],
-    budget:{entrees:7800,depenses:900,total:8000,solde:7100,pct:11},
-    inscriptions:[
-      {act:"Journée ski",confirmes:23,attente:0,places:25,date:"15.02.2026"},
-      {act:"Cuisine du monde",confirmes:10,attente:0,places:10,date:"30.05.2026"},
-    ],
-    prestataires:[
-      {nom:"Charmey Tourisme",entreprise:"Charmey SA",activite:"Journée ski",statut:"actif"},
-      {nom:"Ana Martin",entreprise:"Cuisine du Monde ASBL",activite:"Cuisine du monde",statut:"actif"},
-    ],
-    alertes:[
-      {ico:"⭐",titre:"Sondages à envoyer",sub:"2 activités terminées sans sondage de satisfaction",urgent:false,date:""},
-    ],
+    activites:[],
+    budget:{entrees:0,depenses:0,total:0,solde:0,pct:0},
+    inscriptions:[],
+    prestataires:[],
+    alertes:[],
   },
   annee:{
     label:"Année 2025–2026",
     metrics:[
-      {val:"5",lbl:"Activités au total",sub:"2 terminées · 3 à venir",cls:"green"},
-      {val:"37",lbl:"Participations",sub:"enfants distincts",cls:"blue"},
-      {val:"4",lbl:"Prestataires actifs",sub:"sur l'année",cls:"green"},
-      {val:"1",lbl:"Incident signalé",sub:"clôturé",cls:"orange"},
-      {val:"6'375",lbl:"Budget restant (CHF)",sub:"dépenses : 1'625 CHF",cls:"highlight"},
+      {val:"0",lbl:"Activités au total",sub:"",cls:"green"},
+      {val:"0",lbl:"Participations",sub:"",cls:"blue"},
+      {val:"0",lbl:"Prestataires actifs",sub:"",cls:"green"},
+      {val:"0",lbl:"Incidents signalés",sub:"",cls:"orange"},
+      {val:"0",lbl:"Budget restant (CHF)",sub:"budget à définir",cls:"highlight"},
     ],
-    activites:[
-      {nom:"Journée ski",date:"15.02.2026",prestataire:"Charmey Tourisme",inscrits:23,places:25,statut:"terminee"},
-      {nom:"Cuisine du monde",date:"30.05.2026",prestataire:"Cuisine du Monde ASBL",inscrits:10,places:10,statut:"terminee"},
-      {nom:"Atelier poterie",date:"20.05.2026",prestataire:"Julie Favre",inscrits:8,places:12,statut:"planifiee"},
-      {nom:"Sortie Lac Noir",date:"14.06.2026",prestataire:"Marc Dupont",inscrits:15,places:20,statut:"validee"},
-      {nom:"Cours de cirque",date:"08.07.2026",prestataire:"Sophie Blanc",inscrits:0,places:15,statut:"approuvee"},
-    ],
-    budget:{entrees:7800,depenses:1625,total:8000,solde:6375,pct:20},
-    inscriptions:[
-      {act:"Journée ski",confirmes:23,attente:0,places:25,date:"15.02.2026"},
-      {act:"Cuisine du monde",confirmes:10,attente:0,places:10,date:"30.05.2026"},
-      {act:"Atelier poterie",confirmes:3,attente:2,places:12,date:"20.05.2026"},
-      {act:"Sortie Lac Noir",confirmes:4,attente:1,places:20,date:"14.06.2026"},
-    ],
-    prestataires:[
-      {nom:"Julie Favre",entreprise:"Atelier Terracotta",activite:"Atelier poterie",statut:"actif"},
-      {nom:"Marc Dupont",entreprise:"Guide Pro Rando",activite:"Sortie Lac Noir",statut:"actif"},
-      {nom:"Sophie Blanc",entreprise:"Cirque en",activite:"Cours de cirque",statut:"actif"},
-      {nom:"Charmey Tourisme",entreprise:"Charmey SA",activite:"Journée ski",statut:"actif"},
-    ],
-    alertes:[
-      {ico:"🔴",titre:"Demande de modification en attente",sub:"Changement statut activité — par Sophie Remy",urgent:true,date:"10.05.2026"},
-      {ico:"📋",titre:"Rapport d'incident ouvert",sub:"Incident du 28.04 — en traitement",urgent:false,date:"28.04.2026"},
-      {ico:"⭐",titre:"Sondages satisfaction à envoyer",sub:"2 activités terminées sans sondage",urgent:false,date:""},
-      {ico:"💰",titre:"Facture à valider — Guide Pro Rando",sub:"625 CHF",urgent:false,date:"01.06.2026"},
-    ],
+    activites:[],
+    budget:{entrees:0,depenses:0,total:0,solde:0,pct:0},
+    inscriptions:[],
+    prestataires:[],
+    alertes:[],
   }
 };
 
@@ -608,9 +553,10 @@ render();
 </div>
 <script>
 (function(){
-var cp=window.location.pathname.split("/").pop();
-document.querySelectorAll("
-});
+  var p=window.location.pathname.split("/").pop();
+  document.querySelectorAll("#ft-sb a").forEach(function(a){
+    if(a.getAttribute("href")===p){a.className="on";}
+  });
 })();
 </script>
 </div>

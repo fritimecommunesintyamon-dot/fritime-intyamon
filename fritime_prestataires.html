@@ -403,12 +403,7 @@ let noteTemp=0;
 let selId=null;
 let editId=null;
 
-let prestataires=[
-  {id:1,nom:"Atelier Terracotta",type:"Indépendant",statut:"actif",cat:"Arts",cp:"Julie",cn:"Favre",email:"julie@terracotta.ch",tel:"+41 79 444 55 66",url:"https://atelierterracotta.ch",adresse:"Rue du Moulin 4, 1630 Bulle",gratuit:false,acts:["Poterie","Modelage","Céramique"],notes:"Très flexible sur les horaires.",evals:[{activite:"Atelier poterie — mai 2026",note:5,comment:"Excellente prestation, enfants ravis.",date:"2026-05-20"}]},
-  {id:2,nom:"Guide Pro Rando",type:"Entreprise",statut:"actif",cat:"Nature",cp:"Marc",cn:"Dupont",email:"marc@guiderando.ch",tel:"+41 79 111 22 33",url:"https://guiderando.ch",adresse:"Route du Col 12, 1663s",gratuit:false,acts:["Randonnée","Observation nature","Orientation"],notes:"Certifié guide de montagne.",evals:[{activite:"Sortie Lac Noir — juin 2025",note:4,comment:"Très professionnel, bon rythme.",date:"2025-06-14"}]},
-  {id:3,nom:"Cirque en",type:"Association",statut:"acontacter",cat:"Arts",cp:"Sophie",cn:"Blanc",email:"contact@cirquegruyere.ch",tel:"+41 79 333 44 55",url:"",adresse:"",gratuit:false,acts:["Jonglage","Acrobatie","Équilibre"],notes:"Contacté en janvier, en attente de réponse.",evals:[]},
-  {id:4,nom:"Cuisine du Monde ASBL",type:"Association",statut:"actif",cat:"Cuisine",cp:"Ana",cn:"Martin",email:"ana@cuisinedumonde.ch",tel:"+41 79 222 33 44",url:"",adresse:"Avenue de la Gare 8, 1630 Bulle",gratuit:true,acts:["Cuisine internationale","Ateliers parents-enfants"],notes:"Propose des ateliers gratuits pour les associations.",evals:[]},
-];
+let prestataires=[];
 let nid=5;
 
 function renderStars(note,max=5){

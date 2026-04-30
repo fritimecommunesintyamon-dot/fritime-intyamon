@@ -416,14 +416,7 @@ let responsabilites=[
 ];
 let nextRespId=9;
 
-let membres=[
-  {id:1,prenom:'Marie',nom:'Dupont',role:'Présidente',statut:'actif',email:'marie.dupont@gmail.com',tel:'+41 79 100 11 22',commune:'Bulle',dateEntree:'2022-09-01',finEngagement:'',suppleantDe:'',notes:"Référente principale pour le service Fri-Time."},
-  {id:2,prenom:'Jean',nom:'Martin',role:'Trésorier',statut:'actif',email:'jean.martin@gmail.com',tel:'+41 79 200 22 33',commune:'Intyamons',dateEntree:'2022-09-01',finEngagement:'',suppleantDe:'',notes:''},
-  {id:3,prenom:'Sophie',nom:'Remy',role:'Responsable inscriptions',statut:'actif',email:'sophie.remy@gmail.com',tel:'+41 79 300 33 44',commune:'Broc',dateEntree:'2023-01-15',finEngagement:'',suppleantDe:'',notes:''},
-  {id:4,prenom:'Lara',nom:'Blanc',role:'Responsable communication',statut:'actif',email:'lara.blanc@gmail.com',tel:'+41 79 400 44 55',commune:'Bulle',dateEntree:'2023-09-01',finEngagement:'',suppleantDe:'',notes:''},
-  {id:5,prenom:'Paul',nom:'Morel',role:'Contact prestataires',statut:'actif',email:'paul.morel@gmail.com',tel:'+41 79 500 55 66',commune:'Châtel-St-Denis',dateEntree:'2022-09-01',finEngagement:'2026-08-31',suppleantDe:'',notes:"Fin d'engagement prévue en août 2026."},
-  {id:6,prenom:'Ana',nom:'Favre',role:'Membre',statut:'remplacant',email:'ana.favre@gmail.com',tel:'+41 79 600 66 77',commune:'Bulle',dateEntree:'2024-03-01',finEngagement:'',suppleantDe:"Sophie Remy",notes:"Remplace Sophie en cas d'absence."},
-];
+let membres=[{id:1,prenom:"Karine",nom:"Rebelo",role:"Présidente",statut:"actif",email:"karine_rebelo@hotmail.fr",tel:"",commune:"Albeuve",dateEntree:"2026-01-01",finEngagement:"",notes:""}];
 let nid=7,selId=null,filtre='tous',editResps=[];
 
 function membreName(id){const m=membres.find(x=>x.id===id);return m?m.prenom+' '+m.nom:'—';}

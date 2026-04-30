@@ -393,31 +393,11 @@ function doLogout(){
 const STATUTS={inscrit:"Inscrit",attente:"En attente",selectionne:"Sélectionné",confirme:"Confirmé",present:"Présent",absent:"Absent"};
 const STATUT_ORDER=["inscrit","attente","selectionne","confirme","present","absent"];
 
-let activites=[
-  {id:1,nom:"Atelier poterie",date:"2026-05-20",places:12,statut:"planifiee"},
-  {id:2,nom:"Sortie nature Lac Noir",date:"2026-06-14",places:20,statut:"validee"},
-  {id:3,nom:"Cours de cirque",date:"2026-07-08",places:15,statut:"approuvee"},
-];
+let activites=[];
 
-let enfants=[
-  {id:1,nom:"Luca Bernard",age:10,parent:"Anne Bernard",tel:"+41 79 111 22 33"},
-  {id:2,nom:"Emma Favre",age:8,parent:"Paul Favre",tel:"+41 79 222 33 44",notes:"Allergie arachides"},
-  {id:3,nom:"Noah Morel",age:11,parent:"Claire Morel",tel:"+41 79 333 44 55"},
-  {id:4,nom:"Léa Dupont",age:9,parent:"Marc Dupont",tel:"+41 79 444 55 66"},
-  {id:5,nom:"Tom Remy",age:11,parent:"Sophie Remy",tel:"+41 79 555 66 77"},
-];
+let enfants=[];
 
-let inscriptions=[
-  {id:1,enfantId:1,activiteId:1,statut:"confirme",pref:1,notes:"",presence:null},
-  {id:2,enfantId:2,activiteId:1,statut:"confirme",pref:1,notes:"Allergie arachides à surveiller",presence:null},
-  {id:3,enfantId:3,activiteId:1,statut:"selectionne",pref:2,notes:"",presence:null},
-  {id:4,enfantId:4,activiteId:1,statut:"attente",pref:1,notes:"",presence:null},
-  {id:5,enfantId:5,activiteId:1,statut:"inscrit",pref:3,notes:"",presence:null},
-  {id:6,enfantId:1,activiteId:2,statut:"confirme",pref:1,notes:"",presence:null},
-  {id:7,enfantId:3,activiteId:2,statut:"confirme",pref:1,notes:"",presence:null},
-  {id:8,enfantId:5,activiteId:2,statut:"selectionne",pref:2,notes:"",presence:null},
-  {id:9,enfantId:2,activiteId:2,statut:"attente",pref:1,notes:"",presence:null},
-];
+let inscriptions=[];
 let nInsc=10;
 let selectedActId=activites[0].id;
 let currentTab="liste";

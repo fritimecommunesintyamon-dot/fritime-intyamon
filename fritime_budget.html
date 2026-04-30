@@ -439,19 +439,8 @@ function chf(n){return (Math.round((n||0)*100)/100).toLocaleString("fr-CH",{mini
 function pct(a,b){if(!b)return "—";return Math.round(a/b*100)+"%";}
 function progCls(p){if(p>=100)return "prog-red";if(p>=75)return "prog-amber";return "prog-green";}
 
-let entrees=[
-  {id:1,source:"Subvention",desc:"Subvention cantonale",prevu:5000,recu:5000,statut:"recu",annee:"2025-2026",notes:""},
-  {id:2,source:"Commune",desc:"Participation commune de Bulle",prevu:2000,recu:1500,statut:"partiel",annee:"2025-2026",notes:"Solde attendu en juin"},
-  {id:3,source:"Don",desc:"Don association parents",prevu:500,recu:500,statut:"recu",annee:"2025-2026",notes:""},
-  {id:4,source:"Recherche de fonds",desc:"Vente de gâteaux fête du village",prevu:300,recu:0,statut:"prevu",annee:"2025-2026",notes:"Prévu en mai 2026"},
-];
-let depenses=[
-  {id:1,desc:"Atelier poterie — Atelier Terracotta",activite:"Atelier poterie",prevu:180,reel:180,realise:180,type:"global",facture:"commune",annee:"2025-2026",notes:""},
-  {id:2,desc:"Sortie Lac Noir — Guide Pro Rando",activite:"Sortie nature Lac Noir",prevu:625,reel:625,realise:0,type:"enfant",facture:"familles",annee:"2025-2026",notes:"25 CHF x 25 enfants"},
-  {id:3,desc:"Cours de cirque — prestataire TBD",activite:"Cours de cirque",prevu:400,reel:0,realise:0,type:"global",facture:"commune",annee:"2025-2026",notes:""},
-  {id:4,desc:"Frais administratifs",activite:"",prevu:200,reel:150,realise:150,type:"global",facture:"commune",annee:"2025-2026",notes:""},
-  {id:5,desc:"Matériel divers",activite:"",prevu:100,reel:0,realise:0,type:"global",facture:"commune",annee:"2025-2026",notes:""},
-];
+let entrees=[];
+let depenses=[];
 let nEntree=5,nDepense=6,editEntreeId=null,editDepenseId=null;
 
 function getAnnee(){return document.getElementById("annee-select").value;}

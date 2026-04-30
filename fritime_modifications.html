@@ -378,20 +378,10 @@ function doLogout(){
 let currentTab="demandes";
 let refusTargetId=null;
 
-let demandes=[
-  {id:1,type:"statut-activite",activite:"Cours de cirque",nouveauStatut:"approuvee",element:"",demandeur:"Sophie Remy",justification:"Le prestataire a confirmé sa disponibilité et le lieu est réservé. L'activité peut passer au statut Approuvée.",urgente:false,statut:"en-attente",validateur:null,dateCreation:"2026-05-10",dateDecision:null,refusMotif:""},
-  {id:2,type:"suppression",activite:"",nouveauStatut:"",element:"Inscription de Zoe Blanc à l'atelier poterie",demandeur:"Jean Martin",justification:"Zoe Blanc est bannie de l'association suite à un incident. Son inscription doit être supprimée.",urgente:true,statut:"en-attente",validateur:null,dateCreation:"2026-05-12",dateDecision:null,refusMotif:""},
-  {id:3,type:"statut-activite",activite:"Sortie nature Lac Noir",nouveauStatut:"annulee",element:"",demandeur:"Paul Morel",justification:"Le prestataire a annulé au dernier moment. L'activité doit être annulée.",urgente:true,statut:"approuvee",validateur:"Marie Dupont",dateCreation:"2026-04-20",dateDecision:"2026-04-21",refusMotif:""},
-  {id:4,type:"statut-activite",activite:"Atelier poterie",nouveauStatut:"validee",element:"",demandeur:"Lara Blanc",justification:"L'activité a été soumise au service Fri-Time et validée par leurs soins.",urgente:false,statut:"refusee",validateur:"Marie Dupont",dateCreation:"2026-03-15",dateDecision:"2026-03-16",refusMotif:"L'activité n'est pas encore complètement planifiée. Merci de compléter les informations du prestataire avant."},
-];
+let demandes=[];
 let nDem=5;
 
-let notifications=[
-  {id:1,ico:"📅",titre:"Date modifiée — Atelier poterie",contenu:"Sophie Remy a modifié la date de l'activité du 15 mai au 20 mai 2026.",auteur:"Sophie Remy",date:"2026-05-08",lu:false},
-  {id:2,ico:"💰",titre:"Budget modifié — Sortie Lac Noir",contenu:"Jean Martin a mis à jour le coût réel de l'activité : 625 CHF (vs 600 CHF prévu).",auteur:"Jean Martin",date:"2026-04-22",lu:false},
-  {id:3,ico:"👤",titre:"Nouveau membre du comité",contenu:"Ana Favre a été ajoutée comme remplaçante de Sophie Remy.",auteur:"Marie Dupont",date:"2026-03-01",lu:true},
-  {id:4,ico:"📋",titre:"Prestataire modifié — Cours de cirque",contenu:"Paul Morel a mis à jour les informations du prestataire Cirque en.",auteur:"Paul Morel",date:"2026-02-14",lu:true},
-];
+let notifications=[];
 
 const TYPE_LABELS={"statut-activite":"Changement de statut","suppression":"Suppression de données"};
 const TYPE_INFOS={"statut-activite":"Cette demande sera soumise à la présidente ou son remplaçant pour validation avant d'être appliquée.","suppression":"Toute suppression de données est irréversible. La présidente doit valider cette action."};

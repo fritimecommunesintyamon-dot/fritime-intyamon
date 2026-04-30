@@ -395,14 +395,7 @@ const STATUT_LABELS={ouverte:'Ouverte',assignee:'Assignée',encours:'En cours',t
 const STATUT_CLS={ouverte:'badge-ouverte',assignee:'badge-assignee',encours:'badge-encours',terminee:'badge-terminee',archivee:'badge-archivee'};
 const ACTES={1:'Atelier poterie',2:'Sortie Lac Noir',3:'Cours de cirque'};
 
-let taches=[
-  {id:1,titre:'Contacter le prestataire poterie',desc:'Confirmer les détails de la session et le nombre de participants.',assignee:'Marie Dupont',priorite:'haute',activite:1,dateLimite:'2026-05-05',notes:'',statut:'terminee'},
-  {id:2,titre:'Réserver la salle communale',desc:'',assignee:'Jean Martin',priorite:'moyenne',activite:null,dateLimite:'2026-05-15',notes:'',statut:'encours'},
-  {id:3,titre:'Préparer la liste des participants',desc:'Générer la liste depuis le module enfants après sélection.',assignee:'Sophie Remy',priorite:'haute',activite:2,dateLimite:'2026-06-01',notes:'',statut:'assignee'},
-  {id:4,titre:'Commander les tabliers',desc:'Commande pour 12 enfants + 2 encadrants.',assignee:'',priorite:'basse',activite:1,dateLimite:'',notes:'',statut:'ouverte'},
-  {id:5,titre:'Envoyer les confirmations aux familles',desc:'',assignee:'Lara Blanc',priorite:'moyenne',activite:2,dateLimite:'2026-06-05',notes:'',statut:'ouverte'},
-  {id:6,titre:'Rapport de fin d\'année',desc:'Synthèse des activités réalisées sur l\'année 2025-2026.',assignee:'Paul Morel',priorite:'basse',activite:null,dateLimite:'2026-06-30',notes:'',statut:'assignee'},
-];
+let taches=[];
 let nid=7,selId=null,filtre='toutes',vue='table';
 
 function ini(nom){if(!nom)return'?';const p=nom.split(' ');return((p[0]||'')[0]+(p[1]||'')[0]).toUpperCase();}
