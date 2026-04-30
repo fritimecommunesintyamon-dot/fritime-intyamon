@@ -550,7 +550,14 @@ function closeCreate(){
 function saveCreate(){
   const p=document.getElementById('cp').value.trim(),n=document.getElementById('cn').value.trim();
   if(!p||!n){alert('Prénom et nom obligatoires');return;}
-  membres.push({id:nid++,prenom:p,nom:n,role:document.getElementById('cr').value,statut:document.getElementById('cs').value,email:document.getElementById('ce').value.trim(),tel:document.getElementById('ct').value.trim(),commune:document.getElementById('cc').value.trim(),dateEntree:document.getElementById('cde').value,finEngagement:document.getElementById('cfe').value,suppleantDe:document.getElementById('csu').value,notes:document.getElementById('cno').value.trim()});
+  (async function(){
+    var newM={prenom:p,nom:n,role:document.getElementById('cr').value,statut:document.getElementById('cs').value,email:document.getElementById('ce').value.trim(),tel:document.getElementById('ct').value.trim(),commune:document.getElementById('cc').value.trim(),dateEntree:document.getElementById('cde').value||null,finEngagement:document.getElementById('cfe').value||null,notes:document.getElementById('cno').value.trim()};
+    if(typeof FriDB!=='undefined'){
+      try{ var res=await FriDB.saveMembre(newM); if(res&&res[0]) newM.id=res[0].id; else newM.id=nid++; }
+      catch(e){ console.warn('Save DB failed:',e); newM.id=nid++; }
+    } else { newM.id=nid++; }
+    membres.push(newM);
+  })();
   closeCreate();render();
 }
 
@@ -685,10 +692,17 @@ function addResp(){
 function saveEdit(){
   const p=document.getElementById('ep').value.trim(),n=document.getElementById('en').value.trim();
   if(!p||!n){alert('Prénom et nom obligatoires');return;}
-  membres=membres.map(m=>m.id===selId?{...m,prenom:p,nom:n,role:document.getElementById('er').value,statut:document.getElementById('es').value,email:document.getElementById('ee').value.trim(),tel:document.getElementById('ett').value.trim(),commune:document.getElementById('ec').value.trim(),dateEntree:document.getElementById('ede').value,finEngagement:document.getElementById('efe').value,suppleantDe:document.getElementById('esu').value,notes:document.getElementById('eno').value.trim()}:m);
-  closeEdit();render();
+  (async function(){
+    var upd={id:selId,prenom:p,nom:n,role:document.getElementById('er').value,statut:document.getElementById('es').value,email:document.getElementById('ee').value.trim(),tel:document.getElementById('ett').value.trim(),commune:document.getElementById('ec').value.trim(),dateEntree:document.getElementById('ede').value||null,finEngagement:document.getElementById('efe').value||null,notes:document.getElementById('eno').value.trim()};
+    membres=membres.map(m=>m.id===selId?{...m,...upd}:m);
+    if(typeof FriDB!=='undefined') try{ await FriDB.saveMembre(upd); }catch(e){ console.warn(e); }
+    closeEdit();render();
+  })();
 }
-function deleteMember(){if(confirm('Supprimer ce membre ?')){responsabilites=responsabilites.map(r=>({...r,titulaireId:r.titulaireId===selId?null:r.titulaireId,suppleantId:r.suppleantId===selId?null:r.suppleantId}));membres=membres.filter(m=>m.id!==selId);closeEdit();render();}}
+async function deleteMember(){if(confirm('Supprimer ce membre ?')){
+    if(typeof FriDB!=='undefined') try{ await FriDB.deleteMembre(selId); }catch(e){ console.warn(e); }
+    responsabilites=responsabilites.map(r=>({...r,titulaireId:r.titulaireId===selId?null:r.titulaireId,suppleantId:r.suppleantId===selId?null:r.suppleantId}));
+    membres=membres.filter(m=>m.id!==selId);closeEdit();render();}}
 function deleteMemberById(id){if(confirm('Supprimer ce membre ?')){responsabilites=responsabilites.map(r=>({...r,titulaireId:r.titulaireId===id?null:r.titulaireId,suppleantId:r.suppleantId===id?null:r.suppleantId}));membres=membres.filter(m=>m.id!==id);render();}}
 
 function openMemberTask(id){
