@@ -268,6 +268,17 @@ function doLogout(){
   <button class="btn btn-primary" onclick="openCreate()">+ Nouveau membre</button>
 </div>
 
+
+<!-- Section demandes d'accès en attente -->
+<div id="pending-section" style="display:none;margin-bottom:1.25rem">
+  <div style="background:#fcebeb;border:1px solid #f7c1c1;border-radius:12px;overflow:hidden">
+    <div style="padding:12px 16px;background:#fdf0f0;border-bottom:1px solid #f7c1c1;display:flex;align-items:center;justify-content:space-between">
+      <span style="font-size:13px;font-weight:600;color:#791f1f">🔴 Demandes d'accès en attente de validation</span>
+      <span id="pending-count" style="font-size:12px;color:#791f1f"></span>
+    </div>
+    <div id="pending-list" style="padding:12px 16px"></div>
+  </div>
+</div>
 <div class="metrics" id="metrics"></div>
 
 <div class="toolbar">
@@ -775,9 +786,10 @@ render();
 </div>
 <script>
 (function(){
-var cp=window.location.pathname.split("/").pop();
-document.querySelectorAll("
-});
+  var p=window.location.pathname.split("/").pop();
+  document.querySelectorAll("#ft-sb a").forEach(function(a){
+    if(a.getAttribute("href")===p){a.className="on";}
+  });
 })();
 </script>
 </div>
@@ -789,6 +801,81 @@ document.querySelectorAll("
     if(a.getAttribute("href")===p){a.className="on";}
   });
 })();
+
+function renderPendingAccounts(){
+  var comptes = JSON.parse(localStorage.getItem("ft_comptes")||"[]");
+  var pending = comptes.filter(function(c){return !c.actif;});
+  var section = document.getElementById("pending-section");
+  var list = document.getElementById("pending-list");
+  var count = document.getElementById("pending-count");
+  
+  if(!section) return;
+  
+  if(pending.length === 0){
+    section.style.display = "none";
+    return;
+  }
+  
+  section.style.display = "block";
+  count.textContent = pending.length + " demande(s)";
+  
+  list.innerHTML = pending.map(function(c, i){
+    return '<div style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid #f7c1c1">' +
+      '<div style="flex:1">' +
+        '<div style="font-weight:500;font-size:13px">' + c.prenom + ' ' + c.nom + '</div>' +
+        '<div style="font-size:12px;color:#888;margin-top:2px">' + c.email + ' · ' + c.role + '</div>' +
+      '</div>' +
+      '<button onclick="validerCompte('+i+')" style="padding:5px 12px;background:#275a0a;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:500">✓ Valider</button>' +
+      '<button onclick="refuserCompte('+i+')" style="padding:5px 12px;background:#fff;color:#791f1f;border:1px solid #f7c1c1;border-radius:6px;cursor:pointer;font-size:12px;margin-left:4px">✗ Refuser</button>' +
+    '</div>';
+  }).join("");
+}
+
+function validerCompte(idx){
+  var comptes = JSON.parse(localStorage.getItem("ft_comptes")||"[]");
+  var pending = comptes.filter(function(c){return !c.actif;});
+  var compte = pending[idx];
+  if(!compte)return;
+  
+  // Activer le compte
+  comptes = comptes.map(function(c){
+    if(c.email === compte.email) return Object.assign({}, c, {actif: true});
+    return c;
+  });
+  localStorage.setItem("ft_comptes", JSON.stringify(comptes));
+  
+  // Ajouter comme membre du comité
+  membres.push({
+    id: Date.now(),
+    prenom: compte.prenom,
+    nom: compte.nom,
+    role: compte.role,
+    statut: "actif",
+    email: compte.email,
+    tel: "",
+    commune: "",
+    dateEntree: new Date().toISOString().split("T")[0],
+    finEngagement: "",
+    notes: ""
+  });
+  
+  alert("✓ Compte de " + compte.prenom + " " + compte.nom + " validé. Il peut maintenant se connecter.");
+  renderPendingAccounts();
+  render()
+renderPendingAccounts();;
+}
+
+function refuserCompte(idx){
+  var comptes = JSON.parse(localStorage.getItem("ft_comptes")||"[]");
+  var pending = comptes.filter(function(c){return !c.actif;});
+  var compte = pending[idx];
+  if(!compte)return;
+  if(!confirm("Refuser la demande de " + compte.prenom + " " + compte.nom + " ?"))return;
+  comptes = comptes.filter(function(c){return c.email !== compte.email;});
+  localStorage.setItem("ft_comptes", JSON.stringify(comptes));
+  renderPendingAccounts();
+}
+
 </script>
 </body>
 </html>

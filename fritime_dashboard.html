@@ -462,7 +462,28 @@ function ini(nom){const p=nom.split(" ");return((p[0]||"")[0]+(p[1]||"")[0]).toU
 function chf(n){return n.toLocaleString("fr-CH")+" CHF";}
 function pctCls(p){return p>=80?"prog-red":p>=50?"prog-orange":"prog-green";}
 
-function render(){
+function checkPendingComptes(){
+  var comptes = JSON.parse(localStorage.getItem("ft_comptes")||"[]");
+  var pending = comptes.filter(function(c){return !c.actif;});
+  var alertes = DATA[currentPeriode].alertes;
+  
+  // Remove old pending compte alerts
+  alertes = alertes.filter(function(a){return a.type !== "compte_pending";});
+  
+  if(pending.length > 0){
+    alertes.unshift({
+      ico:"🔴",
+      titre:"Demande d'accès en attente — "+pending.length+" compte(s)",
+      sub:"Nouveaux membres à valider : "+pending.map(function(c){return c.prenom+" "+c.nom;}).join(", "),
+      urgent:true,
+      date:"",
+      type:"compte_pending"
+    });
+  }
+  DATA[currentPeriode].alertes = alertes;
+}
+
+function render(){checkPendingComptes();
   const d=DATA[currentPeriode];
   document.getElementById("periode-label").textContent=d.label;
 
