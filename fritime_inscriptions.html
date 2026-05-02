@@ -348,11 +348,7 @@ function doLogout(){
   <div class="fg"><label class="fl">Enfant *</label>
     <select class="fi" id="i-enfant">
       <option value="">— Choisir —</option>
-      <option value="1">Luca Bernard (10 ans)</option>
-      <option value="2">Emma Favre (8 ans)</option>
-      <option value="3">Noah Morel (11 ans)</option>
-      <option value="4">Léa Dupont (9 ans)</option>
-      <option value="5">Tom Remy (11 ans)</option>
+      <!-- enfants chargés dynamiquement -->
     </select>
   </div>
   <div class="fg"><label class="fl">Activité *</label>
@@ -574,6 +570,13 @@ function switchTab(name,btn){
 }
 
 function openAddInscription(){
+  // Reload enfants and activites selects dynamically
+  var enfantSel=document.getElementById("i-enfant");
+  var actSel=document.getElementById("i-activite");
+  enfantSel.innerHTML='<option value="">— Choisir —</option>'+
+    enfants.map(function(e){return '<option value="'+e.id+'">'+e.prenom+' '+e.nom+' ('+e.age+' ans)</option>';}).join("");
+  actSel.innerHTML='<option value="">— Choisir —</option>'+
+    activites.map(function(a){return '<option value="'+a.id+'">'+a.nom+'</option>';}).join("");
   editInscId=null;
   document.getElementById("insc-title").textContent="Inscrire un enfant";
   document.getElementById("i-del-btn").style.display="none";
@@ -631,7 +634,8 @@ function saveInscription(){
   if(existing){alert("Cet enfant est déjà inscrit à cette activité.");return;}
   const data={enfantId,activiteId,statut:document.getElementById("i-statut").value,pref:parseInt(document.getElementById("i-pref").value)||null,notes:document.getElementById("i-notes").value.trim(),presence:null};
   if(editInscId){inscriptions=inscriptions.map(i=>i.id===editInscId?{...i,...data}:i);}
-  else{inscriptions.push({id:nInsc++,...data});}
+  else{inscriptions.push({id:nInsc++,...data});
+  if(typeof FriDB!=="undefined") FriDB.quickSave("inscriptions",inscriptions[inscriptions.length-1]).catch(function(e){console.warn(e);});}
   closeMInscription();
   selectedActId=activiteId;
   renderAll();

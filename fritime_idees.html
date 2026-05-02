@@ -582,7 +582,8 @@ function saveIdee(){
   const imgEl=document.getElementById("f-img-preview");
   const data={titre,cat:document.getElementById("f-cat").value,souscat:document.getElementById("f-souscat").value.trim(),desc:document.getElementById("f-desc").value.trim(),image:imgEl.style.display!=="none"?imgEl.src:null,ageMin:parseInt(document.getElementById("f-agemin").value)||null,ageMax:parseInt(document.getElementById("f-agemax").value)||null,cout:parseFloat(document.getElementById("f-cout").value)||0,source:document.getElementById("f-source").value.trim(),statut:document.getElementById("f-statut").value,utilise:document.getElementById("f-utilise").checked,notes:document.getElementById("f-notes").value.trim()};
   if(editId){idees=idees.map(i=>i.id===editId?{...i,...data}:i);}
-  else{idees.push({id:nid++,...data,votes:[],_voted:false,date:new Date().toISOString().split("T")[0]});}
+  else{idees.push({id:nid++,...data,votes:[],_voted:false,date:new Date().toISOString().split("T")[0]});
+  if(typeof FriDB!=="undefined") FriDB.quickSave("idees",idees[idees.length-1]).catch(function(e){console.warn("Save failed:",e);});}
   closeCreate();render();
 }
 function deleteIdee(){

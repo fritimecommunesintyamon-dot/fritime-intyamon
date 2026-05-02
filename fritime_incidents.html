@@ -528,7 +528,8 @@ function saveRapport(){
   if(!date||!desc||!rapporteur){alert("Date, description et rapporteur sont obligatoires.");return;}
   const data={date,heure:document.getElementById("f-heure").value,activite:document.getElementById("f-activite").value,lieu:document.getElementById("f-lieu").value.trim(),type:document.getElementById("f-type").value,gravite:document.getElementById("f-gravite").value,enfants:document.getElementById("f-enfants").value.trim(),adultes:document.getElementById("f-adultes").value.trim(),temoins:document.getElementById("f-temoins").value.trim(),rapporteur,desc,actions:document.getElementById("f-actions").value.trim(),urgence:document.getElementById("t-urgence").checked,parents:document.getElementById("t-parents").checked,comite:document.getElementById("t-comite").checked,statut:document.getElementById("f-statut").value,notes:document.getElementById("f-notes").value.trim()};
   if(editId){rapports=rapports.map(r=>r.id===editId?{...r,...data}:r);}
-  else{rapports.push({id:nid++,...data});}
+  else{rapports.push({id:nid++,...data});
+  if(typeof FriDB!=="undefined") FriDB.quickSave("incidents",rapports[rapports.length-1]).catch(function(e){console.warn("Save failed:",e);});}
   closeCreate();render();
 }
 

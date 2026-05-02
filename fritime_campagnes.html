@@ -418,6 +418,15 @@ function getSelectedActivites(){
 }
 
 function openCreate(){
+  // Load activites dynamically
+  var ftData = localStorage.getItem("ft_data");
+  var acts = [];
+  if(ftData) try { acts = JSON.parse(ftData).activites || []; } catch(e){}
+  // Also try from Supabase cache
+  if(typeof activites !== 'undefined' && activites.length) acts = activites;
+  var actSel = document.getElementById("i-activite");
+  if(actSel) actSel.innerHTML = '<option value="">— Choisir —</option>' + 
+    acts.map(function(a){return '<option value="'+a.id+'">'+a.nom+'</option>';}).join("");
   editCampaignId=null;
   document.getElementById("create-title").textContent="Nouvelle campagne";
   document.getElementById("c-del-btn").style.display="none";
@@ -453,7 +462,8 @@ function saveCampaign(statut){
   if(!titre){alert("Le titre est obligatoire");return;}
   const data={titre,type:document.getElementById("c-type").value,periode:document.getElementById("c-periode").value.trim(),deadline:document.getElementById("c-deadline").value,message:document.getElementById("c-message").value.trim(),activites:getSelectedActivites(),statut};
   if(editCampaignId){campaigns=campaigns.map(c=>c.id===editCampaignId?{...c,...data}:c);}
-  else{campaigns.push({id:nCamp++,...data,dateEnvoi:null,reponses:[]});}
+  else{campaigns.push({id:nCamp++,...data,dateEnvoi:null,reponses:[]});
+  if(typeof FriDB!=="undefined") FriDB.quickSave("campagnes",campaigns[campaigns.length-1]).catch(function(e){console.warn("Save failed:",e);});}
   closeMCreate();renderAll();
 }
 

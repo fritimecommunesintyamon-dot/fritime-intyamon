@@ -555,7 +555,8 @@ function savePrest(){
   if(!nom){alert("Le nom est obligatoire");return;}
   const data={nom,type:document.getElementById("f-type").value,statut:document.getElementById("f-statut").value,cat:document.getElementById("f-cat").value,cp:document.getElementById("f-cp").value.trim(),cn:document.getElementById("f-cn").value.trim(),email:document.getElementById("f-email").value.trim(),tel:document.getElementById("f-tel").value.trim(),url:document.getElementById("f-url").value.trim(),adresse:document.getElementById("f-adresse").value.trim(),gratuit:document.getElementById("f-gratuit").checked,acts:[...editActs],notes:document.getElementById("f-notes").value.trim()};
   if(editId){prestataires=prestataires.map(p=>p.id===editId?{...p,...data}:p);}
-  else{prestataires.push({id:nid++,...data,evals:[]});}
+  else{prestataires.push({id:nid++,...data,evals:[]});
+  if(typeof FriDB!=="undefined") FriDB.quickSave("prestataires",prestataires[prestataires.length-1]).catch(function(e){console.warn("Save failed:",e);});}
   closeCreate();render();
 }
 function deletePrest(){

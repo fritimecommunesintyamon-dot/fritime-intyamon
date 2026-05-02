@@ -410,6 +410,7 @@ function saveSend(){
     "3":["Anne Bernard (Luca)","Claire Morel (Noah)","Sophie Remy (Tom)","Marc Dupont (Léa)","Paul Favre (Emma)"]
   };
   sondages.push({id:nSondage++,activite:actNames[actEl.value],dateActivite:dateMap[actEl.value],dateEnvoi:new Date().toISOString().split("T")[0],statut:"envoye",participants:(partsMap[actEl.value]||[]).map(nom=>({nom,email:"",repondu:false,note:null,comment:"",dateRep:null}))});
+  if(typeof FriDB!=="undefined") FriDB.quickSave("sondages",sondages[sondages.length-1]).catch(function(e){console.warn(e);});
   closeMSend();renderAll();
   alert("Sondage envoyé aux familles !");
 }

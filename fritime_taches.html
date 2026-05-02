@@ -468,6 +468,7 @@ function saveCreate(){
   if(!t){alert('Le titre est obligatoire');return;}
   const statut=document.getElementById('ca').value?'assignee':'ouverte';
   taches.push({id:nid++,titre:t,desc:document.getElementById('cd').value.trim(),assignee:document.getElementById('ca').value,priorite:document.getElementById('cp').value,activite:parseInt(document.getElementById('cal').value)||null,dateLimite:document.getElementById('cdl').value,notes:document.getElementById('cno').value.trim(),statut});
+  if(typeof FriDB!=="undefined") FriDB.quickSave("taches",taches[taches.length-1]).catch(function(e){console.warn("Save failed:",e);});
   closeCreate();render();
 }
 
