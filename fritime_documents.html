@@ -534,12 +534,19 @@ function formatSize(bytes){
   return (bytes/1048576).toFixed(1)+" MB";
 }
 
-function saveDoc(){
+async function saveDoc(){
   const nom=document.getElementById("d-nom").value.trim();
   if(!nom){alert("Le nom est obligatoire");return;}
   const data={nom,cat:parseInt(document.getElementById("d-cat").value)||null,type:document.getElementById("d-type").value,desc:document.getElementById("d-desc").value.trim(),url:document.getElementById("d-url").value.trim(),date:new Date().toISOString().split("T")[0],taille:""};
   if(editDocId){docs=docs.map(d=>d.id===editDocId?{...d,...data}:d);}
   else{docs.push({id:nDoc++,...data});
+  if(typeof FriDB !== 'undefined'){
+    try{
+      var _last = docs[docs.length-1];
+      var _res = await FriDB.quickSave('documents', _last);
+      if(_res && _res[0] && _res[0].id) docs[docs.length-1].id = _res[0].id;
+    }catch(e){ console.warn('DB save:', e); }
+  }
   if(typeof FriDB!=="undefined") FriDB.quickSave("documents",docs[docs.length-1]).catch(function(e){console.warn("Save failed:",e);});}
   closeMDoc();
   renderAll();

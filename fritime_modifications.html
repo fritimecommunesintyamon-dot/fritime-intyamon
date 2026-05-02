@@ -518,7 +518,7 @@ function openCreate(){
 }
 function closeMCreate(){document.getElementById("mCreate").style.display="none";}
 
-function saveDemande(){
+async function saveDemande(){
   const type=document.getElementById("d-type").value;
   const demandeur=document.getElementById("d-demandeur").value;
   const justification=document.getElementById("d-justification").value.trim();
@@ -534,6 +534,13 @@ function saveDemande(){
     dateCreation:new Date().toISOString().split("T")[0],
     dateDecision:null,refusMotif:""
   });
+  if(typeof FriDB !== 'undefined'){
+    try{
+      var _last = demandes[demandes.length-1];
+      var _res = await FriDB.quickSave('demandes', _last);
+      if(_res && _res[0] && _res[0].id) demandes[demandes.length-1].id = _res[0].id;
+    }catch(e){ console.warn('DB save:', e); }
+  }
   closeMCreate();renderAll();
 }
 

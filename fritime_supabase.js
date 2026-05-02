@@ -330,6 +330,7 @@ FriDB.toDb = function(obj) {
   if ('dateEntree' in mapped) { mapped.date_entree = mapped.dateEntree; delete mapped.dateEntree; }
   if ('finEngagement' in mapped) { mapped.fin_engagement = mapped.finEngagement; delete mapped.finEngagement; }
   if ('activiteId' in mapped) { mapped.activite_id = mapped.activiteId; delete mapped.activiteId; }
+  if ('activite' in mapped && !('activite_id' in mapped)) { mapped.activite_id = mapped.activite; delete mapped.activite; }
   if ('enfantId' in mapped) { mapped.enfant_id = mapped.enfantId; delete mapped.enfantId; }
   if ('sondageId' in mapped) { mapped.sondage_id = mapped.sondageId; delete mapped.sondageId; }
   // Remove undefined/null id for inserts
@@ -405,6 +406,7 @@ Object.keys(SAVE_TABLE_MAP).forEach(function(fn){
 FriDB.quickSave = async function(table, obj) {
   // Step 1: Convert camelCase to snake_case FIRST
   var converted = FriDB.toDb(Object.assign({}, obj));
+  console.log('[QuickSave] table:', table, 'converted:', JSON.stringify(converted).substring(0,200));
   // Step 2: Strip to known columns only
   var cols = FriDB.COLUMNS[table];
   var clean = {};
@@ -418,10 +420,13 @@ FriDB.quickSave = async function(table, obj) {
     clean = converted;
   }
   // Step 3: Remove id for inserts, keep for updates
-  if(obj.id) {
+  // Only PATCH if this is a Supabase-originated ID (has created_at)
+  // Local JS ids (nid++) should always be POSTed as new records
+  if(obj.id && obj.created_at) {
     return await FriDB.query(table, 'PATCH', clean, '?id=eq.'+obj.id);
   }
   delete clean.id;
+  console.log('[QuickSave] POST to', table, JSON.stringify(clean).substring(0,200));
   return await FriDB.query(table, 'POST', clean);
 };
 
