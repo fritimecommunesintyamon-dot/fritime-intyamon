@@ -677,7 +677,7 @@ function renderDet(){
 }
 
 function render(){renderMetrics();renderFilters();renderGrid();}
-(async function(){ await loadActivitesDB(); render(); })();
+render(); loadActivitesDB();
 </script>
 
 
@@ -703,11 +703,22 @@ function render(){renderMetrics();renderFilters();renderGrid();}
 })();
 
 async function loadActivitesDB(){
-  if(typeof FriDB === 'undefined') return;
+  // Wait for FriDB to be ready (max 3 seconds)
+  var attempts = 0;
+  while(typeof FriDB === 'undefined' && attempts < 30){
+    await new Promise(function(r){setTimeout(r,100);});
+    attempts++;
+  }
+  if(typeof FriDB === 'undefined'){ console.warn('FriDB non disponible'); return; }
   try {
+    console.log('Chargement activités depuis Supabase...');
     var dbData = await FriDB.getActivites();
-    if(dbData && dbData.length) activites = dbData;
-  } catch(e){ console.warn('Supabase non dispo'); }
+    console.log('Activités reçues:', dbData ? dbData.length : 0);
+    if(dbData && dbData.length) {
+      activites = dbData;
+      render();
+    }
+  } catch(e){ console.warn('Supabase non dispo:', e); }
 }
 
 async function saveActivite_DB(a){
