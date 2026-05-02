@@ -917,6 +917,8 @@ async function deleteMembre_DB(id){
   if(typeof FriDB === 'undefined') return;
   try { await FriDB.deleteMembre(id); } catch(e){ console.warn('Suppression DB échouée:', e); }
 }
+
+loadFromDB();
 </script>
 </body>
 </html>

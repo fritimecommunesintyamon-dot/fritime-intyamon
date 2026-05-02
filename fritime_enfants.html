@@ -484,7 +484,7 @@ async function saveEdit(){
   closeEdit();render();
 }
 
-render(); loadEnfantsDB();
+render();
 </script>
 <script>
 (function(){
@@ -493,6 +493,20 @@ render(); loadEnfantsDB();
     if(a.getAttribute("href")===p){a.className="on";}
   });
 })();
+
+async function loadEnfantsDB(){
+  var attempts = 0;
+  while(typeof FriDB === 'undefined' && attempts < 30){
+    await new Promise(function(r){setTimeout(r,100);});
+    attempts++;
+  }
+  if(typeof FriDB === 'undefined') return;
+  try {
+    var dbData = await FriDB.getEnfants();
+    if(dbData && dbData.length){ enfants = dbData; render(); }
+  } catch(e){ console.warn('Supabase non dispo:', e); }
+}
+loadEnfantsDB();
 </script>
 </body>
 </html>

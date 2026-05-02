@@ -677,7 +677,7 @@ function renderDet(){
 }
 
 function render(){renderMetrics();renderFilters();renderGrid();}
-render(); loadActivitesDB();
+render();
 </script>
 
 
@@ -702,6 +702,7 @@ render(); loadActivitesDB();
   });
 })();
 
+// Called after definition:
 async function loadActivitesDB(){
   // Wait for FriDB to be ready (max 3 seconds)
   var attempts = 0;
@@ -725,6 +726,8 @@ async function saveActivite_DB(a){
   if(typeof FriDB === 'undefined') return;
   try { await FriDB.saveActivite(a); } catch(e){ console.warn('Save échoué:', e); }
 }
+
+loadActivitesDB();
 </script>
 </body>
 </html>
