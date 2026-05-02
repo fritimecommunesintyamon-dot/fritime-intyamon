@@ -598,6 +598,18 @@ function loadMembresEtActivites(){
   activites.forEach(function(a){ ACTES[a.id] = a.nom; });
 }
 
+
+async function loadTachesDB(){
+  var a=0;
+  while(typeof FriDB==='undefined'&&a<30){await new Promise(function(r){setTimeout(r,100);});a++;}
+  if(typeof FriDB==='undefined') return;
+  try{
+    var db_taches = await FriDB.getTaches();
+    if(db_taches && db_taches.length) taches = db_taches;
+    render();
+  }catch(e){console.warn('DB:',e);}
+}
+loadTachesDB();
 </script>
 </body>
 </html>

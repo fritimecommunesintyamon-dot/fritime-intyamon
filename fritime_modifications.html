@@ -562,6 +562,18 @@ renderAll();
     if(a.getAttribute("href")===p){a.className="on";}
   });
 })();
+
+async function loadModifDB(){
+  var a=0;
+  while(typeof FriDB==='undefined'&&a<30){await new Promise(function(r){setTimeout(r,100);});a++;}
+  if(typeof FriDB==='undefined') return;
+  try{
+    var db_demandes = await FriDB.getComptes();
+    if(db_demandes && db_demandes.length) demandes = db_demandes;
+    render();
+  }catch(e){console.warn('DB:',e);}
+}
+loadModifDB();
 </script>
 </body>
 </html>

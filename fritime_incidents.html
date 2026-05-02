@@ -638,6 +638,18 @@ render();
     if(a.getAttribute("href")===p){a.className="on";}
   });
 })();
+
+async function loadIncidentsDB(){
+  var a=0;
+  while(typeof FriDB==='undefined'&&a<30){await new Promise(function(r){setTimeout(r,100);});a++;}
+  if(typeof FriDB==='undefined') return;
+  try{
+    var db_rapports = await FriDB.getIncidents();
+    if(db_rapports && db_rapports.length) rapports = db_rapports;
+    render();
+  }catch(e){console.warn('DB:',e);}
+}
+loadIncidentsDB();
 </script>
 </body>
 </html>

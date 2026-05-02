@@ -907,6 +907,18 @@ Cours de théâtre | Arts"></textarea>
     if(a.getAttribute("href")===p){a.className="on";}
   });
 })();
+
+async function loadIdeesDB(){
+  var a=0;
+  while(typeof FriDB==='undefined'&&a<30){await new Promise(function(r){setTimeout(r,100);});a++;}
+  if(typeof FriDB==='undefined') return;
+  try{
+    var db_idees = await FriDB.getIdees();
+    if(db_idees && db_idees.length) idees = db_idees;
+    render();
+  }catch(e){console.warn('DB:',e);}
+}
+loadIdeesDB();
 </script>
 </body>
 </html>

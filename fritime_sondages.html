@@ -504,6 +504,18 @@ renderAll();
     if(a.getAttribute("href")===p){a.className="on";}
   });
 })();
+
+async function loadSondagesDB(){
+  var a=0;
+  while(typeof FriDB==='undefined'&&a<30){await new Promise(function(r){setTimeout(r,100);});a++;}
+  if(typeof FriDB==='undefined') return;
+  try{
+    var db_sondages = await FriDB.getSondages();
+    if(db_sondages && db_sondages.length) sondages = db_sondages;
+    render();
+  }catch(e){console.warn('DB:',e);}
+}
+loadSondagesDB();
 </script>
 </body>
 </html>

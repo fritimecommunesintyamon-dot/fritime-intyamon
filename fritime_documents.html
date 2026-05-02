@@ -640,6 +640,20 @@ renderAll();
     if(a.getAttribute("href")===p){a.className="on";}
   });
 })();
+
+async function loadDocsDB(){
+  var a=0;
+  while(typeof FriDB==='undefined'&&a<30){await new Promise(function(r){setTimeout(r,100);});a++;}
+  if(typeof FriDB==='undefined') return;
+  try{
+    var db_docs = await FriDB.getDocuments();
+    if(db_docs && db_docs.length) docs = db_docs;
+    var db_categories = await FriDB.getCategsDocs();
+    if(db_categories && db_categories.length) categories = db_categories;
+    render();
+  }catch(e){console.warn('DB:',e);}
+}
+loadDocsDB();
 </script>
 </body>
 </html>

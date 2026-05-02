@@ -677,6 +677,22 @@ renderAll();
     if(a.getAttribute("href")===p){a.className="on";}
   });
 })();
+
+async function loadInscriptionsDB(){
+  var a=0;
+  while(typeof FriDB==='undefined'&&a<30){await new Promise(function(r){setTimeout(r,100);});a++;}
+  if(typeof FriDB==='undefined') return;
+  try{
+    var db_inscriptions = await FriDB.getInscriptions();
+    if(db_inscriptions && db_inscriptions.length) inscriptions = db_inscriptions;
+    var db_activites = await FriDB.getActivites();
+    if(db_activites && db_activites.length) activites = db_activites;
+    var db_enfants = await FriDB.getEnfants();
+    if(db_enfants && db_enfants.length) enfants = db_enfants;
+    render();
+  }catch(e){console.warn('DB:',e);}
+}
+loadInscriptionsDB();
 </script>
 </body>
 </html>

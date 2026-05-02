@@ -695,6 +695,20 @@ renderAll();
     if(a.getAttribute("href")===p){a.className="on";}
   });
 })();
+
+async function loadBudgetDB(){
+  var a=0;
+  while(typeof FriDB==='undefined'&&a<30){await new Promise(function(r){setTimeout(r,100);});a++;}
+  if(typeof FriDB==='undefined') return;
+  try{
+    var db_entrees = await FriDB.getEntrees();
+    if(db_entrees && db_entrees.length) entrees = db_entrees;
+    var db_depenses = await FriDB.getDepenses();
+    if(db_depenses && db_depenses.length) depenses = db_depenses;
+    render();
+  }catch(e){console.warn('DB:',e);}
+}
+loadBudgetDB();
 </script>
 </body>
 </html>
