@@ -38,11 +38,14 @@ const FriDB = {
     return await this.query('membres', 'GET', null, '?order=id');
   },
   async saveMembre(m) {
+    var allowed = ['prenom','nom','role','statut','email','tel','commune','date_entree','fin_engagement','notes'];
+    var clean = {};
+    allowed.forEach(function(k){ if(k in m && m[k] !== undefined && m[k] !== null) clean[k] = m[k]; });
     if (m.id) {
-      return await this.query('membres', 'PATCH', m, `?id=eq.${m.id}`);
+      clean.id = m.id;
+      return await this.query('membres', 'PATCH', clean, '?id=eq.'+m.id);
     }
-    const {id, ...data} = m;
-    return await this.query('membres', 'POST', data);
+    return await this.query('membres', 'POST', clean);
   },
   async deleteMembre(id) {
     return await this.query('membres', 'DELETE', null, `?id=eq.${id}`);
@@ -53,11 +56,17 @@ const FriDB = {
     return await this.query('activites', 'GET', null, '?order=date');
   },
   async saveActivite(a) {
+    var allowed = ['nom','description','date','date_limite','heure_debut','heure_fin','lieu',
+      'prest_id','age_min','age_max','places','inscrits','surveillants','cout','cout_type',
+      'cout_facture','materiel','tenue','statut','annee','categorie',
+      't_public','t_parent','t_meteo','t_service','notes'];
+    var clean = {};
+    allowed.forEach(function(k){ if(k in a && a[k] !== undefined && a[k] !== null) clean[k] = a[k]; });
     if (a.id) {
-      return await this.query('activites', 'PATCH', a, `?id=eq.${a.id}`);
+      clean.id = a.id;
+      return await this.query('activites', 'PATCH', clean, '?id=eq.'+a.id);
     }
-    const {id, ...data} = a;
-    return await this.query('activites', 'POST', data);
+    return await this.query('activites', 'POST', clean);
   },
   async deleteActivite(id) {
     return await this.query('activites', 'DELETE', null, `?id=eq.${id}`);
@@ -68,11 +77,14 @@ const FriDB = {
     return await this.query('enfants', 'GET', null, '?order=nom');
   },
   async saveEnfant(e) {
+    var allowed = ['prenom','nom','ddn','age','commune','pp','pn','pe','pt','notes','parts','statut','ban_motif'];
+    var clean = {};
+    allowed.forEach(function(k){ if(k in e && e[k] !== undefined && e[k] !== null) clean[k] = e[k]; });
     if (e.id) {
-      return await this.query('enfants', 'PATCH', e, `?id=eq.${e.id}`);
+      clean.id = e.id;
+      return await this.query('enfants', 'PATCH', clean, '?id=eq.'+e.id);
     }
-    const {id, ...data} = e;
-    return await this.query('enfants', 'POST', data);
+    return await this.query('enfants', 'POST', clean);
   },
   async deleteEnfant(id) {
     return await this.query('enfants', 'DELETE', null, `?id=eq.${id}`);
