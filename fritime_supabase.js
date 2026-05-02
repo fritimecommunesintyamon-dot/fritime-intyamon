@@ -16,7 +16,7 @@ const FriDB = {
       'Content-Type': 'application/json',
       'apikey': SUPABASE_KEY,
       'Authorization': `Bearer ${SUPABASE_KEY}`,
-      'Prefer': method === 'POST' ? 'return=representation' : 'return=minimal'
+      'Prefer': 'return=representation'
     };
     const res = await fetch(url, {
       method,
@@ -25,9 +25,10 @@ const FriDB = {
     });
     if (!res.ok) {
       const err = await res.text();
-      throw new Error(`Supabase error: ${res.status} ${err}`);
+      console.error('Supabase error details:', res.status, err);
+      throw new Error(`Supabase error: ${res.status} - ${err}`);
     }
-    if (method === 'DELETE' || method === 'PATCH') return true;
+    if (method === 'DELETE') return true;
     const text = await res.text();
     return text ? JSON.parse(text) : [];
   },
