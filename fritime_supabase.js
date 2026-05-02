@@ -259,6 +259,41 @@ const FriDB = {
 };
 
 // Mapping JS <-> DB column names
+// Known columns per table (to avoid PGRST204 errors)
+FriDB.COLUMNS = {
+  activites: ['id','nom','description','date','date_limite','heure_debut','heure_fin','lieu',
+    'prest_id','prest_contact','prest_email','prest_tel','prest_url','age_min','age_max',
+    'places','inscrits','surveillants','cout','cout_type','cout_facture','materiel','tenue',
+    'statut','annee','categorie','t_public','t_parent','t_meteo','t_service','notes','image'],
+  membres: ['id','prenom','nom','role','statut','email','tel','commune',
+    'date_entree','fin_engagement','notes'],
+  enfants: ['id','prenom','nom','ddn','age','commune','pp','pn','pe','pt',
+    'notes','parts','statut','ban_motif'],
+  inscriptions: ['id','enfant_id','activite_id','statut','pref','notes','presence'],
+  taches: ['id','titre','description','assignee','priorite','activite_id','date_limite','statut','notes'],
+  prestataires: ['id','nom','type','statut','cat','cp','cn','email','tel','url',
+    'adresse','gratuit','acts','notes'],
+  entrees_budget: ['id','source','description','prevu','recu','statut','annee'],
+  depenses_budget: ['id','description','activite','prevu','reel','realise','type','facture','annee'],
+  idees: ['id','titre','description','categorie','saison','cout_estime','age_min','age_max',
+    'prestataire_suggere','statut','votes','notes'],
+  documents: ['id','nom','cat','type','description','url','taille','date'],
+  incidents: ['id','date','heure','lieu','activite','type','gravite','description',
+    'blesses','temoins','actions','redacteur','statut'],
+  sondages: ['id','activite','date_activite','date_envoi','statut'],
+  reponses_sondage: ['id','sondage_id','nom','email','note','refaire','comment'],
+  campagnes: ['id','titre','type','periode','deadline','message','activites','statut','date_envoi'],
+  comptes: ['id','prenom','nom','email','role','actif'],
+};
+
+FriDB.stripUnknown = function(table, obj) {
+  var cols = FriDB.COLUMNS[table];
+  if(!cols) return obj;
+  var clean = {};
+  cols.forEach(function(c){ if(c in obj && obj[c] !== undefined) clean[c] = obj[c]; });
+  return clean;
+};
+
 FriDB.toDb = function(obj) {
   var mapped = Object.assign({}, obj);
   if ('desc' in mapped) { mapped.description = mapped.desc; delete mapped.desc; }
@@ -320,13 +355,22 @@ FriDB.fromDb = function(obj) {
 
 // Override save methods to use mapping
 var _origSave = {};
-['saveActivite','saveEnfant','saveInscription','saveTache','savePrestataire',
- 'saveEntree','saveDepense','saveIdee','saveDocument','saveCatDoc',
- 'saveIncident','saveSondage','saveReponse','saveCampagne','saveMembre','saveCompte'].forEach(function(fn){
+var SAVE_TABLE_MAP = {
+  saveActivite:'activites', saveEnfant:'enfants', saveInscription:'inscriptions',
+  saveTache:'taches', savePrestataire:'prestataires', saveEntree:'entrees_budget',
+  saveDepense:'depenses_budget', saveIdee:'idees', saveDocument:'documents',
+  saveCatDoc:'categories_docs', saveIncident:'incidents', saveSondage:'sondages',
+  saveReponse:'reponses_sondage', saveCampagne:'campagnes', saveMembre:'membres',
+  saveCompte:'comptes'
+};
+
+Object.keys(SAVE_TABLE_MAP).forEach(function(fn){
+  var table = SAVE_TABLE_MAP[fn];
   var orig = FriDB[fn].bind(FriDB);
   FriDB[fn] = async function(obj) {
     var dbObj = FriDB.toDb(Object.assign({}, obj));
-    var result = await orig(dbObj);
+    var cleanObj = FriDB.stripUnknown(table, dbObj);
+    var result = await orig(cleanObj);
     if (Array.isArray(result)) return result.map(FriDB.fromDb);
     return result;
   };
