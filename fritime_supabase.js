@@ -403,23 +403,25 @@ Object.keys(SAVE_TABLE_MAP).forEach(function(fn){
 
 // Universal quick save - strips unknown columns automatically
 FriDB.quickSave = async function(table, obj) {
+  // Step 1: Convert camelCase to snake_case FIRST
+  var converted = FriDB.toDb(Object.assign({}, obj));
+  // Step 2: Strip to known columns only
   var cols = FriDB.COLUMNS[table];
   var clean = {};
   if(cols) {
-    cols.forEach(function(c){ if(c in obj && obj[c] !== undefined) clean[c] = obj[c]; });
+    cols.forEach(function(c){
+      if(c in converted && converted[c] !== undefined && converted[c] !== null) {
+        clean[c] = converted[c];
+      }
+    });
   } else {
-    clean = Object.assign({}, obj);
+    clean = converted;
   }
-  // Convert JS camelCase to DB snake_case via toDb
-  clean = FriDB.toDb(clean);
-  if(cols) {
-    var finalClean = {};
-    cols.forEach(function(c){ if(c in clean) finalClean[c] = clean[c]; });
-    clean = finalClean;
-  }
+  // Step 3: Remove id for inserts, keep for updates
   if(obj.id) {
     return await FriDB.query(table, 'PATCH', clean, '?id=eq.'+obj.id);
   }
+  delete clean.id;
   return await FriDB.query(table, 'POST', clean);
 };
 
