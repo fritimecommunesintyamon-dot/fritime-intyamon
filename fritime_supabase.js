@@ -333,6 +333,16 @@ FriDB.toDb = function(obj) {
   if ('activite' in mapped && !('activite_id' in mapped)) { mapped.activite_id = mapped.activite; delete mapped.activite; }
   if ('enfantId' in mapped) { mapped.enfant_id = mapped.enfantId; delete mapped.enfantId; }
   if ('sondageId' in mapped) { mapped.sondage_id = mapped.sondageId; delete mapped.sondageId; }
+  // Handle 'activite' (number) -> 'activite_id'
+  if ('activite' in mapped && typeof mapped.activite === 'number') { 
+    mapped.activite_id = mapped.activite; delete mapped.activite; 
+  }
+  if ('dateActivite' in mapped) { mapped.date_activite = mapped.dateActivite; delete mapped.dateActivite; }
+  if ('dateEnvoi' in mapped) { mapped.date_envoi = mapped.dateEnvoi; delete mapped.dateEnvoi; }
+  if ('coutEstime' in mapped) { mapped.cout_estime = mapped.coutEstime; delete mapped.coutEstime; }
+  if ('prestataireSuggere' in mapped) { mapped.prestataire_suggere = mapped.prestataireSuggere; delete mapped.prestataireSuggere; }
+  // Handle 'dateLimite' spelling variant
+  if ('datelimite' in mapped) { mapped.date_limite = mapped.datelimite; delete mapped.datelimite; }
   // Remove undefined/null id for inserts
   if (mapped.id === undefined || mapped.id === null) delete mapped.id;
   return mapped;
@@ -406,7 +416,9 @@ Object.keys(SAVE_TABLE_MAP).forEach(function(fn){
 FriDB.quickSave = async function(table, obj) {
   // Step 1: Convert camelCase to snake_case FIRST
   var converted = FriDB.toDb(Object.assign({}, obj));
-  console.log('[QuickSave] table:', table, 'converted:', JSON.stringify(converted).substring(0,200));
+  console.log('[QuickSave] table:', table);
+  console.log('[QuickSave] original:', JSON.stringify(obj).substring(0,150));
+  console.log('[QuickSave] converted:', JSON.stringify(converted).substring(0,150));
   // Step 2: Strip to known columns only
   var cols = FriDB.COLUMNS[table];
   var clean = {};
