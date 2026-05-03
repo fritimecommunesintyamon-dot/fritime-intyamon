@@ -6,6 +6,18 @@
 <title>Fri-Time Intyamon — Budget</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
+
+async function deleteDepense(){if(confirm("Supprimer cette dépense ?")){
+  console.log("[Budget] Suppression dépense id:", editDepenseId);
+  if(typeof FriDB!=="undefined"){
+    try{
+      await FriDB.query("depenses_budget","DELETE",null,"?id=eq."+editDepenseId);
+      console.log("[Budget] Dépense supprimée dans Supabase ✓");
+    }catch(e){console.warn("Delete DB erreur:",e);}
+  }
+  depenses=depenses.filter(d=>d.id!==editDepenseId);
+  closeMDepense();renderAll();}}
+
 body{font-family:system-ui,sans-serif;background:#f5f5f3;color:#1a1a1a;font-size:14px}
 .container{max-width:980px;margin:0 auto;padding:1.5rem}
 .header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem}
@@ -611,6 +623,29 @@ function openEntreeEdit(id){
   document.getElementById("mEntree").style.display="flex";
 }
 function closeMEntree(){document.getElementById("mEntree").style.display="none";}
+
+async function deleteEntree(){if(confirm("Supprimer cette entrée ?")){
+  console.log("[Budget] Suppression entrée id:", editEntreeId);
+  if(typeof FriDB!=="undefined"){
+    try{
+      await FriDB.query("entrees_budget","DELETE",null,"?id=eq."+editEntreeId);
+      console.log("[Budget] Entrée supprimée dans Supabase ✓");
+    }catch(e){console.warn("Delete DB erreur:",e);}
+  }
+  entrees=entrees.filter(e=>e.id!==editEntreeId);
+  closeMEntree();renderAll();}}
+
+async function deleteDepense(){if(confirm("Supprimer cette dépense ?")){
+  console.log("[Budget] Suppression dépense id:", editDepenseId);
+  if(typeof FriDB!=="undefined"){
+    try{
+      await FriDB.query("depenses_budget","DELETE",null,"?id=eq."+editDepenseId);
+      console.log("[Budget] Dépense supprimée dans Supabase ✓");
+    }catch(e){console.warn("Delete DB erreur:",e);}
+  }
+  depenses=depenses.filter(d=>d.id!==editDepenseId);
+  closeMDepense();renderAll();}}
+
 async function saveEntree(){
   const data={source:document.getElementById("e-source").value,desc:document.getElementById("e-desc").value.trim(),prevu:parseFloat(document.getElementById("e-prevu").value)||0,recu:parseFloat(document.getElementById("e-recu").value)||0,statut:document.getElementById("e-statut").value,annee:document.getElementById("e-annee").value,notes:document.getElementById("e-notes").value.trim()};
   if(editEntreeId){
@@ -629,7 +664,6 @@ async function saveEntree(){
   closeMEntree();renderAll();
 }
 
-async 
 
 // Dépense CRUD
 function openDepense(){
