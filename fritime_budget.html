@@ -613,18 +613,22 @@ function openEntreeEdit(id){
 function closeMEntree(){document.getElementById("mEntree").style.display="none";}
 async function saveEntree(){
   const data={source:document.getElementById("e-source").value,desc:document.getElementById("e-desc").value.trim(),prevu:parseFloat(document.getElementById("e-prevu").value)||0,recu:parseFloat(document.getElementById("e-recu").value)||0,statut:document.getElementById("e-statut").value,annee:document.getElementById("e-annee").value,notes:document.getElementById("e-notes").value.trim()};
-  if(editEntreeId){entrees=entrees.map(e=>e.id===editEntreeId?{...e,...data}:e);}
-  else{entrees.push({id:nEntree++,...data});
-  if(typeof FriDB !== 'undefined'){
-    try{
-      var _last = entrees[entrees.length-1];
-      var _res = await FriDB.quickSave('entrees_budget', _last);
-      if(_res && _res[0] && _res[0].id) entrees[entrees.length-1].id = _res[0].id;
-    }catch(e){ console.warn('DB save:', e); }
+  if(editEntreeId){
+    entrees=entrees.map(e=>e.id===editEntreeId?{...e,...data}:e);
+    if(typeof FriDB!=="undefined") try{await FriDB.quickSave("entrees_budget",{id:editEntreeId,...data});}catch(e){console.warn(e);}
+  } else {
+    var newE={id:nEntree++,...data};
+    if(typeof FriDB!=="undefined"){
+      try{
+        var _r=await FriDB.quickSave("entrees_budget",newE);
+        if(_r&&_r[0]&&_r[0].id) newE.id=_r[0].id;
+      }catch(e){console.warn(e);}
+    }
+    entrees.push(newE);
   }
-  if(typeof FriDB!=="undefined") FriDB.quickSave("entrees_budget",entrees[entrees.length-1]).catch(function(e){console.warn(e);});}
   closeMEntree();renderAll();
 }
+
 function deleteEntree(){if(confirm("Supprimer cette entrée ?")){entrees=entrees.filter(e=>e.id!==editEntreeId);
   if(typeof FriDB!=="undefined") FriDB.query("entrees_budget","DELETE",null,"?id=eq."+editEntreeId).catch(function(e){console.warn("Delete DB:",e);});closeMEntree();renderAll();}}
 
@@ -660,18 +664,22 @@ function openDepenseEdit(id){
 function closeMDepense(){document.getElementById("mDepense").style.display="none";}
 async function saveDepense(){
   const data={desc:document.getElementById("d-desc").value.trim(),activite:document.getElementById("d-activite").value,prevu:parseFloat(document.getElementById("d-prevu").value)||0,reel:parseFloat(document.getElementById("d-reel").value)||0,realise:parseFloat(document.getElementById("d-realise").value)||0,type:document.getElementById("d-type").value,facture:document.getElementById("d-facture").value,annee:document.getElementById("d-annee").value,notes:document.getElementById("d-notes").value.trim()};
-  if(editDepenseId){depenses=depenses.map(d=>d.id===editDepenseId?{...d,...data}:d);}
-  else{depenses.push({id:nDepense++,...data});
-  if(typeof FriDB !== 'undefined'){
-    try{
-      var _last = depenses[depenses.length-1];
-      var _res = await FriDB.quickSave('depenses_budget', _last);
-      if(_res && _res[0] && _res[0].id) depenses[depenses.length-1].id = _res[0].id;
-    }catch(e){ console.warn('DB save:', e); }
+  if(editDepenseId){
+    depenses=depenses.map(d=>d.id===editDepenseId?{...d,...data}:d);
+    if(typeof FriDB!=="undefined") try{await FriDB.quickSave("depenses_budget",{id:editDepenseId,...data});}catch(e){console.warn(e);}
+  } else {
+    var newD={id:nDepense++,...data};
+    if(typeof FriDB!=="undefined"){
+      try{
+        var _r=await FriDB.quickSave("depenses_budget",newD);
+        if(_r&&_r[0]&&_r[0].id) newD.id=_r[0].id;
+      }catch(e){console.warn(e);}
+    }
+    depenses.push(newD);
   }
-  if(typeof FriDB!=="undefined") FriDB.quickSave("depenses_budget",depenses[depenses.length-1]).catch(function(e){console.warn(e);});}
   closeMDepense();renderAll();
 }
+
 function deleteDepense(){if(confirm("Supprimer cette dépense ?")){depenses=depenses.filter(d=>d.id!==editDepenseId);
   if(typeof FriDB!=="undefined") FriDB.query("depenses_budget","DELETE",null,"?id=eq."+editDepenseId).catch(function(e){console.warn("Delete DB:",e);});closeMDepense();renderAll();}}
 
