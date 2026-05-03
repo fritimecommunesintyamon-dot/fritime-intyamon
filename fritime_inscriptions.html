@@ -653,13 +653,16 @@ async function saveInscription(){
     if(typeof FriDB!=="undefined") try{await FriDB.quickSave("inscriptions",Object.assign({id:editInscId},data));}catch(e){console.warn(e);}
   } else {
     var newI=Object.assign({id:nInsc++},data);
+    console.log("[Insc] Saving:", JSON.stringify(newI));
     if(typeof FriDB!=="undefined"){
       try{
         var res=await FriDB.quickSave("inscriptions",newI);
+        console.log("[Insc] Saved, response:", JSON.stringify(res));
         if(res&&res[0]&&res[0].id) newI.id=res[0].id;
-      }catch(e){console.warn("Save inscription:",e);}
+      }catch(e){console.warn("[Insc] Save ERREUR:",e);}
     }
     inscriptions.push(newI);
+    console.log("[Insc] inscriptions array now:", inscriptions.length);
   }
   closeMInscription();
   selectedActId=activiteId;
