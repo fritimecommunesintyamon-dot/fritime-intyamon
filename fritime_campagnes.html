@@ -367,7 +367,7 @@ function renderMetrics(){
   document.getElementById("metrics").innerHTML=[
     {val:campaigns.length,lbl:"Total campagnes"},
     {val:campaigns.filter(c=>c.statut==="envoye").length,lbl:"Envoyées"},
-    {val:campaigns.reduce((s,c)=>s+c.reponses.length,0),lbl:"Inscriptions reçues"},
+    {val:campaigns.reduce((s,c)=>s+(c.reponses||[]).length,0),lbl:"Inscriptions reçues"},
     {val:campaigns.filter(c=>c.statut==="pret").length,lbl:"Prêtes à envoyer"},
   ].map(x=>`<div class="metric"><div class="metric-val">${x.val}</div><div class="metric-lbl">${x.lbl}</div></div>`).join("");
 }
@@ -392,9 +392,9 @@ function renderCampaigns(){
       </div>
       ${c.statut==="envoye"?`
         <div class="stats-row">
-          <div class="stat-box"><div class="stat-val">${c.reponses.length}</div><div class="stat-lbl">Inscriptions</div></div>
+          <div class="stat-box"><div class="stat-val">${(c.reponses||[]).length}</div><div class="stat-lbl">Inscriptions</div></div>
           <div class="stat-box"><div class="stat-val">${[...new Set(c.reponses.map(r=>r.commune))].length}</div><div class="stat-lbl">Communes</div></div>
-          <div class="stat-box"><div class="stat-val">${c.activites.map(aid=>c.reponses.filter(r=>r.prefs.includes(aid)).length).join(" · ")||"—"}</div><div class="stat-lbl">Demandes/act.</div></div>
+          <div class="stat-box"><div class="stat-val">${c.activites.map(aid=>(c.reponses||[]).filter(r=>r.prefs.includes(aid)).length).join(" · ")||"—"}</div><div class="stat-lbl">Demandes/act.</div></div>
         </div>`:""}
       <div class="card-actions">
         ${c.statut==="brouillon"||c.statut==="pret"?`<button class="btn btn-sm btn-primary" onclick="event.stopPropagation();openEnvoi(${c.id})">📧 Envoyer à l'école</button>`:""}
@@ -499,7 +499,7 @@ function openDetail(id){
   const c=campaigns.find(x=>x.id===id);if(!c)return;
   const acts=c.activites.map(aid=>{
     const a=ACTIVITES_DISPO.find(x=>x.id===aid);
-    const demandes=c.reponses.filter(r=>r.prefs.includes(aid)).length;
+    const demandes=(c.reponses||[]).filter(r=>r.prefs.includes(aid)).length;
     return a?`<tr><td style="padding:8px 12px;font-size:13px">${a.nom}</td><td style="padding:8px 12px;font-size:13px">${fmtDate(a.date)}</td><td style="padding:8px 12px;font-size:13px;font-weight:600">${demandes}</td><td style="padding:8px 12px;font-size:13px">${a.places}</td></tr>`:"";
   }).join("");
 
@@ -512,9 +512,9 @@ function openDetail(id){
       <button class="btn btn-sm" onclick="closeMDetail()">✕</button>
     </div>
 
-    ${c.reponses.length?`
+    ${(c.reponses||[]).length?`
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1.25rem">
-        <div class="stat-box"><div class="stat-val">${c.reponses.length}</div><div class="stat-lbl">Inscriptions totales</div></div>
+        <div class="stat-box"><div class="stat-val">${(c.reponses||[]).length}</div><div class="stat-lbl">Inscriptions totales</div></div>
         <div class="stat-box"><div class="stat-val">${[...new Set(c.reponses.map(r=>r.commune))].length}</div><div class="stat-lbl">Communes représentées</div></div>
         <div class="stat-box"><div class="stat-val">${fmtDate(c.deadline)||"—"}</div><div class="stat-lbl">Date limite</div></div>
       </div>`:""}
@@ -533,8 +533,8 @@ function openDetail(id){
         </table>
       </div>`:""}
 
-    ${c.reponses.length?`
-      <div style="font-size:12px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Inscriptions reçues (${c.reponses.length})</div>
+    ${(c.reponses||[]).length?`
+      <div style="font-size:12px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Inscriptions reçues (${(c.reponses||[]).length})</div>
       ${c.reponses.map(r=>`
         <div style="background:#f5f5f3;border-radius:8px;padding:10px 12px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;font-size:13px">
           <div>
@@ -592,7 +592,11 @@ async function loadCampagnesDB(){
   if(typeof FriDB==='undefined') return;
   try{
     var db_campaigns = await FriDB.getCampagnes();
-    if(db_campaigns && db_campaigns.length) campaigns = db_campaigns;
+    if(db_campaigns && db_campaigns.length) {
+      campaigns = db_campaigns.map(function(c){
+        return Object.assign({reponses:[], dateEnvoi:c.date_envoi||null}, c);
+      });
+    }
     render();
   }catch(e){console.warn('DB:',e);}
 }

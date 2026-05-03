@@ -312,16 +312,16 @@ let nSondage=3;
 let selSondageId=null;
 
 function fmtDate(d){if(!d)return"—";const[y,m,j]=d.split("-");return`${j}.${m}.${y}`;}
-function avgNote(s){const rep=s.participants.filter(p=>p.repondu&&p.note);if(!rep.length)return null;return(rep.reduce((a,p)=>a+p.note,0)/rep.length).toFixed(1);}
+function avgNote(s){const rep=(s.participants||[]).filter(p=>p.repondu&&p.note);if(!rep.length)return null;return(rep.reduce((a,p)=>a+p.note,0)/rep.length).toFixed(1);}
 function smileyFor(note){if(!note)return"—";return SMILEYS[Math.round(note)-1]||"—";}
 
 function renderMetrics(){
   const total=sondages.length;
   const envoyes=sondages.filter(s=>s.statut==="envoye").length;
-  const repTotal=sondages.reduce((s,x)=>s+x.participants.filter(p=>p.repondu).length,0);
-  const partTotal=sondages.reduce((s,x)=>s+x.participants.length,0);
+  const repTotal=sondages.reduce((s,x)=>s+(x.participants||[]).filter(p=>p.repondu).length,0);
+  const partTotal=sondages.reduce((s,x)=>s+(x.participants||[]).length,0);
   const taux=partTotal?Math.round(repTotal/partTotal*100):0;
-  const notes=sondages.flatMap(s=>s.participants.filter(p=>p.repondu&&p.note).map(p=>p.note));
+  const notes=sondages.flatMap(s=>(s.participants||[]).filter(p=>p.repondu&&p.note).map(p=>p.note));
   const moy=notes.length?(notes.reduce((a,b)=>a+b,0)/notes.length).toFixed(1):"—";
   document.getElementById("metrics").innerHTML=[
     {val:total,lbl:"Sondages"},
@@ -335,8 +335,8 @@ function renderTable(){
   const tb=document.getElementById("tbody");
   if(!sondages.length){tb.innerHTML=`<tr><td colspan="7" style="text-align:center;padding:2rem;color:#888">Aucun sondage</td></tr>`;return;}
   tb.innerHTML=sondages.map(s=>{
-    const rep=s.participants.filter(p=>p.repondu).length;
-    const tot=s.participants.length;
+    const rep=(s.participants||[]).filter(p=>p.repondu).length;
+    const tot=(s.participants||[]).length;
     const avg=avgNote(s);
     const pct=tot?Math.round(rep/tot*100):0;
     return`<tr onclick="openResults(${s.id})">
@@ -430,7 +430,7 @@ function envoyerSondage(id){
 function openResults(id){
   selSondageId=id;
   const s=sondages.find(x=>x.id===id);if(!s)return;
-  const rep=s.participants.filter(p=>p.repondu);
+  const rep=(s.participants||[]).filter(p=>p.repondu);
   const avg=avgNote(s);
   const dist=[1,2,3,4,5].map(n=>({n,count:rep.filter(p=>p.note===n).length}));
   document.getElementById("results-content").innerHTML=`
@@ -465,8 +465,8 @@ function openResults(id){
     </div>
 
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-      <div style="font-size:12px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.05em">Réponses (${rep.length}/${s.participants.length})</div>
-      <div style="font-size:12px;color:#888">${s.participants.filter(p=>!p.repondu).length} en attente</div>
+      <div style="font-size:12px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.05em">Réponses (${rep.length}/${(s.participants||[]).length})</div>
+      <div style="font-size:12px;color:#888">${(s.participants||[]).filter(p=>!p.repondu).length} en attente</div>
     </div>
     ${rep.length?rep.map(p=>`<div class="reponse-card">
       <div class="reponse-header">
@@ -478,9 +478,9 @@ function openResults(id){
       </div>
       ${p.comment?`<div class="reponse-comment">"${p.comment}"</div>`:`<div style="font-size:12px;color:#bbb;font-style:italic">Aucun commentaire</div>`}
     </div>`).join(""):`<div style="text-align:center;padding:1.5rem;color:#bbb;font-size:13px">Aucune réponse pour l'instant</div>`}
-    ${s.participants.filter(p=>!p.repondu).length?`
+    ${(s.participants||[]).filter(p=>!p.repondu).length?`
       <div style="margin-top:12px;padding:10px 12px;background:#faeeda;border-radius:8px;font-size:12px;color:#633806">
-        ⏳ En attente : ${s.participants.filter(p=>!p.repondu).map(p=>p.nom).join(", ")}
+        ⏳ En attente : ${(s.participants||[]).filter(p=>!p.repondu).map(p=>p.nom).join(", ")}
       </div>`:""}
     <div class="mf"><div></div><button class="btn btn-primary btn-sm" onclick="closeMResults()">Fermer</button></div>`;
   document.getElementById("mResults").style.display="flex";
@@ -519,7 +519,7 @@ async function loadSondagesDB(){
   if(typeof FriDB==='undefined') return;
   try{
     var db_sondages = await FriDB.getSondages();
-    if(db_sondages && db_sondages.length) sondages = db_sondages;
+    if(db_sondages && db_sondages.length) sondages = db_sondages.map(function(s){ return Object.assign({participants:[]}, s); });
     render();
   }catch(e){console.warn('DB:',e);}
 }

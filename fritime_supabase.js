@@ -435,16 +435,24 @@ FriDB.quickSave = async function(table, obj) {
   // Only PATCH if this is a Supabase-originated ID (has created_at)
   // Local JS ids (nid++) should always be POSTed as new records
   if(obj.id && obj.created_at) {
-    // Final null cleanup for PATCH
+    // Final cleanup for PATCH: empty strings -> null, arrays -> JSON string
     Object.keys(clean).forEach(function(k){
-      if(clean[k] === '' || clean[k] === undefined) clean[k] = null;
+      if(clean[k] === '' || clean[k] === undefined) {
+        clean[k] = null;
+      } else if(Array.isArray(clean[k])) {
+        clean[k] = JSON.stringify(clean[k]);
+      }
     });
     return await FriDB.query(table, 'PATCH', clean, '?id=eq.'+obj.id);
   }
   delete clean.id;
-  // Final null cleanup - convert empty strings to null
+  // Final cleanup: empty strings -> null, arrays -> JSON string
   Object.keys(clean).forEach(function(k){
-    if(clean[k] === '' || clean[k] === undefined) clean[k] = null;
+    if(clean[k] === '' || clean[k] === undefined) {
+      clean[k] = null;
+    } else if(Array.isArray(clean[k])) {
+      clean[k] = JSON.stringify(clean[k]);
+    }
   });
   console.log('[QuickSave] POST to', table, JSON.stringify(clean).substring(0,200));
   return await FriDB.query(table, 'POST', clean);

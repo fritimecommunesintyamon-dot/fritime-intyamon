@@ -422,8 +422,8 @@ function renderMetrics(){
   const actifs=prestataires.filter(p=>p.statut==="actif").length;
   const acontacter=prestataires.filter(p=>p.statut==="acontacter").length;
   const gratuits=prestataires.filter(p=>p.gratuit).length;
-  const notees=prestataires.filter(p=>p.evals.length>0);
-  const moyGlobal=notees.length?Math.round(notees.reduce((s,p)=>s+avgNote(p.evals),0)/notees.length*10)/10:0;
+  const notees=prestataires.filter(p=>(p.evals||[]).length>0);
+  const moyGlobal=notees.length?Math.round(notees.reduce((s,p)=>s+avgNote((p.evals||[])),0)/notees.length*10)/10:0;
   document.getElementById("metrics").innerHTML=[
     {val:prestataires.length,lbl:"Total"},
     {val:actifs,lbl:"Actifs"},
@@ -448,7 +448,7 @@ function render(){
   const g=document.getElementById("grid");
   if(!filtered.length){g.innerHTML=`<div style="color:#888;font-size:13px;padding:2rem">Aucun prestataire trouvé</div>`;return;}
   g.innerHTML=filtered.map(p=>{
-    const avg=avgNote(p.evals);
+    const avg=avgNote((p.evals||[]));
     return`<div class="card${p.statut==="inactif"?" inactif":""}" onclick="openDetail(${p.id})">
       <div class="card-top">
         <div>
@@ -461,15 +461,15 @@ function render(){
           ${p.gratuit?`<span class="badge badge-gratuit">Gratuit</span>`:""}
         </div>
       </div>
-      ${avg!==null?`<div style="margin-bottom:6px">${renderStars(Math.round(avg))} <span style="font-size:12px;color:#888">${avg}/5 (${p.evals.length} éval.)</span></div>`:""}
+      ${avg!==null?`<div style="margin-bottom:6px">${renderStars(Math.round(avg))} <span style="font-size:12px;color:#888">${avg}/5 (${(p.evals||[]).length} éval.)</span></div>`:""}
       <div class="card-meta">
         ${p.cp||p.cn?`<span>👤 ${p.cp} ${p.cn}</span>`:""}
         ${p.tel?`<span>📞 <a href="tel:${p.tel}" onclick="event.stopPropagation()" style="color:inherit;text-decoration:none">${p.tel}</a></span>`:""}
         ${p.email?`<span>✉️ ${p.email}</span>`:""}
         ${p.url?`<span>🌐 <a href="${p.url}" target="_blank" onclick="event.stopPropagation()" style="color:#0c447c">${p.url.replace("https://","")}</a></span>`:""}
       </div>
-      ${p.acts.length?`<div class="card-acts">${p.acts.map(a=>`<span class="act-chip">${a}</span>`).join("")}</div>`:""}
-      ${p.evals.length?`<div class="eval-mini">Dernière éval. : ${p.evals[p.evals.length-1].activite}</div>`:""}
+      ${(p.acts||[]).length?`<div class="card-acts">${(p.acts||[]).map(a=>`<span class="act-chip">${a}</span>`).join("")}</div>`:""}
+      ${(p.evals||[]).length?`<div class="eval-mini">Dernière éval. : ${(p.evals||[])[(p.evals||[]).length-1].activite}</div>`:""}
     </div>`;
   }).join("");
 }
@@ -543,7 +543,7 @@ function openEdit(id){
   document.getElementById("f-adresse").value=p.adresse||"";
   document.getElementById("f-gratuit").checked=p.gratuit||false;
   document.getElementById("f-notes").value=p.notes||"";
-  editActs=[...p.acts];
+  editActs=[...(p.acts||[])];
   fillCatSelect(p.cat);
   renderActsList();
   closeDetail();
@@ -577,7 +577,7 @@ function openDetail(id){
 function closeDetail(){document.getElementById("mDetail").style.display="none";}
 function renderDet(){
   const p=prestataires.find(x=>x.id===selId);if(!p)return;
-  const avg=avgNote(p.evals);
+  const avg=avgNote((p.evals||[]));
   document.getElementById("det").innerHTML=`
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem">
       <div>
@@ -591,7 +591,7 @@ function renderDet(){
       </div>
       <button class="btn btn-sm" onclick="closeDetail()">✕</button>
     </div>
-    ${avg!==null?`<div style="margin-bottom:12px">${renderStars(Math.round(avg))} <span style="font-size:13px;color:#888">${avg}/5 — ${p.evals.length} évaluation(s)</span></div>`:""}
+    ${avg!==null?`<div style="margin-bottom:12px">${renderStars(Math.round(avg))} <span style="font-size:13px;color:#888">${avg}/5 — ${(p.evals||[]).length} évaluation(s)</span></div>`:""}
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;margin-bottom:12px">
       <div><div class="dl">Contact</div><div class="dv">${p.cp||p.cn?p.cp+" "+p.cn:"—"}</div></div>
       <div><div class="dl">Téléphone</div><div class="dv">${p.tel?`<a href="tel:${p.tel}" style="color:inherit">${p.tel}</a>`:"—"}</div></div>
@@ -599,11 +599,11 @@ function renderDet(){
       <div><div class="dl">Site web</div><div class="dv">${p.url?`<a href="${p.url}" target="_blank" style="color:#0c447c">${p.url}</a>`:"—"}</div></div>
       <div style="grid-column:1/-1"><div class="dl">Adresse</div><div class="dv">${p.adresse||"—"}</div></div>
     </div>
-    ${p.acts.length?`<div class="dl">Activités proposées</div><div style="margin-bottom:12px">${p.acts.map(a=>`<span class="act-chip">${a}</span>`).join("")}</div>`:""}
+    ${(p.acts||[]).length?`<div class="dl">Activités proposées</div><div style="margin-bottom:12px">${(p.acts||[]).map(a=>`<span class="act-chip">${a}</span>`).join("")}</div>`:""}
     ${p.notes?`<div style="background:#fafaf8;border-radius:8px;padding:10px 12px;font-size:13px;color:#555;margin-bottom:12px">${p.notes}</div>`:""}
-    ${p.evals.length?`
-      <div style="font-size:12px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Évaluations (${p.evals.length})</div>
-      ${p.evals.map((e,i)=>`<div class="eval-item">
+    ${(p.evals||[]).length?`
+      <div style="font-size:12px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Évaluations (${(p.evals||[]).length})</div>
+      ${(p.evals||[]).map((e,i)=>`<div class="eval-item">
         <div class="eval-header">
           <div><strong style="font-size:13px">${e.activite}</strong><span style="color:#888;font-size:12px;margin-left:8px">${fmtDate(e.date)}</span></div>
           <div style="display:flex;align-items:center;gap:8px">
@@ -626,7 +626,7 @@ function renderDet(){
 
 function deleteEval(idx){
   if(confirm("Supprimer cette évaluation ?")){
-    prestataires=prestataires.map(p=>p.id===selId?{...p,evals:p.evals.filter((_,i)=>i!==idx)}:p);
+    prestataires=prestataires.map(p=>p.id===selId?{...p,evals:(p.evals||[]).filter((_,i)=>i!==idx)}:p);
     renderDet();render();
   }
 }
@@ -653,7 +653,7 @@ function saveEval(){
   if(!activite){alert("Précise l'activité concernée");return;}
   if(!noteTemp){alert("Choisis une note");return;}
   const eval_={activite,note:noteTemp,comment:document.getElementById("ev-comment").value.trim(),date:document.getElementById("ev-date").value};
-  prestataires=prestataires.map(p=>p.id===selId?{...p,evals:[...p.evals,eval_]}:p);
+  prestataires=prestataires.map(p=>p.id===selId?{...p,evals:[...(p.evals||[]),eval_]}:p);
   closeMEval();
   if(document.getElementById("mDetail").style.display==="flex")renderDet();
   render();
@@ -691,7 +691,7 @@ async function loadPrestatairesDB(){
   if(typeof FriDB==='undefined') return;
   try{
     var db_prestataires = await FriDB.getPrestataires();
-    if(db_prestataires && db_prestataires.length) prestataires = db_prestataires;
+    if(db_prestataires && db_prestataires.length) prestataires = db_prestataires.map(function(p){ return Object.assign({evals:[], acts:[]}, p); });
     render();
   }catch(e){console.warn('DB:',e);}
 }
