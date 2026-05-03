@@ -403,22 +403,27 @@ function closeMSend(){document.getElementById("mSend").style.display="none";}
 async function saveSend(){
   const actEl=document.getElementById("s-activite");
   if(!actEl.value){alert("Choisissez une activité");return;}
-  var actNames={}; activites.forEach(function(a){actNames[String(a.id)]=a.nom;});
-  const dateMap={"1":"2026-05-20","2":"2026-06-14","3":"2026-02-15"};
-  const partsMap={
-    "1":["Anne Bernard (Luca)","Paul Favre (Emma)","Claire Morel (Noah)"],
-    "2":["Anne Bernard (Luca)","Claire Morel (Noah)","Sophie Remy (Tom)"],
-    "3":["Anne Bernard (Luca)","Claire Morel (Noah)","Sophie Remy (Tom)","Marc Dupont (Léa)","Paul Favre (Emma)"]
-  };
-  sondages.push({id:nSondage++,activite:actNames[actEl.value],dateActivite:dateMap[actEl.value],dateEnvoi:new Date().toISOString().split("T")[0],statut:"envoye",participants:(partsMap[actEl.value]||[]).map(nom=>({nom,email:"",repondu:false,note:null,comment:"",dateRep:null}))});
-  if(typeof FriDB !== 'undefined'){
+  const actId=actEl.value;
+  const act=activites.find(function(a){return String(a.id)===String(actId);});
+  const actNom=act?act.nom:"Activité #"+actId;
+  const actDate=act?act.date:null;
+  
+  // Get selected participants
+  const checks=document.querySelectorAll("#participants-list input[type=checkbox]:checked");
+  const parts=Array.from(checks).map(function(cb){return {nom:cb.value,email:"",repondu:false,note:null,comment:"",dateRep:null};});
+  
+  var newS={id:nSondage++,activite:actNom,dateActivite:actDate,dateEnvoi:new Date().toISOString().split("T")[0],statut:"envoye",participants:parts};
+  
+  if(typeof FriDB!=='undefined'){
     try{
-      var _last = sondages[sondages.length-1];
-      var _res = await FriDB.quickSave('sondages', _last);
-      if(_res && _res[0] && _res[0].id) sondages[sondages.length-1].id = _res[0].id;
-    }catch(e){ console.warn('DB save:', e); }
+      var _res=await FriDB.quickSave('sondages',newS);
+      if(_res&&_res[0]&&_res[0].id) newS.id=_res[0].id;
+    }catch(e){console.warn('DB save sondage:',e);}
   }
-  }
+  sondages.push(newS);
+  closeMSend();renderAll();
+  alert("Sondage envoyé aux familles !");
+}
   closeMSend();renderAll();
   alert("Sondage envoyé aux familles !");
 
