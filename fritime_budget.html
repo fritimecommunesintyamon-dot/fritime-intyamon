@@ -598,7 +598,7 @@ function openEntree(){
   document.getElementById("mEntree").style.display="flex";
 }
 function openEntreeEdit(id){
-  editEntreeId=id;
+  editEntreeId=parseInt(id)||id;
   const e=entrees.find(x=>x.id===id);
   document.getElementById("entree-modal-title").textContent="Modifier l'entrée";
   document.getElementById("e-del-btn").style.display="inline-block";
@@ -621,7 +621,7 @@ async function deleteEntree(){if(confirm("Supprimer cette entrée ?")){
       console.log("[Budget] Entrée supprimée dans Supabase ✓");
     }catch(e){console.warn("Delete DB erreur:",e);}
   }
-  entrees=entrees.filter(e=>e.id!==editEntreeId);
+  entrees=entrees.filter(function(e){return String(e.id)!==String(editEntreeId);});
   closeMEntree();renderAll();}}
 
 async function deleteDepense(){if(confirm("Supprimer cette dépense ?")){
@@ -632,7 +632,7 @@ async function deleteDepense(){if(confirm("Supprimer cette dépense ?")){
       console.log("[Budget] Dépense supprimée dans Supabase ✓");
     }catch(e){console.warn("Delete DB erreur:",e);}
   }
-  depenses=depenses.filter(d=>d.id!==editDepenseId);
+  depenses=depenses.filter(function(d){return String(d.id)!==String(editDepenseId);});
   closeMDepense();renderAll();}}
 
 async function saveEntree(){
@@ -668,7 +668,7 @@ function openDepense(){
   document.getElementById("mDepense").style.display="flex";
 }
 function openDepenseEdit(id){
-  editDepenseId=id;
+  editDepenseId=parseInt(id)||id;
   const d=depenses.find(x=>x.id===id);
   document.getElementById("dep-modal-title").textContent="Modifier la dépense";
   document.getElementById("d-del-btn").style.display="inline-block";
