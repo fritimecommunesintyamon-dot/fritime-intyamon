@@ -577,9 +577,9 @@ function openEdit(id){
 }
 
 async function saveIdee(){
-  const nom=document.getElementById('i-titre').value.trim();
+  const nom=document.getElementById('f-titre').value.trim();
   if(!nom){alert('Le titre est obligatoire');return;}
-  const data={titre:nom,cat:document.getElementById('i-cat').value,saison:document.getElementById('i-saison').value,desc:document.getElementById('i-desc').value.trim(),ageMin:parseInt(document.getElementById('i-age-min').value)||null,ageMax:parseInt(document.getElementById('i-age-max').value)||null,coutEstime:parseFloat(document.getElementById('i-cout').value)||null,prestataireSuggere:document.getElementById('i-prest').value.trim(),statut:document.getElementById('i-statut').value,notes:document.getElementById('i-notes').value.trim(),votes:[],utilise:false};
+  const data={titre:nom,cat:document.getElementById('f-cat').value,saison:'',desc:document.getElementById('f-desc').value.trim(),ageMin:parseInt(document.getElementById('f-agemin').value)||null,ageMax:parseInt(document.getElementById('f-agemax').value)||null,coutEstime:parseFloat(document.getElementById('f-cout').value)||null,prestataireSuggere:document.getElementById('f-source').value.trim(),statut:document.getElementById('f-statut').value,notes:document.getElementById('f-notes').value.trim(),votes:[],utilise:document.getElementById('f-utilise').checked};
   if(editId){
     idees=idees.map(function(x){return String(x.id)===String(editId)?Object.assign({},x,data):x;});
     if(typeof FriDB!=='undefined') try{await FriDB.quickSave('idees',Object.assign({id:editId},data));}catch(e){console.warn(e);}
