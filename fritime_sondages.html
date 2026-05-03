@@ -392,10 +392,16 @@ function openSend(){
   var sel=document.getElementById("s-activite");
   sel.innerHTML='<option value="">— Choisir une activité —</option>'+
     activites.map(function(a){return '<option value="'+a.id+'">'+a.nom+(a.date?' — '+a.date:'')+'</option>';}).join("");
-  document.getElementById("s-activite").selectedIndex=0;
   document.getElementById("s-message").value="";
   document.getElementById("participants-list").innerHTML="";
-  document.getElementById("email-preview").innerHTML="Sélectionnez une activité pour voir l'aperçu du message.";
+  // Auto-select first activite if available
+  if(activites.length){
+    sel.value=String(activites[0].id);
+    updateParticipants();
+    updatePreview();
+  } else {
+    document.getElementById("email-preview").innerHTML="Aucune activité disponible. Créez d'abord une activité.";
+  }
   document.getElementById("mSend").style.display="flex";
 }
 function closeMSend(){document.getElementById("mSend").style.display="none";}
