@@ -570,22 +570,6 @@ function switchTab(name,btn){
 }
 
 function openAddInscription(){
-  // If data not loaded yet, load it first
-  if(!enfants.length || !activites.length){
-    var btn = document.querySelector('[onclick*="openAddInscription"]');
-    if(btn) btn.textContent = "Chargement...";
-    (async function(){
-      if(typeof FriDB !== "undefined"){
-        try{
-          if(!enfants.length){ var de = await FriDB.getEnfants(); if(de&&de.length) enfants=de; }
-          if(!activites.length){ var da = await FriDB.getActivites(); if(da&&da.length) activites=da; }
-        }catch(e){ console.warn(e); }
-      }
-      if(btn) btn.textContent = "+ Inscrire un enfant";
-      openAddInscription();
-    })();
-    return;
-  }
   // Reload enfants and activites selects dynamically
   var enfantSel=document.getElementById("i-enfant");
   var actSel=document.getElementById("i-activite");
