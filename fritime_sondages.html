@@ -275,12 +275,7 @@ function doLogout(){
 <div class="modal" onclick="event.stopPropagation()">
   <div class="modal-title">Envoyer un sondage</div>
   <div class="fg"><label class="fl">Activité *</label>
-    <select class="fi" id="s-activite" onchange="updateParticipants()">
-      <option value="">— Choisir une activité terminée —</option>
-      <option value="3">Journée ski — 15 fév. 2026</option>
-      <option value="1">Atelier poterie — 20 mai 2026</option>
-      <option value="2">Sortie Lac Noir — 14 juin 2026</option>
-    </select>
+    <select class="fi" id="s-activite" onchange="updateParticipants()"><option value="">— Choisir une activité —</option></select>
   </div>
   <div id="participants-list" style="margin-bottom:.75rem"></div>
   <div class="fg"><label class="fl">Aperçu du message email</label>
@@ -363,23 +358,24 @@ function renderTable(){
 }
 
 function updateParticipants(){
-  const val=document.getElementById("s-activite").value;
-  const pList=document.getElementById("participants-list");
-  const maps={
-    "1":["Anne Bernard (Luca)","Paul Favre (Emma)","Claire Morel (Noah)"],
-    "2":["Anne Bernard (Luca)","Claire Morel (Noah)","Sophie Remy (Tom)"],
-    "3":["Anne Bernard (Luca)","Claire Morel (Noah)","Sophie Remy (Tom)","Marc Dupont (Léa)","Paul Favre (Emma)"]
-  };
-  const parts=maps[val]||[];
-  if(!parts.length){pList.innerHTML="";updatePreview();return;}
-  pList.innerHTML=`<label class="fl">Participants (${parts.length})</label>`+
-    parts.map(p=>`<div class="participant-check"><span>${p}</span><span style="font-size:11px;color:#275a0a">✓ sera notifié</span></div>`).join("");
-  updatePreview();
+  var val=document.getElementById("s-activite").value;
+  var pList=document.getElementById("participants-list");
+  if(!val){pList.innerHTML="";return;}
+  // Load enfants registered for this activity from inscriptions
+  var inscs=inscriptions.filter(function(i){return String(i.activiteId)===String(val)||String(i.activite_id)===String(val);});
+  var actEnfants=inscs.map(function(i){
+    var e=enfants.find(function(x){return String(x.id)===String(i.enfantId||i.enfant_id);});
+    return e?e.prenom+' '+e.nom:'Enfant #'+(i.enfantId||i.enfant_id);
+  });
+  if(!actEnfants.length){pList.innerHTML='<div style="font-size:12px;color:#888">Aucun enfant inscrit à cette activité</div>';return;}
+  pList.innerHTML=actEnfants.map(function(nom){
+    return '<label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:4px"><input type="checkbox" value="'+nom+'" checked /> '+nom+'</label>';
+  }).join("");
 }
 
 function updatePreview(){
   const actEl=document.getElementById("s-activite");
-  const actNames={"1":"Atelier poterie","2":"Sortie Lac Noir","3":"Journée ski"};
+  var actNames={}; activites.forEach(function(a){actNames[String(a.id)]=a.nom;});
   const act=actNames[actEl.value]||"[activité]";
   const msg=document.getElementById("s-message").value.trim();
   document.getElementById("email-preview").innerHTML=`
@@ -392,6 +388,10 @@ function updatePreview(){
 }
 
 function openSend(){
+  // Populate activites select dynamically
+  var sel=document.getElementById("s-activite");
+  sel.innerHTML='<option value="">— Choisir une activité —</option>'+
+    activites.map(function(a){return '<option value="'+a.id+'">'+a.nom+(a.date?' — '+a.date:'')+'</option>';}).join("");
   document.getElementById("s-activite").selectedIndex=0;
   document.getElementById("s-message").value="";
   document.getElementById("participants-list").innerHTML="";
@@ -403,7 +403,7 @@ function closeMSend(){document.getElementById("mSend").style.display="none";}
 async function saveSend(){
   const actEl=document.getElementById("s-activite");
   if(!actEl.value){alert("Choisissez une activité");return;}
-  const actNames={"1":"Atelier poterie","2":"Sortie Lac Noir","3":"Journée ski"};
+  var actNames={}; activites.forEach(function(a){actNames[String(a.id)]=a.nom;});
   const dateMap={"1":"2026-05-20","2":"2026-06-14","3":"2026-02-15"};
   const partsMap={
     "1":["Anne Bernard (Luca)","Paul Favre (Emma)","Claire Morel (Noah)"],
@@ -520,6 +520,19 @@ async function loadSondagesDB(){
   try{
     var db_sondages = await FriDB.getSondages();
     if(db_sondages && db_sondages.length) sondages = db_sondages.map(function(s){ return Object.assign({participants:[]}, s); });
+    var db_activites = await FriDB.getActivites();
+    if(db_activites && db_activites.length) activites = db_activites;
+    var db_enfants = await FriDB.getEnfants();
+    if(db_enfants && db_enfants.length) enfants = db_enfants;
+    var db_inscriptions = await FriDB.getInscriptions();
+    if(db_inscriptions && db_inscriptions.length) {
+      inscriptions = db_inscriptions.map(function(i){
+        var m = Object.assign({}, i);
+        if(m.enfant_id) m.enfantId = m.enfant_id;
+        if(m.activite_id) m.activiteId = m.activite_id;
+        return m;
+      });
+    }
     renderAll();
   }catch(e){console.warn('DB:',e);}
 }
