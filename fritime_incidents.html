@@ -536,9 +536,8 @@ async function saveRapport(){
       if(_res && _res[0] && _res[0].id) rapports[rapports.length-1].id = _res[0].id;
     }catch(e){ console.warn('DB save:', e); }
   }
-  if(typeof FriDB!=="undefined") FriDB.quickSave("incidents",rapports[rapports.length-1]).catch(function(e){console.warn("Save failed:",e);});}
-  closeCreate();render();
-}
+}  closeCreate();render();
+  }
 
 function deleteRapport(){
   if(confirm("Supprimer ce rapport ?")){rapports=rapports.filter(function(x){return String(x.id)!==String(editId);});

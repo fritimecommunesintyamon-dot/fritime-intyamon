@@ -563,13 +563,20 @@ async function savePrest(){
       if(_res && _res[0] && _res[0].id) prestataires[prestataires.length-1].id = _res[0].id;
     }catch(e){ console.warn('DB save:', e); }
   }
-  if(typeof FriDB!=="undefined") FriDB.quickSave("prestataires",prestataires[prestataires.length-1]).catch(function(e){console.warn("Save failed:",e);});}
-  closeCreate();render();
-}
+}  closeCreate();render();
+  }
 function deletePrest(){
   console.log("[Prest] Suppression id:", editId, typeof editId);
-  if(confirm("Supprimer ce prestataire ?")){prestataires=prestataires.filter(function(p){return String(p.id)!==String(editId);});
-  if(typeof FriDB!=="undefined") FriDB.query("prestataires","DELETE",null,"?id=eq."+editId).catch(function(e){console.warn("Delete DB:",e);});closeCreate();render();}
+  if(confirm("Supprimer ce prestataire ?")){
+    var _id = editId;
+    prestataires=prestataires.filter(function(p){return String(p.id)!==String(_id);});
+    closeCreate();render();
+    if(typeof FriDB!=="undefined"){
+      FriDB.query("prestataires","DELETE",null,"?id=eq."+_id)
+        .then(function(r){console.log("[Prest] Supprimé Supabase ✓ id:",_id, r);})
+        .catch(function(e){console.warn("[Prest] Delete ERREUR:",e);});
+    }
+  }
 }
 
 function openDetail(id){

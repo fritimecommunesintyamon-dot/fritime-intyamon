@@ -577,20 +577,19 @@ function openEdit(id){
 }
 
 async function saveIdee(){
-  const titre=document.getElementById("f-titre").value.trim();
-  if(!titre){alert("Le titre est obligatoire");return;}
-  const imgEl=document.getElementById("f-img-preview");
-  const data={titre,cat:document.getElementById("f-cat").value,souscat:document.getElementById("f-souscat").value.trim(),desc:document.getElementById("f-desc").value.trim(),image:imgEl.style.display!=="none"?imgEl.src:null,ageMin:parseInt(document.getElementById("f-agemin").value)||null,ageMax:parseInt(document.getElementById("f-agemax").value)||null,cout:parseFloat(document.getElementById("f-cout").value)||0,source:document.getElementById("f-source").value.trim(),statut:document.getElementById("f-statut").value,utilise:document.getElementById("f-utilise").checked,notes:document.getElementById("f-notes").value.trim()};
-  if(editId){idees=idees.map(i=>i.id===editId?{...i,...data}:i);}
-  else{idees.push({id:nid++,...data,votes:[],_voted:false,date:new Date().toISOString().split("T")[0]});
-  if(typeof FriDB !== 'undefined'){
-    try{
-      var _last = idees[idees.length-1];
-      var _res = await FriDB.quickSave('idees', _last);
-      if(_res && _res[0] && _res[0].id) idees[idees.length-1].id = _res[0].id;
-    }catch(e){ console.warn('DB save:', e); }
+  const nom=document.getElementById('i-titre').value.trim();
+  if(!nom){alert('Le titre est obligatoire');return;}
+  const data={titre:nom,cat:document.getElementById('i-cat').value,saison:document.getElementById('i-saison').value,desc:document.getElementById('i-desc').value.trim(),ageMin:parseInt(document.getElementById('i-age-min').value)||null,ageMax:parseInt(document.getElementById('i-age-max').value)||null,coutEstime:parseFloat(document.getElementById('i-cout').value)||null,prestataireSuggere:document.getElementById('i-prest').value.trim(),statut:document.getElementById('i-statut').value,notes:document.getElementById('i-notes').value.trim(),votes:[],utilise:false};
+  if(editId){
+    idees=idees.map(function(x){return String(x.id)===String(editId)?Object.assign({},x,data):x;});
+    if(typeof FriDB!=='undefined') try{await FriDB.quickSave('idees',Object.assign({id:editId},data));}catch(e){console.warn(e);}
+  } else {
+    var newObj=Object.assign({id:nid++},data);
+    if(typeof FriDB!=='undefined'){
+      try{var _r=await FriDB.quickSave('idees',newObj); if(_r&&_r[0]&&_r[0].id) newObj.id=_r[0].id;}catch(e){console.warn(e);}
+    }
+    idees.push(newObj);
   }
-  if(typeof FriDB!=="undefined") FriDB.quickSave("idees",idees[idees.length-1]).catch(function(e){console.warn("Save failed:",e);});}
   closeCreate();render();
 }
 function deleteIdee(){

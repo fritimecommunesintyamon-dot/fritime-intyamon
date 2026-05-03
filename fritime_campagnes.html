@@ -460,17 +460,20 @@ function closeMCreate(){document.getElementById("mCreate").style.display="none";
 async function saveCampaign(statut){
   const titre=document.getElementById("c-titre").value.trim();
   if(!titre){alert("Le titre est obligatoire");return;}
-  const data={titre,type:document.getElementById("c-type").value,periode:document.getElementById("c-periode").value.trim(),deadline:document.getElementById("c-deadline").value,message:document.getElementById("c-message").value.trim(),activites:getSelectedActivites(),statut};
-  if(editCampaignId){campaigns=campaigns.map(c=>c.id===editCampaignId?{...c,...data}:c);}
-  else{campaigns.push({id:nCamp++,...data,dateEnvoi:null,reponses:[]});
-  if(typeof FriDB !== 'undefined'){
-    try{
-      var _last = campaigns[campaigns.length-1];
-      var _res = await FriDB.quickSave('campagnes', _last);
-      if(_res && _res[0] && _res[0].id) campaigns[campaigns.length-1].id = _res[0].id;
-    }catch(e){ console.warn('DB save:', e); }
+  const data={titre:titre,type:document.getElementById("c-type").value,periode:document.getElementById("c-periode").value.trim(),deadline:document.getElementById("c-deadline").value,message:document.getElementById("c-message").value.trim(),activites:getSelectedActivites(),statut:statut};
+  if(editCampaignId){
+    campaigns=campaigns.map(function(c){return c.id===editCampaignId?Object.assign({},c,data):c;});
+    if(typeof FriDB!=='undefined') try{await FriDB.quickSave('campagnes',Object.assign({id:editCampaignId},data));}catch(e){console.warn(e);}
+  } else {
+    var newC=Object.assign({id:nCamp++},data,{dateEnvoi:null,reponses:[]});
+    if(typeof FriDB!=='undefined'){
+      try{
+        var _res=await FriDB.quickSave('campagnes',newC);
+        if(_res&&_res[0]&&_res[0].id) newC.id=_res[0].id;
+      }catch(e){console.warn('DB save:',e);}
+    }
+    campaigns.push(newC);
   }
-  if(typeof FriDB!=="undefined") FriDB.quickSave("campagnes",campaigns[campaigns.length-1]).catch(function(e){console.warn("Save failed:",e);});}
   closeMCreate();renderAll();
 }
 

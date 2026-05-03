@@ -418,10 +418,9 @@ async function saveSend(){
       if(_res && _res[0] && _res[0].id) sondages[sondages.length-1].id = _res[0].id;
     }catch(e){ console.warn('DB save:', e); }
   }
-  if(typeof FriDB!=="undefined") FriDB.quickSave("sondages",sondages[sondages.length-1]).catch(function(e){console.warn(e);});
+  }
   closeMSend();renderAll();
   alert("Sondage envoyé aux familles !");
-}
 
 function envoyerSondage(id){
   sondages=sondages.map(s=>s.id===id?{...s,statut:"envoye",dateEnvoi:new Date().toISOString().split("T")[0]}:s);

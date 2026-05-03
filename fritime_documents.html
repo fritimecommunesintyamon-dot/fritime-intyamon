@@ -547,10 +547,9 @@ async function saveDoc(){
       if(_res && _res[0] && _res[0].id) docs[docs.length-1].id = _res[0].id;
     }catch(e){ console.warn('DB save:', e); }
   }
-  if(typeof FriDB!=="undefined") FriDB.quickSave("documents",docs[docs.length-1]).catch(function(e){console.warn("Save failed:",e);});}
+}}
   closeMDoc();
   renderAll();
-}
 
 function deleteDoc(){
   if(confirm("Supprimer ce document ?")){docs=docs.filter(function(x){return String(x.id)!==String(editDocId);});
