@@ -645,20 +645,22 @@ async function saveInscription(){
   const enfantId=parseInt(document.getElementById("i-enfant").value);
   const activiteId=parseInt(document.getElementById("i-activite").value);
   if(!enfantId||!activiteId){alert("Enfant et activité obligatoires");return;}
-  // Check duplicate
-  const existing=inscriptions.find(i=>i.enfantId===enfantId&&i.activiteId===activiteId&&i.id!==editInscId);
+  const existing=inscriptions.find(function(i){return i.enfantId===enfantId&&i.activiteId===activiteId&&i.id!==editInscId;});
   if(existing){alert("Cet enfant est déjà inscrit à cette activité.");return;}
-  const data={enfantId,activiteId,statut:document.getElementById("i-statut").value,pref:parseInt(document.getElementById("i-pref").value)||null,notes:document.getElementById("i-notes").value.trim(),presence:null};
-  if(editInscId){inscriptions=inscriptions.map(i=>i.id===editInscId?{...i,...data}:i);}
-  else{inscriptions.push({id:nInsc++,...data});
-  if(typeof FriDB !== 'undefined'){
-    try{
-      var _last = inscriptions[inscriptions.length-1];
-      var _res = await FriDB.quickSave('inscriptions', _last);
-      if(_res && _res[0] && _res[0].id) inscriptions[inscriptions.length-1].id = _res[0].id;
-    }catch(e){ console.warn('DB save:', e); }
+  const data={enfantId:enfantId,activiteId:activiteId,statut:document.getElementById("i-statut").value,pref:parseInt(document.getElementById("i-pref").value)||null,notes:document.getElementById("i-notes").value.trim(),presence:null};
+  if(editInscId){
+    inscriptions=inscriptions.map(function(i){return i.id===editInscId?Object.assign({},i,data):i;});
+    if(typeof FriDB!=="undefined") try{await FriDB.quickSave("inscriptions",Object.assign({id:editInscId},data));}catch(e){console.warn(e);}
+  } else {
+    var newI=Object.assign({id:nInsc++},data);
+    if(typeof FriDB!=="undefined"){
+      try{
+        var res=await FriDB.quickSave("inscriptions",newI);
+        if(res&&res[0]&&res[0].id) newI.id=res[0].id;
+      }catch(e){console.warn("Save inscription:",e);}
+    }
+    inscriptions.push(newI);
   }
-  if(typeof FriDB!=="undefined") FriDB.quickSave("inscriptions",inscriptions[inscriptions.length-1]).catch(function(e){console.warn(e);});}
   closeMInscription();
   selectedActId=activiteId;
   renderAll();
