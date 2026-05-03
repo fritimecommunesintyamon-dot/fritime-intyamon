@@ -692,7 +692,14 @@ async function loadPrestatairesDB(){
   if(typeof FriDB==='undefined') return;
   try{
     var db_prestataires = await FriDB.getPrestataires();
-    if(db_prestataires && db_prestataires.length) prestataires = db_prestataires.map(function(p){ return Object.assign({evals:[], acts:[]}, p); });
+    if(db_prestataires && db_prestataires.length) prestataires = db_prestataires.map(function(p){
+        var parsed = Object.assign({evals:[], acts:[]}, p);
+        if(typeof parsed.acts === 'string') try{ parsed.acts = JSON.parse(parsed.acts); }catch(e){ parsed.acts = []; }
+        if(typeof parsed.evals === 'string') try{ parsed.evals = JSON.parse(parsed.evals); }catch(e){ parsed.evals = []; }
+        if(!Array.isArray(parsed.acts)) parsed.acts=[];
+        if(!Array.isArray(parsed.evals)) parsed.evals=[];
+        return parsed;
+      });
     renderAll();
   }catch(e){console.warn('DB:',e);}
 }

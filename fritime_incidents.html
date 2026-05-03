@@ -658,7 +658,7 @@ async function loadIncidentsDB(){
       rapports = db_rapports.map(function(item){
         Object.keys(item).forEach(function(k){
           if(typeof item[k] === 'string' && (item[k].startsWith('[') || item[k].startsWith('{'))) {
-            try{ item[k] = JSON.parse(item[k]); }catch(e){}
+            try{ item[k] = JSON.parse(item[k]); }catch(e){ item[k] = []; }
           }
         });
         return item;
