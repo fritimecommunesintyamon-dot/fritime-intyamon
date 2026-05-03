@@ -709,7 +709,14 @@ async function deleteMember(){if(confirm('Supprimer ce membre ?')){
     responsabilites=responsabilites.map(function(r){return Object.assign({},r,{titulaireId:String(r.titulaireId)===String(_sid)?null:r.titulaireId,suppleantId:String(r.suppleantId)===String(_sid)?null:r.suppleantId});});
     membres=membres.filter(function(m){return String(m.id)!==String(_sid);});
     closeEdit();render();}}
-function deleteMemberById(id){if(confirm('Supprimer ce membre ?')){responsabilites=responsabilites.map(r=>({...r,titulaireId:r.titulaireId===id?null:r.titulaireId,suppleantId:r.suppleantId===id?null:r.suppleantId}));membres=membres.filter(m=>m.id!==id);render();}}
+async function deleteMemberById(id){if(confirm('Supprimer ce membre ?')){
+  if(typeof FriDB!=='undefined'){
+    try{ await FriDB.deleteMembre(id); console.log("[Comite] Supprimé Supabase ✓ id:",id); }
+    catch(e){ console.warn("[Comite] Delete erreur:",e); }
+  }
+  responsabilites=responsabilites.map(function(r){return Object.assign({},r,{titulaireId:String(r.titulaireId)===String(id)?null:r.titulaireId,suppleantId:String(r.suppleantId)===String(id)?null:r.suppleantId});});
+  membres=membres.filter(function(m){return String(m.id)!==String(id);});
+  closeDetail();render();}}
 
 function openMemberTask(id){
   selId=id;
