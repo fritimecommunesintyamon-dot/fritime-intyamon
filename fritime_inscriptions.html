@@ -701,7 +701,7 @@ async function loadInscriptionsDB(){
     if(db_activites && db_activites.length) activites = db_activites;
     var db_enfants = await FriDB.getEnfants();
     if(db_enfants && db_enfants.length) enfants = db_enfants;
-    render();
+    renderAll();
   }catch(e){console.warn('DB:',e);}
 }
 loadInscriptionsDB();
