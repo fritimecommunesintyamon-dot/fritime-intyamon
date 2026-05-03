@@ -653,7 +653,16 @@ async function loadIncidentsDB(){
   if(typeof FriDB==='undefined') return;
   try{
     var db_rapports = await FriDB.getIncidents();
-    if(db_rapports && db_rapports.length) rapports = db_rapports;
+    if(db_rapports && db_rapports.length) {
+      rapports = db_rapports.map(function(item){
+        Object.keys(item).forEach(function(k){
+          if(typeof item[k] === 'string' && (item[k].startsWith('[') || item[k].startsWith('{'))) {
+            try{ item[k] = JSON.parse(item[k]); }catch(e){}
+          }
+        });
+        return item;
+      });
+    }
     render();
   }catch(e){console.warn('DB:',e);}
 }

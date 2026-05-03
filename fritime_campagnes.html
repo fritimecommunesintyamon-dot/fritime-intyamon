@@ -594,7 +594,13 @@ async function loadCampagnesDB(){
     var db_campaigns = await FriDB.getCampagnes();
     if(db_campaigns && db_campaigns.length) {
       campaigns = db_campaigns.map(function(c){
-        return Object.assign({reponses:[], dateEnvoi:c.date_envoi||null}, c);
+        var parsed = Object.assign({reponses:[], dateEnvoi:c.date_envoi||null}, c);
+        // Parse activites back from JSON string to array
+        if(typeof parsed.activites === 'string') {
+          try { parsed.activites = JSON.parse(parsed.activites); } catch(e) { parsed.activites = []; }
+        }
+        if(!parsed.activites) parsed.activites = [];
+        return parsed;
       });
     }
     render();

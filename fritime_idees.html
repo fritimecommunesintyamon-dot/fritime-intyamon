@@ -922,7 +922,16 @@ async function loadIdeesDB(){
   if(typeof FriDB==='undefined') return;
   try{
     var db_idees = await FriDB.getIdees();
-    if(db_idees && db_idees.length) idees = db_idees;
+    if(db_idees && db_idees.length) {
+      idees = db_idees.map(function(item){
+        Object.keys(item).forEach(function(k){
+          if(typeof item[k] === 'string' && (item[k].startsWith('[') || item[k].startsWith('{'))) {
+            try{ item[k] = JSON.parse(item[k]); }catch(e){}
+          }
+        });
+        return item;
+      });
+    }
     render();
   }catch(e){console.warn('DB:',e);}
 }

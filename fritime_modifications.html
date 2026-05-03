@@ -576,7 +576,16 @@ async function loadModifDB(){
   if(typeof FriDB==='undefined') return;
   try{
     var db_demandes = await FriDB.getComptes();
-    if(db_demandes && db_demandes.length) demandes = db_demandes;
+    if(db_demandes && db_demandes.length) {
+      demandes = db_demandes.map(function(item){
+        Object.keys(item).forEach(function(k){
+          if(typeof item[k] === 'string' && (item[k].startsWith('[') || item[k].startsWith('{'))) {
+            try{ item[k] = JSON.parse(item[k]); }catch(e){}
+          }
+        });
+        return item;
+      });
+    }
     render();
   }catch(e){console.warn('DB:',e);}
 }
