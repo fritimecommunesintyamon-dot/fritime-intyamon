@@ -592,6 +592,7 @@ async function loadCampagnesDB(){
   if(typeof FriDB==='undefined') return;
   try{
     var db_campaigns = await FriDB.getCampagnes();
+    console.log('[Campagnes] reçues depuis Supabase:', db_campaigns ? db_campaigns.length : 0, db_campaigns);
     if(db_campaigns && db_campaigns.length) {
       campaigns = db_campaigns.map(function(c){
         var parsed = Object.assign({reponses:[], dateEnvoi:c.date_envoi||null}, c);
