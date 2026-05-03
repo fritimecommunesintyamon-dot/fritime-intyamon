@@ -393,12 +393,7 @@ function doLogout(){
   <div class="modal-title" id="dep-modal-title">Nouvelle dépense</div>
   <div class="fg"><label class="fl">Description</label><input class="fi" id="d-desc" placeholder="Ex: Prestataire atelier poterie" /></div>
   <div class="fg"><label class="fl">Activité liée (optionnel)</label>
-    <select class="fi" id="d-activite">
-      <option value="">— Aucune (frais généraux) —</option>
-      <option value="Atelier poterie">Atelier poterie</option>
-      <option value="Sortie nature Lac Noir">Sortie nature Lac Noir</option>
-      <option value="Cours de cirque">Cours de cirque</option>
-    </select>
+    <select class="fi" id="d-activite"><option value="">— Aucune (frais généraux) —</option></select>
   </div>
   <div class="fr">
     <div class="fg"><label class="fl">Coût prévisionnel (CHF)</label><input class="fi" type="number" id="d-prevu" min="0" step="0.05" placeholder="0.00" /></div>
@@ -658,6 +653,12 @@ async function saveEntree(){
 
 // Dépense CRUD
 function openDepense(){
+  // Populate activites dynamically
+  var sel=document.getElementById("d-activite");
+  if(sel){
+    sel.innerHTML='<option value="">— Aucune (frais généraux) —</option>'+
+      activites.map(function(a){return '<option value="'+a.nom+'">'+a.nom+'</option>';}).join("");
+  }
   editDepenseId=null;
   document.getElementById("dep-modal-title").textContent="Nouvelle dépense";
   document.getElementById("d-del-btn").style.display="none";
@@ -670,6 +671,11 @@ function openDepense(){
   document.getElementById("mDepense").style.display="flex";
 }
 function openDepenseEdit(id){
+  var sel=document.getElementById("d-activite");
+  if(sel){
+    sel.innerHTML='<option value="">— Aucune (frais généraux) —</option>'+
+      activites.map(function(a){return '<option value="'+a.nom+'">'+a.nom+'</option>';}).join("");
+  }
   editDepenseId=parseInt(id)||id;
   const d=depenses.find(x=>x.id===id);
   document.getElementById("dep-modal-title").textContent="Modifier la dépense";
@@ -755,6 +761,8 @@ async function loadBudgetDB(){
   while(typeof FriDB==='undefined'&&a<30){await new Promise(function(r){setTimeout(r,100);});a++;}
   if(typeof FriDB==='undefined') return;
   try{
+    var db_acts = await FriDB.getActivites();
+    if(db_acts && db_acts.length) activites = db_acts;
     var db_entrees = await FriDB.getEntrees();
     if(db_entrees && db_entrees.length) {
       entrees = db_entrees.map(function(item){

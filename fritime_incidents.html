@@ -315,12 +315,7 @@ function doLogout(){
   </div>
   <div class="fr">
     <div class="fg"><label class="fl">Activité concernée</label>
-      <select class="fi" id="f-activite">
-        <option value="">— Choisir —</option>
-        <option>Atelier poterie</option><option>Sortie nature Lac Noir</option>
-        <option>Cours de cirque</option><option>Cuisine du monde</option>
-        <option>Autre / Hors activité</option>
-      </select>
+      <select class="fi" id="f-activite"><option value="">— Choisir —</option></select>
     </div>
     <div class="fg"><label class="fl">Lieu précis</label><input class="fi" id="f-lieu" placeholder="Ex: Salle principale, terrain de jeux..." /></div>
   </div>
@@ -479,6 +474,8 @@ function setFilter(f,btn){
 }
 
 function openCreate(){
+  var sel=document.getElementById("f-activite");
+  if(sel) sel.innerHTML='<option value="">— Choisir —</option>'+activites.map(function(a){return '<option>'+a.nom+'</option>';}).join("");
   editId=null;
   document.getElementById("create-title").textContent="Nouveau rapport d'incident";
   document.getElementById("f-del-btn").style.display="none";
@@ -652,6 +649,8 @@ async function loadIncidentsDB(){
   while(typeof FriDB==='undefined'&&a<30){await new Promise(function(r){setTimeout(r,100);});a++;}
   if(typeof FriDB==='undefined') return;
   try{
+    var db_acts = await FriDB.getActivites();
+    if(db_acts && db_acts.length) activites = db_acts;
     var db_rapports = await FriDB.getIncidents();
     if(db_rapports && db_rapports.length) {
       rapports = db_rapports.map(function(item){

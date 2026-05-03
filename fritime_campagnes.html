@@ -350,12 +350,7 @@ Le comité Fri-Time</textarea>
 let editCampaignId=null;
 let envoiTargetId=null;
 
-const ACTIVITES_DISPO=[
-  {id:1,nom:"Atelier poterie",date:"2026-05-20",places:12},
-  {id:2,nom:"Sortie nature Lac Noir",date:"2026-06-14",places:20},
-  {id:3,nom:"Cours de cirque",date:"2026-07-08",places:15},
-  {id:4,nom:"Cuisine du monde",date:"2026-05-30",places:10},
-];
+var ACTIVITES_DISPO=[];
 
 let campaigns=[];
 let nCamp=4;
@@ -477,9 +472,17 @@ async function saveCampaign(statut){
   closeMCreate();renderAll();
 }
 
-function deleteCampaign(){
-  if(confirm("Supprimer cette campagne ?")){campaigns=campaigns.filter(c=>c.id!==editCampaignId);
-  if(typeof FriDB!=="undefined") FriDB.query("campagnes","DELETE",null,"?id=eq."+editCampaignId).catch(function(e){console.warn("Delete DB:",e);});closeMCreate();renderAll();}
+async function deleteCampaign(){
+  if(confirm("Supprimer cette campagne ?")){
+    var _id=editCampaignId;
+    campaigns=campaigns.filter(function(c){return String(c.id)!==String(_id);});
+    closeMCreate();renderAll();
+    if(typeof FriDB!=="undefined"){
+      FriDB.query("campagnes","DELETE",null,"?id=eq."+_id)
+        .then(function(){console.log("Campagne supprimée Supabase ✓");})
+        .catch(function(e){console.warn("Delete erreur:",e);});
+    }
+  }
 }
 
 function copyLink(){
@@ -595,6 +598,8 @@ async function loadCampagnesDB(){
   while(typeof FriDB==='undefined'&&a<30){await new Promise(function(r){setTimeout(r,100);});a++;}
   if(typeof FriDB==='undefined') return;
   try{
+    var db_acts = await FriDB.getActivites();
+    if(db_acts && db_acts.length){ activites = db_acts; ACTIVITES_DISPO = db_acts; }
     var db_campaigns = await FriDB.getCampagnes();
     console.log('[Campagnes] reçues depuis Supabase:', db_campaigns ? db_campaigns.length : 0, db_campaigns);
     if(db_campaigns && db_campaigns.length) {
