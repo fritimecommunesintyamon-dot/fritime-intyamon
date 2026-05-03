@@ -553,12 +553,12 @@ function saveCreate(){
   (async function(){
     var newM={prenom:p,nom:n,role:document.getElementById('cr').value,statut:document.getElementById('cs').value,email:document.getElementById('ce').value.trim(),tel:document.getElementById('ct').value.trim(),commune:document.getElementById('cc').value.trim(),dateEntree:document.getElementById('cde').value||null,finEngagement:document.getElementById('cfe').value||null,notes:document.getElementById('cno').value.trim()};
     if(typeof FriDB!=='undefined'){
-      try{ var res=await FriDB.saveMembre(newM); if(res&&res[0]) newM.id=res[0].id; else newM.id=nid++; }
+      try{ var res=await FriDB.saveMembre(newM); if(res&&res[0]&&res[0].id) newM.id=res[0].id; else newM.id=nid++; }
       catch(e){ console.warn('Save DB failed:',e); newM.id=nid++; }
     } else { newM.id=nid++; }
     membres.push(newM);
+    closeCreate();render();
   })();
-  closeCreate();render();
 }
 
 function openDetail(id){selId=id;renderDet();document.getElementById('mDetail').style.display='flex';}
