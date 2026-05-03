@@ -390,14 +390,14 @@ function doLogout(){
 const STATUTS={inscrit:"Inscrit",attente:"En attente",selectionne:"Sélectionné",confirme:"Confirmé",present:"Présent",absent:"Absent"};
 const STATUT_ORDER=["inscrit","attente","selectionne","confirme","present","absent"];
 
-let activites=[];
+var activites=[];
 
-let enfants=[];
+var enfants=[];
 
-let inscriptions=[];
-let nInsc=10;
-let selectedActId=activites[0].id;
-let currentTab="liste";
+var inscriptions=[];
+var nInsc=10;
+var selectedActId=activites[0].id;
+var currentTab="liste";
 var editInscId=null;
 
 function ini(nom){const p=nom.split(" ");return((p[0]||"")[0]+(p[1]||"")[0]).toUpperCase();}
