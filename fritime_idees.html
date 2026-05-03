@@ -594,7 +594,7 @@ async function saveIdee(){
   closeCreate();render();
 }
 function deleteIdee(){
-  if(confirm("Supprimer cette idée ?")){idees=idees.filter(i=>i.id!==editId);
+  if(confirm("Supprimer cette idée ?")){idees=idees.filter(function(x){return String(x.id)!==String(editId);});
   if(typeof FriDB!=="undefined") FriDB.query("idees","DELETE",null,"?id=eq."+editId).catch(function(e){console.warn("Delete DB:",e);});closeCreate();render();}
 }
 

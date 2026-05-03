@@ -553,7 +553,7 @@ async function saveDoc(){
 }
 
 function deleteDoc(){
-  if(confirm("Supprimer ce document ?")){docs=docs.filter(d=>d.id!==editDocId);
+  if(confirm("Supprimer ce document ?")){docs=docs.filter(function(x){return String(x.id)!==String(editDocId);});
   if(typeof FriDB!=="undefined") FriDB.query("documents","DELETE",null,"?id=eq."+editDocId).catch(function(e){console.warn("Delete DB:",e);});closeMDoc();renderAll();}
 }
 
