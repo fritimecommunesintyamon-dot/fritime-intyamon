@@ -524,6 +524,13 @@ async function loadSondagesDB(){
   }catch(e){console.warn('DB:',e);}
 }
 loadSondagesDB();
+
+function deleteSondage(id){
+  if(!confirm("Supprimer ce sondage définitivement ?")) return;
+  sondages = sondages.filter(function(s){return s.id !== id;});
+  if(typeof FriDB !== "undefined") FriDB.query("sondages","DELETE",null,"?id=eq."+id).catch(function(e){console.warn(e);});
+  renderAll();
+}
 </script>
 </body>
 </html>
