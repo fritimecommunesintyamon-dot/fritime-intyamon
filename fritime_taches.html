@@ -467,15 +467,14 @@ async function saveCreate(){
   const t=document.getElementById('ct').value.trim();
   if(!t){alert('Le titre est obligatoire');return;}
   const statut=document.getElementById('ca').value?'assignee':'ouverte';
-  taches.push({id:nid++,titre:t,desc:document.getElementById('cd').value.trim(),assignee:document.getElementById('ca').value,priorite:document.getElementById('cp').value,activite:parseInt(document.getElementById('cal').value)||null,dateLimite:document.getElementById('cdl').value,notes:document.getElementById('cno').value.trim(),statut});
+  var newT={id:nid++,titre:t,desc:document.getElementById('cd').value.trim(),assignee:document.getElementById('ca').value,priorite:document.getElementById('cp').value,activite:parseInt(document.getElementById('cal').value)||null,dateLimite:document.getElementById('cdl').value,notes:document.getElementById('cno').value.trim(),statut:statut};
   if(typeof FriDB !== 'undefined'){
     try{
-      var _last = taches[taches.length-1];
-      var _res = await FriDB.quickSave('taches', _last);
-      if(_res && _res[0] && _res[0].id) taches[taches.length-1].id = _res[0].id;
+      var _res = await FriDB.quickSave('taches', newT);
+      if(_res && _res[0] && _res[0].id) newT.id = _res[0].id;
     }catch(e){ console.warn('DB save:', e); }
   }
-  if(typeof FriDB!=="undefined") FriDB.quickSave("taches",taches[taches.length-1]).catch(function(e){console.warn("Save failed:",e);});
+  taches.push(newT);
   closeCreate();render();
 }
 
