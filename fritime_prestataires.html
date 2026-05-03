@@ -567,7 +567,8 @@ async function savePrest(){
   closeCreate();render();
 }
 function deletePrest(){
-  if(confirm("Supprimer ce prestataire ?")){prestataires=prestataires.filter(p=>p.id!==editId);closeCreate();render();}
+  if(confirm("Supprimer ce prestataire ?")){prestataires=prestataires.filter(p=>p.id!==editId);
+  if(typeof FriDB!=="undefined") FriDB.query("prestataires","DELETE",null,"?id=eq."+editId).catch(function(e){console.warn("Delete DB:",e);});closeCreate();render();}
 }
 
 function openDetail(id){

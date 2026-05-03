@@ -625,7 +625,8 @@ async function saveEntree(){
   if(typeof FriDB!=="undefined") FriDB.quickSave("entrees_budget",entrees[entrees.length-1]).catch(function(e){console.warn(e);});}
   closeMEntree();renderAll();
 }
-function deleteEntree(){if(confirm("Supprimer cette entrée ?")){entrees=entrees.filter(e=>e.id!==editEntreeId);closeMEntree();renderAll();}}
+function deleteEntree(){if(confirm("Supprimer cette entrée ?")){entrees=entrees.filter(e=>e.id!==editEntreeId);
+  if(typeof FriDB!=="undefined") FriDB.query("entrees_budget","DELETE",null,"?id=eq."+editEntreeId).catch(function(e){console.warn("Delete DB:",e);});closeMEntree();renderAll();}}
 
 // Dépense CRUD
 function openDepense(){
@@ -671,7 +672,8 @@ async function saveDepense(){
   if(typeof FriDB!=="undefined") FriDB.quickSave("depenses_budget",depenses[depenses.length-1]).catch(function(e){console.warn(e);});}
   closeMDepense();renderAll();
 }
-function deleteDepense(){if(confirm("Supprimer cette dépense ?")){depenses=depenses.filter(d=>d.id!==editDepenseId);closeMDepense();renderAll();}}
+function deleteDepense(){if(confirm("Supprimer cette dépense ?")){depenses=depenses.filter(d=>d.id!==editDepenseId);
+  if(typeof FriDB!=="undefined") FriDB.query("depenses_budget","DELETE",null,"?id=eq."+editDepenseId).catch(function(e){console.warn("Delete DB:",e);});closeMDepense();renderAll();}}
 
 function confirmDeleteEntree(id){
   const e=entrees.find(x=>x.id===id);

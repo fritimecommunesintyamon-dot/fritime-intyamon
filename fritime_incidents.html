@@ -541,7 +541,8 @@ async function saveRapport(){
 }
 
 function deleteRapport(){
-  if(confirm("Supprimer ce rapport ?")){rapports=rapports.filter(r=>r.id!==editId);closeCreate();render();}
+  if(confirm("Supprimer ce rapport ?")){rapports=rapports.filter(r=>r.id!==editId);
+  if(typeof FriDB!=="undefined") FriDB.query("incidents","DELETE",null,"?id=eq."+editId).catch(function(e){console.warn("Delete DB:",e);});closeCreate();render();}
 }
 
 function openDetail(id){selId=id;renderDet();document.getElementById("mDetail").style.display="flex";}

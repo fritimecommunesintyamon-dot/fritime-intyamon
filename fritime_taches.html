@@ -540,7 +540,8 @@ function saveEdit(){
   closeEdit();render();
 }
 function deleteTask(){
-  if(confirm('Supprimer cette tâche ?')){taches=taches.filter(t=>t.id!==selId);closeEdit();render();}
+  if(confirm('Supprimer cette tâche ?')){taches=taches.filter(t=>t.id!==selId);
+  if(typeof FriDB!=="undefined") FriDB.query("taches","DELETE",null,"?id=eq."+selId).catch(function(e){console.warn("Delete DB:",e);});closeEdit();render();}
 }
 
 render();
