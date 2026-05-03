@@ -380,7 +380,7 @@ async function saveCreate(){
   if(!p||!n){alert('Prénom et nom obligatoires');return;}
   const ddn=document.getElementById('cd').value;
   (async function(){
-    var newE={prenom:p,nom:n,ddn:ddn||null,age:calcAgeFrom(ddn)||0,commune:document.getElementById('cco').value.trim(),pp:document.getElementById('cpp').value.trim(),pn:document.getElementById('cpn').value.trim(),pe:document.getElementById('cpe').value.trim(),pt:document.getElementById('cpt').value.trim(),notes:document.getElementById('cno').value.trim(),parts:0,statut:'actif'};
+    var newE={prenom:p,nom:n,ddn:ddn||null,age:calcAgeFrom(ddn)||0,commune:document.getElementById('cc').value.trim(),pp:document.getElementById('cpp').value.trim(),pn:document.getElementById('cpn').value.trim(),pe:document.getElementById('cpe').value.trim(),pt:document.getElementById('cpt').value.trim(),notes:document.getElementById('cno').value.trim(),parts:0,statut:'actif'};
     if(typeof FriDB!=='undefined'){
       try{ var res=await FriDB.saveEnfant(newE); if(res&&res[0]) newE.id=res[0].id; else newE.id=nid++; }
       catch(e){ console.warn('Save DB failed:',e); newE.id=nid++; }
