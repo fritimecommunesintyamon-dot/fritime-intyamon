@@ -355,6 +355,7 @@ function renderTable(){
         <div style="display:flex;gap:6px">
           ${s.statut==="brouillon"?`<button class="btn btn-sm btn-primary" onclick="event.stopPropagation();envoyerSondage(${s.id})" style="font-size:11px">📧 Envoyer</button>`:""}
           <button class="btn btn-sm" onclick="event.stopPropagation();openResults(${s.id})" style="font-size:11px">Voir résultats</button>
+          <button class="btn btn-sm btn-danger" onclick="event.stopPropagation();deleteSondage(${s.id})" style="font-size:11px">Supprimer</button>
         </div>
       </td>
     </tr>`;
