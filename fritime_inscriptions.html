@@ -716,14 +716,24 @@ async function loadInscriptionsDB(){
   while(typeof FriDB==='undefined'&&a<30){await new Promise(function(r){setTimeout(r,100);});a++;}
   if(typeof FriDB==='undefined') return;
   try{
-    var db_inscriptions = await FriDB.getInscriptions();
-    if(db_inscriptions && db_inscriptions.length) inscriptions = db_inscriptions;
     var db_activites = await FriDB.getActivites();
     if(db_activites && db_activites.length) activites = db_activites;
     var db_enfants = await FriDB.getEnfants();
     if(db_enfants && db_enfants.length) enfants = db_enfants;
+    var db_inscriptions = await FriDB.getInscriptions();
+    console.log("[Insc Load] reçues:", db_inscriptions ? db_inscriptions.length : 0);
+    if(db_inscriptions && db_inscriptions.length) {
+      inscriptions = db_inscriptions.map(function(item){
+        var mapped = Object.assign({}, item);
+        if(mapped.enfant_id !== undefined) mapped.enfantId = mapped.enfant_id;
+        if(mapped.activite_id !== undefined) mapped.activiteId = mapped.activite_id;
+        return mapped;
+      });
+      console.log("[Insc Load] premier:", JSON.stringify(inscriptions[0]));
+    }
+    if(activites.length && !selectedActId) selectedActId = activites[0].id;
     renderAll();
-  }catch(e){console.warn('DB:',e);}
+  }catch(e){console.warn('[Insc Load] DB erreur:',e);}
 }
 loadInscriptionsDB();
 </script>
