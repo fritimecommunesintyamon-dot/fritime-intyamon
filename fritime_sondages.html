@@ -275,7 +275,7 @@ function doLogout(){
 <div class="modal" onclick="event.stopPropagation()">
   <div class="modal-title">Envoyer un sondage</div>
   <div class="fg"><label class="fl">Activité *</label>
-    <select class="fi" id="s-activite" onchange="updateParticipants()"><option value="">— Choisir une activité —</option></select>
+    <select class="fi" id="s-activite" onchange="updateParticipants();updatePreview()"><option value="">— Choisir une activité —</option></select>
   </div>
   <div id="participants-list" style="margin-bottom:.75rem"></div>
   <div class="fg"><label class="fl">Aperçu du message email</label>
@@ -284,7 +284,7 @@ function doLogout(){
     </div>
   </div>
   <div class="fg"><label class="fl">Message personnalisé (optionnel)</label>
-    <input class="fi" id="s-message" placeholder="Ex: Merci d'avoir participé à notre atelier !" oninput="updatePreview()" />
+    <input class="fi" id="s-message" oninput="updatePreview()" placeholder="Ex: Merci d'avoir participé à notre atelier !" oninput="updatePreview()" />
   </div>
   <div class="mf">
     <button class="btn" onclick="closeMSend()">Annuler</button>
