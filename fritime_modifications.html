@@ -310,12 +310,7 @@ function doLogout(){
 
   <div class="fg" id="activite-field" style="display:none">
     <label class="fl">Activité concernée</label>
-    <select class="fi" id="d-activite">
-      <option value="">— Choisir —</option>
-      <option>Atelier poterie</option>
-      <option>Sortie nature Lac Noir</option>
-      <option>Cours de cirque</option>
-    </select>
+    <select class="fi" id="d-activite"><option value="">— Aucune —</option></select>
   </div>
 
   <div class="fg" id="statut-field" style="display:none">
@@ -334,12 +329,7 @@ function doLogout(){
   </div>
 
   <div class="fg"><label class="fl">Demandé par *</label>
-    <select class="fi" id="d-demandeur">
-      <option value="">— Choisir —</option>
-      <option>Marie Dupont</option><option>Jean Martin</option>
-      <option>Sophie Remy</option><option>Lara Blanc</option>
-      <option>Paul Morel</option><option>Ana Favre</option>
-    </select>
+    <select class="fi" id="d-demandeur"><option value="">— Choisir —</option></select>
   </div>
 
   <div class="fg"><label class="fl">Justification *</label>
@@ -507,6 +497,10 @@ function updateTypeInfo(){
 }
 
 function openCreate(){
+  var demSel=document.getElementById("d-demandeur");
+  if(demSel) demSel.innerHTML='<option value="">— Choisir —</option>'+membres.map(function(m){return '<option>'+m.prenom+' '+m.nom+'</option>';}).join("");
+  var actSel=document.getElementById("d-activite");
+  if(actSel) actSel.innerHTML='<option value="">— Aucune —</option>'+activites.map(function(a){return '<option>'+a.nom+'</option>';}).join("");
   ["d-type","d-activite","d-nouveau-statut","d-demandeur","d-element"].forEach(id=>{
     const el=document.getElementById(id);if(el)el.selectedIndex=0;
   });
@@ -575,6 +569,10 @@ async function loadModifDB(){
   while(typeof FriDB==='undefined'&&a<30){await new Promise(function(r){setTimeout(r,100);});a++;}
   if(typeof FriDB==='undefined') return;
   try{
+    var db_membres = await FriDB.getMembres();
+    if(db_membres && db_membres.length) membres = db_membres;
+    var db_acts = await FriDB.getActivites();
+    if(db_acts && db_acts.length) activites = db_acts;
     var db_demandes = await FriDB.getComptes();
     if(db_demandes && db_demandes.length) {
       demandes = db_demandes.map(function(item){
