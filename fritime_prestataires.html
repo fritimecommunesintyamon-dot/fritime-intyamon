@@ -700,7 +700,7 @@ async function loadPrestatairesDB(){
         if(!Array.isArray(parsed.evals)) parsed.evals=[];
         return parsed;
       });
-    renderAll();
+    render();
   }catch(e){console.warn('DB:',e);}
 }
 loadPrestatairesDB();
