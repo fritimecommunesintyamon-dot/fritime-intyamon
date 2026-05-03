@@ -667,7 +667,7 @@ async function loadDocsDB(){
     }
     var db_categories = await FriDB.getCategsDocs();
     if(db_categories && db_categories.length) categories = db_categories;
-    render();
+    renderAll();
   }catch(e){console.warn('DB:',e);}
 }
 loadDocsDB();

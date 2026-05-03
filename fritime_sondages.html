@@ -520,7 +520,7 @@ async function loadSondagesDB(){
   try{
     var db_sondages = await FriDB.getSondages();
     if(db_sondages && db_sondages.length) sondages = db_sondages.map(function(s){ return Object.assign({participants:[]}, s); });
-    render();
+    renderAll();
   }catch(e){console.warn('DB:',e);}
 }
 loadSondagesDB();

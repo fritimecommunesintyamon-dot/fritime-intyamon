@@ -692,7 +692,7 @@ async function loadPrestatairesDB(){
   try{
     var db_prestataires = await FriDB.getPrestataires();
     if(db_prestataires && db_prestataires.length) prestataires = db_prestataires.map(function(p){ return Object.assign({evals:[], acts:[]}, p); });
-    render();
+    renderAll();
   }catch(e){console.warn('DB:',e);}
 }
 loadPrestatairesDB();

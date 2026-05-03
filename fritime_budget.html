@@ -739,7 +739,7 @@ async function loadBudgetDB(){
         return item;
       });
     }
-    render();
+    renderAll();
   }catch(e){console.warn('DB:',e);}
 }
 loadBudgetDB();
