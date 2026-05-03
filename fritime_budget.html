@@ -613,27 +613,29 @@ function openEntreeEdit(id){
 }
 function closeMEntree(){document.getElementById("mEntree").style.display="none";}
 
-async function deleteEntree(){if(confirm("Supprimer cette entrée ?")){
-  console.log("[Budget] Suppression entrée id:", editEntreeId);
+function deleteEntree(){if(confirm("Supprimer cette entrée ?")){
+  var _eid = editEntreeId;
+  console.log("[Budget] Suppression entrée id:", _eid);
+  entrees=entrees.filter(function(e){return String(e.id)!==String(_eid);});
+  closeMEntree();renderAll();
   if(typeof FriDB!=="undefined"){
-    try{
-      await FriDB.query("entrees_budget","DELETE",null,"?id=eq."+editEntreeId);
-      console.log("[Budget] Entrée supprimée dans Supabase ✓");
-    }catch(e){console.warn("Delete DB erreur:",e);}
+    FriDB.query("entrees_budget","DELETE",null,"?id=eq."+_eid)
+      .then(function(){console.log("[Budget] Supprimé dans Supabase ✓");})
+      .catch(function(e){console.warn("Delete erreur:",e);});
   }
-  entrees=entrees.filter(function(e){return String(e.id)!==String(editEntreeId);});
-  closeMEntree();renderAll();}}
+}}
 
 async function deleteDepense(){if(confirm("Supprimer cette dépense ?")){
-  console.log("[Budget] Suppression dépense id:", editDepenseId);
+  var _did = editDepenseId;
+  console.log("[Budget] Suppression dépense id:", _did);
+  depenses=depenses.filter(function(d){return String(d.id)!==String(_did);});
+  closeMDepense();renderAll();
   if(typeof FriDB!=="undefined"){
-    try{
-      await FriDB.query("depenses_budget","DELETE",null,"?id=eq."+editDepenseId);
-      console.log("[Budget] Dépense supprimée dans Supabase ✓");
-    }catch(e){console.warn("Delete DB erreur:",e);}
+    FriDB.query("depenses_budget","DELETE",null,"?id=eq."+_did)
+      .then(function(){console.log("[Budget] Dépense supprimée dans Supabase ✓");})
+      .catch(function(e){console.warn("Delete erreur:",e);});
   }
-  depenses=depenses.filter(function(d){return String(d.id)!==String(editDepenseId);});
-  closeMDepense();renderAll();}}
+}}
 
 async function saveEntree(){
   const data={source:document.getElementById("e-source").value,desc:document.getElementById("e-desc").value.trim(),prevu:parseFloat(document.getElementById("e-prevu").value)||0,recu:parseFloat(document.getElementById("e-recu").value)||0,statut:document.getElementById("e-statut").value,annee:document.getElementById("e-annee").value,notes:document.getElementById("e-notes").value.trim()};
@@ -706,15 +708,21 @@ async function saveDepense(){
 function confirmDeleteEntree(id){
   const e=entrees.find(x=>x.id===id);
   if(confirm("Supprimer l'entrée \""+e.desc+"\" ("+chf(e.prevu)+") ?")){
-    entrees=entrees.filter(x=>x.id!==id);
+    entrees=entrees.filter(x=>String(x.id)!==String(id));
     renderAll();
+    if(typeof FriDB!=="undefined"){
+      FriDB.query("entrees_budget","DELETE",null,"?id=eq."+id)
+        .then(function(){console.log("Entrée supprimée dans Supabase ✓ id:",id);})
+        .catch(function(e){console.warn("Delete erreur:",e);});
+    }
   }
 }
 function confirmDeleteDepense(id){
   const d=depenses.find(x=>x.id===id);
   if(confirm("Supprimer la dépense \""+d.desc+"\" ("+chf(d.prevu)+") ?")){
-    depenses=depenses.filter(x=>x.id!==id);
+    depenses=depenses.filter(function(x){return String(x.id)!==String(id);});
     renderAll();
+    if(typeof FriDB!=="undefined"){FriDB.query("depenses_budget","DELETE",null,"?id=eq."+id).then(function(){console.log("Supprimé Supabase ✓",id);}).catch(function(e){console.warn(e);});}
   }
 }
 renderAll();
