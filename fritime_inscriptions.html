@@ -398,7 +398,7 @@ let inscriptions=[];
 let nInsc=10;
 let selectedActId=activites[0].id;
 let currentTab="liste";
-let editInscId=null;
+var editInscId=null;
 
 function ini(nom){const p=nom.split(" ");return((p[0]||"")[0]+(p[1]||"")[0]).toUpperCase();}
 function fmtDate(d){if(!d)return"";const[y,m,j]=d.split("-");return`${j}.${m}.${y}`;}
