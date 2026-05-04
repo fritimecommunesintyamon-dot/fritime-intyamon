@@ -603,7 +603,7 @@ async function saveActivite(){
 
   if(editId){
     data.id=editId;
-    activites=activites.map(a=>a.id===editId?{...a,...data,inscrits:a.inscrits}:a);
+    activites=activites.map(function(a){return String(a.id)===String(editId)?Object.assign({},a,data,{inscrits:a.inscrits}):a;});
     if(typeof FriDB!=='undefined') try{ await FriDB.saveActivite(data); }catch(e){ console.warn('Save DB failed:',e); }
   } else {
     if(typeof FriDB!=='undefined'){
@@ -617,8 +617,17 @@ async function saveActivite(){
   closeCreate();render();
 }
 
-function deleteActivite(){
-  if(confirm("Supprimer cette activité ?")){activites=activites.filter(a=>a.id!==editId);closeCreate();render();}
+async function deleteActivite(){
+  if(confirm("Supprimer cette activité ?")){
+    var _id = editId;
+    activites=activites.filter(function(a){return String(a.id)!==String(_id);});
+    closeCreate();render();
+    if(typeof FriDB!=='undefined'){
+      FriDB.query("activites","DELETE",null,"?id=eq."+_id)
+        .then(function(){console.log("Activité supprimée Supabase ✓");})
+        .catch(function(e){console.warn("Delete erreur:",e);});
+    }
+  }
 }
 
 function openDetail(id){selId=id;renderDet();document.getElementById("mDetail").style.display="flex";}
