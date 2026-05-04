@@ -155,11 +155,10 @@ body{font-family:system-ui,sans-serif;background:#f5f5f3;color:#1a1a1a;font-size
       <li><strong>Responsabilité :</strong> L'organisateur et le comité d'organisation Fri-Time déclinent toute responsabilité en cas d'accident, de dégâts matériels et/ou de vol.</li>
       <li><strong>Non-respect des règles :</strong> En cas de non-respect de la charte et du règlement de l'activité, des règles de sécurité et des directives, l'organisateur et le comité d'organisation Fri-Time se réservent le droit de renvoi du participant et le bannissement des futures activités si nécessaire.</li>
       <li><strong>Droit à l'image :</strong> En participant aux activités FriTime, vous acceptez que des images et photos prises lors de ces activités puissent être utilisées à des fins de promotion. Si vous vous y opposez : <a href="mailto:fritimecommunesintyamon@gmail.com">fritimecommunesintyamon@gmail.com</a></li>
-      <li><strong>Rapport d'incident :</strong> En cas de problème, accident ou incident survenant lors d'une activité, un rapport d'incident officiel sera systématiquement établi par le comité d'organisation Fri-Time. Les parents ou responsables légaux concernés en seront informés dans les meilleurs délais.</li>
+      <li><strong>Rapport d'incident :</strong> En cas de problème, accident ou incident survenant lors d'une activité, un rapport d'incident officiel sera systématiquement établi par le comité d'organisation Fri-Time. Les parents ou responsables légaux concernés en seront informés dans les meilleurs délais et les mesures nécessaires seront prises en conséquence.</li>
       <li><strong>Procédures d'urgence :</strong> En cas d'urgence médicale, les bénévoles sont formés aux procédures de premiers secours. Les services d'urgence seront contactés si nécessaire (144 ambulance · 117 police · 118 pompiers · 1414 Rega). Les parents seront prévenus le plus rapidement possible. <strong>Il est impératif d'être joignable par téléphone pendant toute la durée de l'activité.</strong></li>
       <li><strong>Informations importantes à communiquer au comité :</strong> Pour la sécurité de votre enfant, il est indispensable de signaler au moment de l'inscription toute allergie (alimentaire, médicamenteuse, au soleil, aux insectes...), tout traitement médical en cours, toute condition de santé particulière (asthme, épilepsie, diabète, troubles moteurs...) ou toute information que les bénévoles doivent connaître. Ces informations sont confidentielles et uniquement utilisées dans le cadre de la sécurité de votre enfant.</li>
     
-              <li><strong>Rapport d'incident :</strong> En cas de problème, accident ou incident survenant lors d'une activité, un rapport d'incident officiel sera systématiquement établi par le comité d'organisation Fri-Time. Les parents ou responsables légaux concernés en seront informés dans les meilleurs délais et les mesures nécessaires seront prises en conséquence.</li>
             </ul>
   </div>
 </div>
@@ -283,7 +282,8 @@ body{font-family:system-ui,sans-serif;background:#f5f5f3;color:#1a1a1a;font-size
       <div style="font-size:22px;font-weight:700;margin-bottom:8px">Inscription reçue !</div>
       <div style="font-size:14px;color:#555;line-height:1.7;margin-bottom:1.25rem">
         Un email de confirmation a été envoyé à <strong id="success-email">—</strong>.<br><br>
-        <strong>Rappel important :</strong> Cet email confirme uniquement la réception de votre demande, pas la participation de votre enfant. La sélection se fait selon les critères d'équité définis — le choix est mécanique et impartial. Vous recevrez un second email avec la décision finale.
+        <strong>Rappel important :</strong> Cet email confirme uniquement la réception de votre demande, pas la participation de votre enfant. La sélection se fait selon les critères d'équité définis — le choix est mécanique et impartial. Vous recevrez un second email avec la décision finale.<br><br>
+        <strong>⚠️ Vérifiez vos spams :</strong> L'email de confirmation risque de s'y trouver. Déplacez-le dans votre boîte de réception afin de recevoir tous les emails concernant la confirmation de participation.
       </div>
       <div style="display:inline-block;background:#f5f5f3;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;color:#888;letter-spacing:.05em" id="ref-numero">Référence : FT-2026-XXXX</div>
       <div style="margin-top:1.5rem;font-size:12px;color:#bbb">Fri-Time Intyamon · fritimecommunesintyamon@gmail.com</div>
@@ -311,10 +311,12 @@ async function loadActivitesFromSupabase() {
   
   try {
     // Load all activites from Supabase
-    const res = await fetch('https://pixktldfpjtnimngvgqz.supabase.co/rest/v1/activites?order=date&statut=neq.annule', {
+    const res = await fetch('https://pixktldfpjtnimngvgqz.supabase.co/rest/v1/activites?order=date', {
       headers: {
-        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpeGt0bGRmcGp0bmltbmd2Z3F6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYyMTM5NjMsImV4cCI6MjA2MTc4OTk2M30.sb_publishable_ZV04eYw85SDFQi43SwZJTg_igofPU8X',
-        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpeGt0bGRmcGp0bmltbmd2Z3F6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYyMTM5NjMsImV4cCI6MjA2MTc4OTk2M30.sb_publishable_ZV04eYw85SDFQi43SwZJTg_igofPU8X'
+        'Content-Type': 'application/json',
+        'apikey': 'sb_publishable_ZV04eYw85SDFQi43SwZJTg_igofPU8X',
+        'Authorization': 'Bearer sb_publishable_ZV04eYw85SDFQi43SwZJTg_igofPU8X',
+        'Prefer': 'return=representation'
       }
     });
     const data = await res.json();
