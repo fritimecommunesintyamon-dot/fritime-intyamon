@@ -402,9 +402,15 @@ function renderCampaigns(){
 }
 
 function renderActivitesCheckboxes(selectedIds){
-  document.getElementById("activites-checkboxes").innerHTML=ACTIVITES_DISPO.map(a=>`
+  var liste = (activites && activites.length) ? activites : ACTIVITES_DISPO;
+  console.log("[Campagnes] activites checkboxes:", liste.length, "items");
+  if(!liste.length){
+    document.getElementById("activites-checkboxes").innerHTML='<p style="font-size:13px;color:#888;padding:8px 0">Aucune activité disponible.</p>';
+    return;
+  }
+  document.getElementById("activites-checkboxes").innerHTML=liste.map(a=>`
     <label class="act-check">
-      <input type="checkbox" value="${a.id}" ${selectedIds.includes(a.id)?"checked":""} />
+      <input type="checkbox" value="${a.id}" ${selectedIds.includes(a.id)||selectedIds.includes(String(a.id))?"checked":""} />
       <span>${a.nom} — ${fmtDate(a.date)} (${a.places} places)</span>
     </label>`).join("");
 }
