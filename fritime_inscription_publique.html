@@ -158,7 +158,9 @@ body{font-family:system-ui,sans-serif;background:#f5f5f3;color:#1a1a1a;font-size
       <li><strong>Rapport d'incident :</strong> En cas de problème, accident ou incident survenant lors d'une activité, un rapport d'incident officiel sera systématiquement établi par le comité d'organisation Fri-Time. Les parents ou responsables légaux concernés en seront informés dans les meilleurs délais.</li>
       <li><strong>Procédures d'urgence :</strong> En cas d'urgence médicale, les bénévoles sont formés aux procédures de premiers secours. Les services d'urgence seront contactés si nécessaire (144 ambulance · 117 police · 118 pompiers · 1414 Rega). Les parents seront prévenus le plus rapidement possible. <strong>Il est impératif d'être joignable par téléphone pendant toute la durée de l'activité.</strong></li>
       <li><strong>Informations importantes à communiquer au comité :</strong> Pour la sécurité de votre enfant, il est indispensable de signaler au moment de l'inscription toute allergie (alimentaire, médicamenteuse, au soleil, aux insectes...), tout traitement médical en cours, toute condition de santé particulière (asthme, épilepsie, diabète, troubles moteurs...) ou toute information que les bénévoles doivent connaître. Ces informations sont confidentielles et uniquement utilisées dans le cadre de la sécurité de votre enfant.</li>
-    </ul>
+    
+              <li><strong>Rapport d'incident :</strong> En cas de problème, accident ou incident survenant lors d'une activité, un rapport d'incident officiel sera systématiquement établi par le comité d'organisation Fri-Time. Les parents ou responsables légaux concernés en seront informés dans les meilleurs délais et les mesures nécessaires seront prises en conséquence.</li>
+            </ul>
   </div>
 </div>
 
@@ -299,11 +301,49 @@ body{font-family:system-ui,sans-serif;background:#f5f5f3;color:#1a1a1a;font-size
 </div>
 
 <script>
-const ACTS=[
-  {id:1,nom:"Atelier poterie",date:"2026-05-20",deb:"09:00",fin:"12:00",deadline:"2026-05-10",lieu:"Atelier communal, Bulle",desc:"Initiation à la poterie avec un artisan local. Les enfants créeront leur propre bol en argile.",prest:"Julie Favre — Atelier Terracotta",ageMin:6,ageMax:12,places:12,inscrits:8,cout:0,materiel:"Tabliers fournis sur place",tenue:"Vieux vêtements"},
-  {id:2,nom:"Sortie nature Lac Noir",date:"2026-06-14",deb:"08:30",fin:"17:00",deadline:"2026-06-01",lieu:"Lac Noir, Fribourg",desc:"Randonnée adaptée autour du Lac Noir avec observation de la faune et flore locales.",prest:"Marc Dupont — Guide Pro Rando",ageMin:7,ageMax:14,places:20,inscrits:15,cout:25,materiel:"Sac à dos, lunch, eau (2L min.)",tenue:"Chaussures de marche, vêtements chauds"},
-  {id:3,nom:"Cours de cirque",date:"2026-07-08",deb:"14:00",fin:"17:00",deadline:"2026-06-25",lieu:"Salle communale, Bulle",desc:"Découverte des arts du cirque : jonglage, équilibre, acrobaties douces adaptées.",prest:"Sophie Blanc — Cirque en",ageMin:5,ageMax:12,places:15,inscrits:0,cout:0,materiel:"Aucun matériel requis",tenue:"Vêtements confortables, chaussettes antidérapantes"},
-];
+var ACTS = [];
+var CAMP_ID = null;
+
+async function loadActivitesFromSupabase() {
+  // Get campaign ID from URL
+  const urlParams = new URLSearchParams(window.location.search);
+  CAMP_ID = urlParams.get('id');
+  
+  try {
+    // Load all activites from Supabase
+    const res = await fetch('https://pixktldfpjtnimngvgqz.supabase.co/rest/v1/activites?order=date&statut=neq.annule', {
+      headers: {
+        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpeGt0bGRmcGp0bmltbmd2Z3F6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYyMTM5NjMsImV4cCI6MjA2MTc4OTk2M30.sb_publishable_ZV04eYw85SDFQi43SwZJTg_igofPU8X',
+        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpeGt0bGRmcGp0bmltbmd2Z3F6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYyMTM5NjMsImV4cCI6MjA2MTc4OTk2M30.sb_publishable_ZV04eYw85SDFQi43SwZJTg_igofPU8X'
+      }
+    });
+    const data = await res.json();
+    if (data && data.length) {
+      ACTS = data.map(function(a) {
+        return {
+          id: a.id,
+          nom: a.nom,
+          date: a.date,
+          deb: a.heure_debut || '',
+          fin: a.heure_fin || '',
+          deadline: a.date_limite,
+          lieu: a.lieu || '',
+          desc: a.description || '',
+          cout: a.cout || 0,
+          places: a.places || 0,
+          ageMin: a.age_min || null,
+          ageMax: a.age_max || null,
+          statut: a.statut || 'ouvert',
+          tenue: a.tenue || '',
+          materiel: a.materiel || ''
+        };
+      });
+    }
+  } catch(e) {
+    console.warn('Erreur chargement activités:', e);
+  }
+  renderStep();
+}
 
 let step=1,selIds=[],prefOrder=[],childAge=null;
 
@@ -324,7 +364,7 @@ function getAgeErrors(){
   if(childAge===null)return[];
   return selIds.filter(id=>{
     const a=ACTS.find(x=>x.id===id);
-    return a&&(childAge<a.ageMin||childAge>a.ageMax);
+    return a&&((a.ageMin!==null&&childAge<a.ageMin)||(a.ageMax!==null&&childAge>a.ageMax));
   });
 }
 
@@ -343,7 +383,7 @@ function renderActs(){
           </div>
           <div class="badges-row">
             <span class="badge-hl bh-age">👥 ${a.ageMin}–${a.ageMax} ans</span>
-            <span class="badge-hl bh-deadline">⏰ Limite : ${fd(a.deadline)}</span>
+            <span class="badge-hl bh-deadline">⏰ Date limite d'inscription : ${fd(a.deadline)}</span>
             ${a.cout===0?`<span class="badge-hl bh-gratuit">🆓 Gratuit</span>`:`<span class="badge-hl bh-payant">💰 ${a.cout} CHF / enfant</span>`}
           </div>
         </div>
