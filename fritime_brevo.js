@@ -62,7 +62,6 @@ const FriBrevo = {
               <div style="background:#eaf3de;border-left:3px solid #27ae60;padding:12px 16px;border-radius:0 6px 6px 0;margin:0 0 20px">
                 <p style="margin:0;font-size:13px"><strong>CONFIRMATION DE PARTICIPATION :</strong> si votre enfant est sélectionné, vous recevrez automatiquement une confirmation par email avec toutes les informations concernant l'activité.</p>
               </div>
-              ${campaign.deadline ? '<p style="margin:0 0 20px;font-size:13px;font-weight:600;color:#c0392b">Délai d'inscription : '+campaign.deadline+'</p>' : ''}
 
               <p style="margin:0 0 8px;font-weight:600;font-size:15px">Règlement de participation</p>
               <p style="margin:0 0 20px;font-size:13px;color:#444">La participation implique de respecter quelques règles ; un communiqué se trouve en haut du formulaire d'inscription. Vous devez confirmer en avoir pris connaissance et les accepter pour que votre enfant puisse participer aux activités proposées. Nous comptons sur les familles afin que ce beau projet perdure dans le temps grâce au respect, l'entente et la collaboration de chacun.</p>
