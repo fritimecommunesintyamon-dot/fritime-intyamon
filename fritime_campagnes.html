@@ -413,27 +413,17 @@ function getSelectedActivites(){
   return Array.from(document.querySelectorAll("#activites-checkboxes input:checked")).map(el=>parseInt(el.value));
 }
 
-function openCreate(){
-  // Load activites dynamically
-  var ftData = localStorage.getItem("ft_data");
-  var acts = [];
-  if(ftData) try { acts = JSON.parse(ftData).activites || []; } catch(e){}
-  // Also try from Supabase cache
-  if(typeof activites !== 'undefined' && activites.length) acts = activites;
-  var actSel = document.getElementById("i-activite");
-  if(actSel) actSel.innerHTML = '<option value="">— Choisir —</option>' + 
-    acts.map(function(a){return '<option value="'+a.id+'">'+a.nom+'</option>';}).join("");
-  editCampaignId=null;
-  document.getElementById("create-title").textContent="Nouvelle campagne";
-  document.getElementById("c-del-btn").style.display="none";
-  document.getElementById("c-titre").value="";
-  document.getElementById("c-type").value="inscription";
-  document.getElementById("c-periode").value="";
-  document.getElementById("c-deadline").value="";
-  document.getElementById("c-message").value="";
-  document.getElementById("preview-link").textContent="https://fritimegruyere.ch/inscription?id=NOUVEAU";
-  if(typeof activites !== "undefined" && activites.length) ACTIVITES_DISPO = activites;
-renderActivitesCheckboxes([]);
+async function openCreate(){
+  // Load activites from Supabase if not yet loaded
+  if((!activites || !activites.length) && typeof FriDB !== 'undefined'){
+    try{
+      var db_acts = await FriDB.getActivites();
+      if(db_acts && db_acts.length){ activites = db_acts; ACTIVITES_DISPO = db_acts; }
+    }catch(e){ console.warn(e); }
+  }
+  if(activites && activites.length) ACTIVITES_DISPO = activites;
+  console.log("[openCreate] activites:", activites ? activites.length : 0);
+  renderActivitesCheckboxes([]);
   document.getElementById("mCreate").style.display="flex";
 }
 
