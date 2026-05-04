@@ -63,7 +63,7 @@ const FriDB = {
     var clean = {};
     allowed.forEach(function(k){ if(k in a && a[k] !== undefined && a[k] !== null) clean[k] = a[k]; });
     if (a.id) {
-      clean.id = a.id;
+      delete clean.id;
       return await this.query('activites', 'PATCH', clean, '?id=eq.'+a.id);
     }
     return await this.query('activites', 'POST', clean);
