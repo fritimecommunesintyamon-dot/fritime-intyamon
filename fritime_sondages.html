@@ -64,6 +64,7 @@ tr:hover td{background:#fafaf8;cursor:pointer}
   <script src="fritime_sync.js"></script>
   <script src="fritime_auth.js"></script>
   <script src="fritime_supabase.js"></script>
+  <script src="fritime_brevo.js"></script>
 
 <style id="sidebar-css">
 .ft-wrap{display:flex;min-height:calc(100vh - 52px)}
@@ -414,9 +415,14 @@ async function saveSend(){
   const actNom=act?act.nom:"Activité #"+actId;
   const actDate=act?act.date:null;
   
-  // Get selected participants
+  // Get selected participants with emails
   const checks=document.querySelectorAll("#participants-list input[type=checkbox]:checked");
-  const parts=Array.from(checks).map(function(cb){return {nom:cb.value,email:"",repondu:false,note:null,comment:"",dateRep:null};});
+  const parts=Array.from(checks).map(function(cb){
+    // Find parent email from enfants data
+    var enfantNom=cb.value;
+    var e=enfants.find(function(x){return (x.prenom+" "+x.nom)===enfantNom;});
+    return {nom:enfantNom,email:e&&e.pe?e.pe:"",repondu:false,note:null,comment:"",dateRep:null};
+  });
   
   var newS={id:nSondage++,activite:actNom,dateActivite:actDate,dateEnvoi:new Date().toISOString().split("T")[0],statut:"envoye",participants:parts};
   
@@ -427,11 +433,27 @@ async function saveSend(){
     }catch(e){console.warn('DB save sondage:',e);}
   }
   sondages.push(newS);
+  
+  // Send emails via Brevo
+  var emailsSent=0;
+  if(typeof FriBrevo!=="undefined"){
+    var partsWithEmail=parts.filter(function(p){return p.email;});
+    if(partsWithEmail.length>0){
+      try{
+        var baseUrl=window.location.origin;
+        var results=await FriBrevo.sendSondage(newS,newS.id,baseUrl);
+        emailsSent=results.filter(function(r){return r.success;}).length;
+      }catch(e){console.warn("Erreur envoi sondage:",e);}
+    }
+  }
+  
   closeMSend();renderAll();
-  alert("Sondage envoyé aux familles !");
+  if(emailsSent>0){
+    alert("✓ Sondage créé et "+emailsSent+" email(s) envoyé(s) aux parents !");
+  } else {
+    alert("Sondage créé. Aucun email envoyé (emails parents manquants).");
+  }
 }
-  closeMSend();renderAll();
-  alert("Sondage envoyé aux familles !");
 
 function envoyerSondage(id){
   sondages=sondages.map(s=>s.id===id?{...s,statut:"envoye",dateEnvoi:new Date().toISOString().split("T")[0]}:s);
