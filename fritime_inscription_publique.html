@@ -345,7 +345,8 @@ async function loadActivitesFromSupabase() {
   } catch(e) {
     console.warn('Erreur chargement activités:', e);
   }
-  renderStep();
+  renderActs();
+  showStep(1);
 }
 
 let step=1,selIds=[],prefOrder=[],childAge=null;
