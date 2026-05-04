@@ -651,6 +651,7 @@ async function loadCampagnesDB(){
       });
     }
     // Load activites separately
+    console.log("[Campagnes] Tentative chargement activites...");
     try{
       var db_acts = await FriDB.getActivites();
       console.log("[Campagnes] activités Supabase:", db_acts ? db_acts.length : 0);
