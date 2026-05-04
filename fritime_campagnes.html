@@ -501,14 +501,14 @@ async function confirmEnvoi(){
   const campaign = campaigns.find(function(c){return c.id===envoiTargetId;});
   if(!campaign) return;
   
-  // Get destinataires from modal
-  const checks = document.querySelectorAll("#envoi-destinataires input[type=checkbox]:checked");
-  const destinataires = Array.from(checks).map(function(cb){return {email: cb.value, nom: cb.dataset.nom||""};});
-  
-  if(!destinataires.length){
-    alert("Aucun destinataire sélectionné.");
+  // Get email from input field
+  const emailInput = document.getElementById("envoi-email");
+  const emailVal = emailInput ? emailInput.value.trim() : "";
+  if(!emailVal){
+    alert("Veuillez saisir l'adresse email de l'école.");
     return;
   }
+  const destinataires = [{email: emailVal, nom: "École"}];
   
   const btn = document.querySelector("#mEnvoi .btn-primary");
   if(btn){btn.textContent="Envoi en cours...";btn.disabled=true;}
