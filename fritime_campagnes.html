@@ -657,7 +657,7 @@ async function loadCampagnesDB(){
       if(db_acts && db_acts.length){ activites = db_acts; ACTIVITES_DISPO = db_acts; }
     }catch(ea){ console.error('[Campagnes] ERREUR activites:', ea.message, ea); }
     renderAll();
-  }catch(e){console.warn('DB:',e);}
+  }catch(e){console.error('[Campagnes] CATCH PRINCIPAL:', e.message, e);}
 }
 loadCampagnesDB();
 </script>
