@@ -635,9 +635,6 @@ async function loadCampagnesDB(){
   while(typeof FriDB==='undefined'&&a<30){await new Promise(function(r){setTimeout(r,100);});a++;}
   if(typeof FriDB==='undefined') return;
   try{
-    var db_acts = await FriDB.getActivites();
-    console.log("[Campagnes] activités Supabase:", db_acts ? db_acts.length : 0);
-    if(db_acts && db_acts.length){ activites = db_acts; ACTIVITES_DISPO = db_acts; }
     var db_campaigns = await FriDB.getCampagnes();
     console.log('[Campagnes] reçues depuis Supabase:', db_campaigns ? db_campaigns.length : 0, db_campaigns);
     if(db_campaigns && db_campaigns.length) {
@@ -651,6 +648,12 @@ async function loadCampagnesDB(){
         return parsed;
       });
     }
+    // Load activites separately
+    try{
+      var db_acts = await FriDB.getActivites();
+      console.log("[Campagnes] activités Supabase:", db_acts ? db_acts.length : 0);
+      if(db_acts && db_acts.length){ activites = db_acts; ACTIVITES_DISPO = db_acts; }
+    }catch(ea){ console.warn('[Campagnes] Erreur chargement activites:', ea); }
     renderAll();
   }catch(e){console.warn('DB:',e);}
 }
