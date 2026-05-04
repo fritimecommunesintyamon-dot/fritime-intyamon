@@ -604,8 +604,20 @@ function openDetail(id){
         <button class="btn btn-sm" onclick="copyFormLink(${c.id})">📋 Copier</button>
       </div>
     </div>
-    <div class="mf"><div></div><button class="btn btn-primary btn-sm" onclick="closeMDetail()">Fermer</button></div>`;
+    <div class="mf"><button class="btn btn-danger btn-sm" onclick="closeMDetail();openEdit(${c.id})">✏️ Modifier</button><button class="btn btn-sm" style="color:#c0392b;border-color:#c0392b" onclick="closeMDetail();confirmDeleteCampaign(${c.id})">🗑️ Supprimer</button><div></div><button class="btn btn-primary btn-sm" onclick="closeMDetail()">Fermer</button></div>`;
   document.getElementById("mDetail").style.display="flex";
+}
+
+function confirmDeleteCampaign(id){
+  if(confirm("Supprimer cette campagne définitivement ?")){
+    campaigns=campaigns.filter(function(c){return String(c.id)!==String(id);});
+    renderAll();
+    if(typeof FriDB!=="undefined"){
+      FriDB.query("campagnes","DELETE",null,"?id=eq."+id)
+        .then(function(){console.log("Campagne supprimée ✓");})
+        .catch(function(e){console.warn("Delete erreur:",e);});
+    }
+  }
 }
 function closeMDetail(){document.getElementById("mDetail").style.display="none";}
 
