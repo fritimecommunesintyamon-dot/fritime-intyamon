@@ -491,9 +491,47 @@ function nextStep(){
     }
     document.getElementById("err-cond-consent").classList.remove("on");
     const email=document.getElementById("p-email").value.trim();
+    const prenom=document.getElementById("e-prenom").value.trim();
+    const nom=document.getElementById("e-nom").value.trim();
+    const ref="FT-2026-"+Math.floor(1000+Math.random()*9000);
     document.getElementById("success-email").textContent=email;
-    document.getElementById("ref-numero").textContent="Référence : FT-2026-"+Math.floor(1000+Math.random()*9000);
+    document.getElementById("ref-numero").textContent="Référence : "+ref;
     showStep(6);
+    // Send confirmation email
+    const actsChoisis=selIds.map(function(id){
+      const a=ACTS.find(function(x){return x.id===id;});
+      return a?a.nom:"Activité #"+id;
+    }).join(", ");
+    fetch("/api/send-email",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        sender:{email:"fritimecommunesintyamon@gmail.com",name:"Fri-Time Intyamon"},
+        to:[{email:email}],
+        subject:"Confirmation d'inscription Fri-Time — "+ref,
+        htmlContent:`<div style="font-family:system-ui,sans-serif;max-width:600px;margin:0 auto;padding:20px">
+          <div style="background:#1a1a1a;color:#fff;padding:24px;border-radius:10px 10px 0 0;text-align:center">
+            <div style="font-size:18px;font-weight:600">Fri-Time Intyamon</div>
+          </div>
+          <div style="background:#fff;padding:24px;border:1px solid #eee;border-top:none;border-radius:0 0 10px 10px;line-height:1.7">
+            <p>Bonjour,</p>
+            <p>Nous avons bien reçu votre demande d'inscription pour <strong>${prenom} ${nom}</strong>.</p>
+            <div style="background:#eaf3de;border-left:3px solid #27ae60;padding:12px 16px;border-radius:0 6px 6px 0;margin:16px 0">
+              <p style="margin:0"><strong>Référence :</strong> ${ref}</p>
+              <p style="margin:8px 0 0"><strong>Activités demandées :</strong> ${actsChoisis}</p>
+            </div>
+            <p><strong>⚠️ Rappel important :</strong> Cet email confirme uniquement la réception de votre demande, pas la participation de votre enfant. La sélection se fait selon les critères d'équité définis — le choix est mécanique et impartial.</p>
+            <p>Vous recevrez un second email avec la décision finale.</p>
+            <p style="font-size:13px;color:#888;margin-top:24px;border-top:1px solid #eee;padding-top:12px">
+              Fri-Time Intyamon · fritimecommunesintyamon@gmail.com · 079 793 76 42
+            </p>
+          </div>
+        </div>`
+      })
+    }).then(function(r){
+      if(!r.ok) console.warn("Email confirmation: erreur HTTP",r.status);
+      else console.log("Email confirmation envoyé ✓");
+    }).catch(function(e){console.warn("Email confirmation erreur:",e);});
   }
 }
 function prevStep(){showStep(step-1);}
