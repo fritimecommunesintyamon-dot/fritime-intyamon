@@ -375,7 +375,7 @@ function getAgeErrors(){
 function renderActs(){
   const errors=getAgeErrors();
   document.getElementById("activites-list").innerHTML=ACTS.map(a=>{
-    const rest=a.places-a.inscrits,complet=rest<=0,sel=selIds.includes(a.id);
+    const rest=(parseInt(a.places)||0)-(parseInt(a.inscrits)||0),complet=rest<=0,sel=selIds.includes(a.id);
     const ageErr=childAge!==null&&sel&&errors.includes(a.id);
     return`<div class="act-card${sel?" selected":""}${complet?" complet":""}${ageErr?" age-error":""}" id="act-${a.id}" onclick="toggleAct(${a.id})">
       <div class="act-card-header">
@@ -383,7 +383,7 @@ function renderActs(){
         <div style="flex:1">
           <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px">
             <div class="act-title">${a.nom}</div>
-            <span class="places-badge ${complet?"pb-complet":rest<=5?"pb-limite":"pb-dispo"}">${complet?"Complet":rest<=5?rest+" places dispo":"Places disponibles : "+(a.places-a.inscrits)}</span>
+            <span class="places-badge ${complet?"pb-complet":rest<=5?"pb-limite":"pb-dispo"}">${complet?"Complet":rest<=5?rest+" places dispo":"Places disponibles : "+((parseInt(a.places)||0)-(parseInt(a.inscrits)||0))}</span>
           </div>
           <div class="badges-row">
             <span class="badge-hl bh-age">👥 ${a.ageMin}–${a.ageMax} ans</span>
@@ -412,7 +412,7 @@ function renderActs(){
 }
 
 function toggleAct(id){
-  const a=ACTS.find(x=>x.id===id);if(a.places-a.inscrits<=0)return;
+  const a=ACTS.find(x=>x.id===id);if(((parseInt(a.places)||0)-(parseInt(a.inscrits)||0))<=0)return;
   selIds=selIds.includes(id)?selIds.filter(x=>x!==id):[...selIds,id];
   renderActs();
   document.getElementById("nav-info").textContent=selIds.length?`${selIds.length} activité${selIds.length>1?"s":""} sélectionnée${selIds.length>1?"s":""}` : "";
