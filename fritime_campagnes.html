@@ -72,6 +72,7 @@ textarea.fi{resize:vertical;min-height:80px}
   <script src="fritime_sync.js"></script>
   <script src="fritime_auth.js"></script>
   <script src="fritime_supabase.js"></script>
+  <script src="fritime_brevo.js"></script>
 
 <style id="sidebar-css">
 .ft-wrap{display:flex;min-height:calc(100vh - 52px)}
@@ -431,7 +432,8 @@ function openCreate(){
   document.getElementById("c-deadline").value="";
   document.getElementById("c-message").value="";
   document.getElementById("preview-link").textContent="https://fritimegruyere.ch/inscription?id=NOUVEAU";
-  renderActivitesCheckboxes([]);
+  if(typeof activites !== "undefined" && activites.length) ACTIVITES_DISPO = activites;
+renderActivitesCheckboxes([]);
   document.getElementById("mCreate").style.display="flex";
 }
 
@@ -446,7 +448,8 @@ function openEdit(id){
   document.getElementById("c-deadline").value=c.deadline||"";
   document.getElementById("c-message").value=c.message||"";
   document.getElementById("preview-link").textContent=`https://fritimegruyere.ch/inscription?id=${id}`;
-  renderActivitesCheckboxes(c.activites);
+  if(typeof activites !== "undefined" && activites.length) ACTIVITES_DISPO = activites;
+renderActivitesCheckboxes(c.activites);
   document.getElementById("mCreate").style.display="flex";
 }
 
@@ -496,10 +499,48 @@ function copyFormLink(id){
 
 function openEnvoi(id){envoiTargetId=id;document.getElementById("mEnvoi").style.display="flex";}
 function closeMEnvoi(){document.getElementById("mEnvoi").style.display="none";}
-function confirmEnvoi(){
-  campaigns=campaigns.map(c=>c.id===envoiTargetId?{...c,statut:"envoye",dateEnvoi:new Date().toISOString().split("T")[0]}:c);
-  closeMEnvoi();renderAll();
-  alert("Campagne marquée comme envoyée. Copiez le lien et transmettez-le à l'école.");
+async function confirmEnvoi(){
+  const campaign = campaigns.find(function(c){return c.id===envoiTargetId;});
+  if(!campaign) return;
+  
+  // Get destinataires from modal
+  const checks = document.querySelectorAll("#envoi-destinataires input[type=checkbox]:checked");
+  const destinataires = Array.from(checks).map(function(cb){return {email: cb.value, nom: cb.dataset.nom||""};});
+  
+  if(!destinataires.length){
+    alert("Aucun destinataire sélectionné.");
+    return;
+  }
+  
+  const btn = document.querySelector("#mEnvoi .btn-primary");
+  if(btn){btn.textContent="Envoi en cours...";btn.disabled=true;}
+  
+  try {
+    if(typeof FriBrevo !== "undefined"){
+      const results = await FriBrevo.sendCampagne(campaign, destinataires);
+      const ok = results.filter(function(r){return r.success;}).length;
+      const ko = results.filter(function(r){return !r.success;}).length;
+      
+      campaigns = campaigns.map(function(c){
+        return c.id===envoiTargetId ? Object.assign({},c,{statut:"envoye",dateEnvoi:new Date().toISOString().split("T")[0]}) : c;
+      });
+      if(typeof FriDB!=="undefined") FriDB.quickSave("campagnes",Object.assign({id:envoiTargetId},{statut:"envoye",dateEnvoi:new Date().toISOString().split("T")[0]}));
+      
+      closeMEnvoi();renderAll();
+      alert("✓ " + ok + " email(s) envoyé(s)" + (ko?" — ⚠ "+ko+" échec(s)":"") + ".");
+    } else {
+      campaigns = campaigns.map(function(c){
+        return c.id===envoiTargetId ? Object.assign({},c,{statut:"envoye",dateEnvoi:new Date().toISOString().split("T")[0]}) : c;
+      });
+      closeMEnvoi();renderAll();
+      alert("Brevo non disponible — campagne marquée comme envoyée.");
+    }
+  } catch(e) {
+    console.error("Erreur envoi:", e);
+    alert("Erreur lors de l'envoi : " + e.message);
+  } finally {
+    if(btn){btn.textContent="Confirmer l'envoi";btn.disabled=false;}
+  }
 }
 
 function openDetail(id){
