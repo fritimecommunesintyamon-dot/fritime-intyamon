@@ -522,7 +522,10 @@ async function confirmEnvoi(){
       campaigns = campaigns.map(function(c){
         return c.id===envoiTargetId ? Object.assign({},c,{statut:"envoye",dateEnvoi:new Date().toISOString().split("T")[0]}) : c;
       });
-      if(typeof FriDB!=="undefined") FriDB.quickSave("campagnes",Object.assign({id:envoiTargetId},{statut:"envoye",dateEnvoi:new Date().toISOString().split("T")[0]}));
+      if(typeof FriDB!=="undefined"){
+      FriDB.query("campagnes","PATCH",{statut:"envoye",date_envoi:new Date().toISOString().split("T")[0]},"?id=eq."+envoiTargetId)
+        .catch(function(e){console.warn("Update statut campagne:",e);});
+    }
       
       closeMEnvoi();renderAll();
       alert("✓ " + ok + " email(s) envoyé(s)" + (ko?" — ⚠ "+ko+" échec(s)":"") + ".");
