@@ -53,7 +53,7 @@ const FriDB = {
 
   // ─── ACTIVITÉS ───────────────────────────────
   async getActivites() {
-    return await this.query('activites', 'GET', null, '?order=date');
+    return await this.query('activites', 'GET', null, '?order=created_at');
   },
   async saveActivite(a) {
     var allowed = ['nom','description','date','date_limite','heure_debut','heure_fin','lieu',

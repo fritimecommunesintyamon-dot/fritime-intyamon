@@ -655,7 +655,7 @@ async function loadCampagnesDB(){
       var db_acts = await FriDB.getActivites();
       console.log("[Campagnes] activités Supabase:", db_acts ? db_acts.length : 0);
       if(db_acts && db_acts.length){ activites = db_acts; ACTIVITES_DISPO = db_acts; }
-    }catch(ea){ console.warn('[Campagnes] Erreur chargement activites:', ea); }
+    }catch(ea){ console.error('[Campagnes] ERREUR activites:', ea.message, ea); }
     renderAll();
   }catch(e){console.warn('DB:',e);}
 }
