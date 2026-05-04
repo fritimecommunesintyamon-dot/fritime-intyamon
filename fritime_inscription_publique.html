@@ -315,11 +315,12 @@ async function loadActivitesFromSupabase() {
       headers: {
         'Content-Type': 'application/json',
         'apikey': 'sb_publishable_ZV04eYw85SDFQi43SwZJTg_igofPU8X',
-        'Authorization': 'Bearer sb_publishable_ZV04eYw85SDFQi43SwZJTg_igofPU8X',
-        'Prefer': 'return=representation'
+        'Authorization': 'Bearer sb_publishable_ZV04eYw85SDFQi43SwZJTg_igofPU8X'
       }
     });
+    console.log('[Inscription] Supabase status:', res.status);
     const data = await res.json();
+    console.log('[Inscription] activites reçues:', data ? data.length : 0, data);
     if (data && data.length) {
       ACTS = data.map(function(a) {
         return {
