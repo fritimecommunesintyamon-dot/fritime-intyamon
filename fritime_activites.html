@@ -439,7 +439,6 @@ let sousCategories=[];
 let prestataires=[];
 let nextPrestId=100;
 
-
 let activites=[];
 let nextId=4;
 let currentFilter="tous";
@@ -488,10 +487,10 @@ function renderGrid(){
           ${a.cout?`<span>💰 ${a.cout} CHF</span>`:`<span>🆓 Gratuit</span>`}
         </div>
         <div style="margin-top:6px">
-          ${a.tPublic?`<span class="chip">Public</span>`:""}
-          ${a.tParent?`<span class="chip" style="background:#faeeda;color:#633806">👨‍👩‍👦 Parent requis</span>`:""}
-          ${a.tMeteo?`<span class="chip" style="background:#e6f1fb;color:#0c447c">🌧️ Météo</span>`:""}
-          ${a.tService?`<span class="chip" style="background:#eaf3de;color:#275a0a;font-weight:600">✅ Envoyé Fri-Time</span>`:""}
+          
+          ${a.tParent?`<span class="chip">Parent requis</span>`:""}
+          ${a.tMeteo?`<span class="chip">Météo</span>`:""}
+          ${a.tService?`<span class="chip">Envoyé Fri-Time</span>`:""}
         </div>
       </div>
     </div>`).join("");
@@ -499,44 +498,28 @@ function renderGrid(){
 
 function setFilter(f){currentFilter=f;renderFilters();renderGrid();}
 
+function fillCatSelect(){
+  const s=document.getElementById("f-cat");if(!s)return;
+  s.innerHTML=`<option value="">— Choisir —</option>`+categories.map(c=>`<option value="${c}">${c}</option>`).join("");
+}
 function fillCatSelect(){ FriCats.fillCatSelect("f-cat"); }
 function fillSousCatSelect(cat){ FriCats.fillSousCatSelect("f-souscat", cat); }
-async function onCatChange(){
-  const cat=document.getElementById("f-cat").value;
-  // Try to load sous-cats for this category if not yet loaded
-  if(cat && typeof FriDB!=="undefined"){
-    try{
-      var fresh=await FriDB.getSousCategories(cat);
-      if(fresh&&fresh.length){
-        // Merge into sousCategories
-        fresh.forEach(function(sc){
-          if(!sousCategories.find(function(x){return x.nom===sc.nom&&x.cat===sc.categorie;})){
-            sousCategories.push({nom:sc.nom,cat:sc.categorie});
-          }
-        });
-      }
-    }catch(e){}
-  }
-  fillSousCatSelect(cat);
-}
+async function onCatChange(){ await FriCats.refreshSousCats(document.getElementById("f-cat").value,"f-souscat"); }
 function toggleNewSousCat(){document.getElementById("f-new-souscat").classList.toggle("visible");}
 async function addSousCat(){ await FriCats.addSousCategorie("f-new-souscat-val","f-cat","f-souscat","f-new-souscat"); }
 function toggleNewCat(){document.getElementById("f-new-cat").classList.toggle("visible");}
-async function addCat(){
+async function addCat(){ await FriCats.addCategorie("f-new-cat-val","f-cat","f-souscat","f-new-cat"); }
+function addCat(){
   const v=document.getElementById("f-new-cat-val").value.trim();if(!v)return;
-  if(!categories.includes(v)){
-    categories.push(v);
-    if(typeof FriDB!=="undefined"){try{await FriDB.saveCategorie(v);}catch(e){}}
-  }
+  if(!categories.includes(v))categories.push(v);
   fillCatSelect();document.getElementById("f-cat").value=v;
-  fillSousCatSelect(v);
   document.getElementById("f-new-cat-val").value="";
   document.getElementById("f-new-cat").classList.remove("visible");
 }
 
 function fillPrestSelect(){
   const s=document.getElementById("f-prest");if(!s)return;
-  s.innerHTML=`<option value="">— Aucun —</option>`+prestataires.map(function(p){var l=p.nom||((p.cp||'')+' '+(p.cn||'')).trim()||'#'+p.id;return '<option value="'+p.id+'">'+l+'</option>';}).join("");
+  s.innerHTML='<option value="">— Aucun —</option>'+prestataires.map(function(p){var l=p.nom||((p.cp||'')+' '+(p.cn||'')).trim()||'#'+p.id;return '<option value="'+p.id+'">'+l+'</option>';}).join("");
 }
 function toggleNewPrest(){
   const b=document.getElementById("new-prest-block");
@@ -753,8 +736,7 @@ async function loadActivitesDB(){
   if(typeof FriDB === 'undefined'){ console.warn('FriDB non disponible'); return; }
   try {
     console.log('Chargement activités depuis Supabase...');
-    try{var dbSC=await FriDB.getSousCategories();if(dbSC&&dbSC.length)sousCategories=dbSC.map(function(sc){return {nom:sc.nom,cat:sc.categorie};});}catch(esc){}
-    try{var dbCats=await FriDB.getCategories();if(dbCats&&dbCats.length){categories=dbCats.map(function(c){return c.nom;});fillCatSelect();}}catch(ec){}
+    await FriCats.loadAndFill("f-cat","f-souscat");
     try{var dbPrest=await FriDB.getPrestataires();if(dbPrest&&dbPrest.length)prestataires=dbPrest;}catch(ep){}
     var dbData = await FriDB.getActivites();
     console.log('Activités reçues:', dbData ? dbData.length : 0);

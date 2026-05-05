@@ -506,6 +506,19 @@ async function addSousCat_old(){
   document.getElementById("f-new-souscat-val").value="";document.getElementById("f-new-souscat").classList.remove("visible");
 }
 
+async function onCatChange(){ await FriCats.refreshSousCats(document.getElementById("f-cat").value,"f-souscat"); }
+async function addCat(v){ 
+  if(typeof v==="string"){ /* called with value */
+    var cats=window.categories=window.categories||[];
+    if(!cats.includes(v)){cats.push(v);if(typeof FriDB!=="undefined")try{await FriDB.saveCategorie(v);}catch(e){};}
+    FriCats.fillCatSelect("f-cat",v);FriCats.fillSousCatSelect("f-souscat",v);
+  } else {
+    await FriCats.addCategorie("f-new-cat-val","f-cat","f-souscat","f-new-cat");
+  }
+}
+async function addSousCat(){ await FriCats.addSousCategorie("f-new-souscat-val","f-cat","f-souscat","f-new-souscat"); }
+function toggleNewSousCat_unused(){}
+
 function toggleNewCat(){
   const r=document.getElementById("new-cat-row");
   r.style.display=r.style.display==="none"?"block":"none";
@@ -542,9 +555,7 @@ function openCreate(){
   document.getElementById("f-statut").value="actif";
   document.getElementById("f-type").selectedIndex=0;
   editActs=[];
-  fillCatSelect("");
-  fillSousCatSelect("");
-  renderActsList();
+  FriCats.fillCatSelect("f-cat");FriCats.fillSousCatSelect("f-souscat","");renderActsList();
   document.getElementById("mCreate").style.display="flex";
 }
 function closeCreate(){document.getElementById("mCreate").style.display="none";}
@@ -736,7 +747,7 @@ async function loadPrestatairesDB(){
   while(typeof FriDB==='undefined'&&a<30){await new Promise(function(r){setTimeout(r,100);});a++;}
   if(typeof FriDB==='undefined') return;
   try{
-    await FriCats.load();
+    await FriCats.loadAndFill("f-cat","f-souscat");
     var db_prestataires = await FriDB.getPrestataires();
     if(db_prestataires && db_prestataires.length) prestataires = db_prestataires.map(function(p){
         var parsed = Object.assign({evals:[], acts:[]}, p);
