@@ -553,18 +553,27 @@ function openEdit(id){
 async function savePrest(){
   const nom=document.getElementById("f-nom").value.trim();
   if(!nom){alert("Le nom est obligatoire");return;}
-  const data={nom,type:document.getElementById("f-type").value,statut:document.getElementById("f-statut").value,cat:document.getElementById("f-cat").value,cp:document.getElementById("f-cp").value.trim(),cn:document.getElementById("f-cn").value.trim(),email:document.getElementById("f-email").value.trim(),tel:document.getElementById("f-tel").value.trim(),url:document.getElementById("f-url").value.trim(),adresse:document.getElementById("f-adresse").value.trim(),gratuit:document.getElementById("f-gratuit").checked,acts:[...editActs],notes:document.getElementById("f-notes").value.trim()};
-  if(editId){prestataires=prestataires.map(p=>p.id===editId?{...p,...data}:p);}
-  else{prestataires.push({id:nid++,...data,evals:[]});
-  if(typeof FriDB !== 'undefined'){
-    try{
-      var _last = prestataires[prestataires.length-1];
-      var _res = await FriDB.quickSave('prestataires', _last);
-      if(_res && _res[0] && _res[0].id) prestataires[prestataires.length-1].id = _res[0].id;
-    }catch(e){ console.warn('DB save:', e); }
+  const data={nom:nom,type:document.getElementById("f-type").value,statut:document.getElementById("f-statut").value,cat:document.getElementById("f-cat").value,cp:document.getElementById("f-cp").value.trim(),cn:document.getElementById("f-cn").value.trim(),email:document.getElementById("f-email").value.trim(),tel:document.getElementById("f-tel").value.trim(),url:document.getElementById("f-url").value.trim(),adresse:document.getElementById("f-adresse").value.trim(),gratuit:document.getElementById("f-gratuit").checked,acts:[...editActs],notes:document.getElementById("f-notes").value.trim()};
+  if(editId){
+    prestataires=prestataires.map(function(p){return p.id===editId?Object.assign({},p,data):p;});
+    if(typeof FriDB!=='undefined'){
+      try{
+        var res=await FriDB.savePrestataire(Object.assign({id:editId},data));
+        console.log("Prestataire modifié Supabase ✓");
+      }catch(e){console.warn("Save prestataire:",e);}
+    }
+  } else {
+    var newP=Object.assign({id:nid++},data,{evals:[]});
+    if(typeof FriDB!=='undefined'){
+      try{
+        var res2=await FriDB.quickSave('prestataires',newP);
+        if(res2&&res2[0]&&res2[0].id) newP.id=res2[0].id;
+      }catch(e){console.warn("Save prestataire:",e);}
+    }
+    prestataires.push(newP);
   }
-}  closeCreate();render();
-  }
+  closeCreate();render();
+}
 function deletePrest(){
   console.log("[Prest] Suppression id:", editId, typeof editId);
   if(confirm("Supprimer ce prestataire ?")){
