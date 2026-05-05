@@ -355,22 +355,26 @@ function doLogout(){
     </div>
   </div>
   <div id="new-prest-block" style="display:none;background:#f5f5f3;border-radius:8px;padding:12px;margin-bottom:.75rem">
-    <div style="font-size:12px;font-weight:500;color:#888;margin-bottom:8px">Nouveau prestataire</div>
-    <div class="fg" style="margin-bottom:.5rem"><label class="fl">Nom entreprise / organisation *</label><input class="fi" id="np-entreprise" /></div>
+    <div style="font-size:12px;font-weight:600;color:#555;margin-bottom:10px">Nouveau prestataire</div>
+    <div class="fg" style="margin-bottom:.5rem"><label class="fl">Nom de l'entreprise / organisation *</label><input class="fi" id="np-nom-entreprise" /></div>
+    <div class="fr">
+      <div class="fg" style="margin-bottom:.5rem"><label class="fl">Type</label>
+        <select class="fi" id="np-type"><option>Association</option><option>Entreprise</option><option>Indépendant</option><option>Commune</option><option>Autre</option></select>
+      </div>
+      <div class="fg" style="margin-bottom:.5rem"><label class="fl">Statut</label>
+        <select class="fi" id="np-statut"><option value="actif">Actif</option><option value="acontacter">À contacter</option><option value="inactif">Inactif</option></select>
+      </div>
+    </div>
     <div class="fr">
       <div class="fg" style="margin-bottom:.5rem"><label class="fl">Prénom contact</label><input class="fi" id="np-prenom" /></div>
       <div class="fg" style="margin-bottom:.5rem"><label class="fl">Nom contact</label><input class="fi" id="np-nom" /></div>
     </div>
     <div class="fr">
       <div class="fg" style="margin-bottom:.5rem"><label class="fl">Email</label><input class="fi" type="email" id="np-email" /></div>
-      <div class="fg" style="margin-bottom:.5rem"><label class="fl">Téléphone</label><input class="fi" id="np-tel" /></div>
+      <div class="fg" style="margin-bottom:.5rem"><label class="fl">Téléphone</label><input class="fi" type="tel" id="np-tel" /></div>
     </div>
-    <div class="fg" style="margin-bottom:.5rem"><label class="fl">URL</label><input class="fi" type="url" id="np-url" placeholder="https://" /></div>
-    <button class="btn btn-sm" onclick="saveNewPrest()" type="button">Enregistrer</button>
-  </div>
-  <div class="fr">
-    <div class="fg"><label class="fl">Contact prestataire</label><input class="fi" id="f-prest-contact" placeholder="Prénom Nom" /></div>
-    <div class="fg"><label class="fl">Email contact</label><input class="fi" type="email" id="f-prest-email" /></div>
+    <div class="fg" style="margin-bottom:.5rem"><label class="fl">Site web</label><input class="fi" type="url" id="np-url" placeholder="https://" /></div>
+    <button class="btn btn-sm btn-primary" onclick="saveNewPrest()" type="button">Enregistrer le prestataire</button>
   </div>
   <div class="fr">
     <div class="fg"><label class="fl">Téléphone contact</label><input class="fi" id="f-prest-tel" /></div>
@@ -526,24 +530,31 @@ async function renderPrestSelect(){
   if(cur)s.value=cur;
 }
 async function saveNewPrest(){
-  var entreprise=document.getElementById("np-entreprise")?document.getElementById("np-entreprise").value.trim():"";
-  var prenom=document.getElementById("np-prenom").value.trim();
-  var nom=document.getElementById("np-nom").value.trim();
-  if(!entreprise&&!prenom&&!nom){alert("Entrez au moins le nom de l\'entreprise");return;}
-  var p={nom:entreprise,cp:prenom,cn:nom,
-    email:document.getElementById("np-email").value.trim(),
-    tel:document.getElementById("np-tel").value.trim(),
-    url:document.getElementById("np-url")?document.getElementById("np-url").value.trim():"",
-    statut:"actif",gratuit:false,id:nextPrestId++};
+  var nomEntreprise=document.getElementById("np-nom-entreprise")?document.getElementById("np-nom-entreprise").value.trim():"";
+  if(!nomEntreprise){alert("Le nom de l\'entreprise est obligatoire");return;}
+  var p={
+    nom: nomEntreprise,
+    type: document.getElementById("np-type")?document.getElementById("np-type").value:"Autre",
+    statut: document.getElementById("np-statut")?document.getElementById("np-statut").value:"actif",
+    cp: document.getElementById("np-prenom")?document.getElementById("np-prenom").value.trim():"",
+    cn: document.getElementById("np-nom")?document.getElementById("np-nom").value.trim():"",
+    email: document.getElementById("np-email")?document.getElementById("np-email").value.trim():"",
+    tel: document.getElementById("np-tel")?document.getElementById("np-tel").value.trim():"",
+    url: document.getElementById("np-url")?document.getElementById("np-url").value.trim():"",
+    gratuit: false
+  };
   if(typeof FriDB!=="undefined"){
-    try{var res=await FriDB.savePrestataire(p); if(res&&res[0]&&res[0].id) p.id=res[0].id;}
-    catch(e){console.warn(e);}
-  }
+    try{
+      var res=await FriDB.savePrestataire(p);
+      if(res&&res[0]&&res[0].id) p.id=res[0].id;
+      else p.id=nextPrestId++;
+    }catch(e){console.warn("Save prestataire:",e);p.id=nextPrestId++;}
+  } else {p.id=nextPrestId++;}
   prestataires.push(p);
   renderPrestSelect();
   document.getElementById("f-prest").value=String(p.id);
   toggleNewPrest();
-  ["np-entreprise","np-prenom","np-nom","np-email","np-tel","np-url"].forEach(function(id){var el=document.getElementById(id);if(el)el.value="";});
+  ["np-nom-entreprise","np-prenom","np-nom","np-email","np-tel","np-url"].forEach(function(id){var el=document.getElementById(id);if(el)el.value="";});
 }
 
 function previewImg(input){
