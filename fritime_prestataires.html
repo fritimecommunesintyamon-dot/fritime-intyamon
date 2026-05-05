@@ -486,6 +486,28 @@ function fillCatSelect(current){
   const sel=document.getElementById("f-cat");
   sel.innerHTML=categories.map(c=>`<option value="${c}"${c===current?" selected":""}>${c}</option>`).join("");
 }
+function fillSousCatSelect(cat){
+  const s=document.getElementById("f-souscat");if(!s)return;
+  const filtered=cat?sousCategories.filter(function(sc){return sc.cat===cat;}):sousCategories;
+  s.innerHTML='<option value="">— Aucune —</option>'+filtered.map(function(sc){return '<option value="'+sc.nom+'">'+sc.nom+'</option>';}).join("");
+}
+async function onCatChange(){
+  const cat=document.getElementById("f-cat").value;
+  if(cat&&typeof FriDB!=="undefined"){try{var fresh=await FriDB.getSousCategories(cat);if(fresh&&fresh.length){fresh.forEach(function(sc){if(!sousCategories.find(function(x){return x.nom===sc.nom&&x.cat===sc.categorie;}))sousCategories.push({nom:sc.nom,cat:sc.categorie});});}}catch(e){}}
+  fillSousCatSelect(cat);
+}
+function toggleNewSousCat(){document.getElementById("f-new-souscat").classList.toggle("visible");}
+async function addSousCat(){
+  const v=document.getElementById("f-new-souscat-val").value.trim();if(!v)return;
+  const cat=document.getElementById("f-cat").value;
+  if(!sousCategories.find(function(sc){return sc.nom===v&&sc.cat===cat;})){
+    sousCategories.push({nom:v,cat:cat});
+    if(typeof FriDB!=="undefined"){try{await FriDB.saveSousCategorie(v,cat);}catch(e){}}
+  }
+  fillSousCatSelect(cat);document.getElementById("f-souscat").value=v;
+  document.getElementById("f-new-souscat-val").value="";document.getElementById("f-new-souscat").classList.remove("visible");
+}
+
 function toggleNewCat(){
   const r=document.getElementById("new-cat-row");
   r.style.display=r.style.display==="none"?"block":"none";

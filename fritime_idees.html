@@ -353,9 +353,7 @@ function doLogout(){
         <button class="btn btn-sm" onclick="addSousCatIdees()" type="button">OK</button>
       </div>
     </div>
-    <div class="fg"><label class="fl">Sous-catégorie</label>
-      <input class="fi" id="f-souscat" placeholder="Ex: Plein air, Intérieur..." />
-    </div>
+    
   </div>
   <div class="fg"><label class="fl">Description</label><textarea class="fi" id="f-desc" placeholder="Décrivez l'idée, le concept, ce que les enfants feraient..."></textarea></div>
   <div class="fg">
@@ -525,8 +523,11 @@ function fillCatSelect(prefix,current){
   if(!sel)return;
   sel.innerHTML=`<option value="">— Choisir —</option>`+categories.map(c=>`<option value="${c}"${c===current?" selected":""}>${c}</option>`).join("");
 }
-function fillSousCatSelectIdees(cat){
+async function fillSousCatSelectIdees(cat){
   const s=document.getElementById("f-souscat");if(!s)return;
+  if(cat&&sousCategories.filter(function(sc){return sc.cat===cat;}).length===0&&typeof FriDB!=="undefined"){
+    try{var fresh=await FriDB.getSousCategories(cat);if(fresh&&fresh.length)fresh.forEach(function(sc){if(!sousCategories.find(function(x){return x.nom===sc.nom&&x.cat===sc.categorie;}))sousCategories.push({nom:sc.nom,cat:sc.categorie});});}catch(e){}
+  }
   const filtered=cat?sousCategories.filter(function(sc){return sc.cat===cat;}):sousCategories;
   s.innerHTML='<option value="">— Aucune —</option>'+filtered.map(function(sc){return '<option value="'+sc.nom+'">'+sc.nom+'</option>';}).join("");
 }
