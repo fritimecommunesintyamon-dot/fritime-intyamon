@@ -510,13 +510,14 @@ function toggleNewPrest(){
   b.style.display=b.style.display==="none"?"block":"none";
 }
 function handlePrestChange(){
-  const id=parseInt(document.getElementById("f-prest").value);
-  const p=prestataires.find(x=>x.id===id);
+  const val=document.getElementById("f-prest").value;
+  const p=prestataires.find(function(x){return String(x.id)===String(val);});
   if(p){
-    document.getElementById("f-prest-contact").value=`${p.prenom} ${p.nom}`;
-    document.getElementById("f-prest-email").value=p.email||"";
-    document.getElementById("f-prest-tel").value=p.tel||"";
-    document.getElementById("f-prest-url").value=p.url||"";
+    const contact=((p.cp||p.prenom||"")+" "+(p.cn||p.nom||"")).trim();
+    const contactEl=document.getElementById("f-prest-contact");if(contactEl)contactEl.value=contact;
+    const emailEl=document.getElementById("f-prest-email");if(emailEl)emailEl.value=p.email||"";
+    const telEl=document.getElementById("f-prest-tel");if(telEl)telEl.value=p.tel||"";
+    const urlEl=document.getElementById("f-prest-url");if(urlEl)urlEl.value=p.url||"";
   }
 }
 async function saveNewPrest(){
