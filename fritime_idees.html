@@ -834,14 +834,26 @@ function previewImport(){
     </div>`).join("");
 }
 
-function confirmImport(){
+async function confirmImport(){
   const lines=document.getElementById("import-text").value.split("\n");
   const parsed=lines.map(parseImportLine).filter(Boolean);
   if(!parsed.length){alert("Aucune idée détectée. Vérifie le format.");return;}
-  parsed.forEach(i=>idees.push({id:nid++,...i}));
+  var saved=0;
+  for(var k=0;k<parsed.length;k++){
+    var idee=parsed[k];
+    if(typeof FriDB!=="undefined"){
+      try{
+        var res=await FriDB.quickSave("idees",idee);
+        if(res&&res[0]&&res[0].id) idee.id=res[0].id;
+        else idee.id=nid++;
+        saved++;
+      }catch(e){console.warn("Save idée:",e);idee.id=nid++;}
+    } else {idee.id=nid++;}
+    idees.push(idee);
+  }
   closeImport();
   render();
-  alert(parsed.length+" idée(s) importée(s) avec succès.");
+  alert(saved+" idée(s) importée(s) et sauvegardée(s).");
 }
 
 render();
