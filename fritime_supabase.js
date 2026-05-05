@@ -42,7 +42,7 @@ const FriDB = {
     var clean = {};
     allowed.forEach(function(k){ if(k in m && m[k] !== undefined && m[k] !== null) clean[k] = m[k]; });
     if (m.id) {
-      clean.id = m.id;
+      delete clean.id;
       return await this.query('membres', 'PATCH', clean, '?id=eq.'+m.id);
     }
     return await this.query('membres', 'POST', clean);
@@ -81,7 +81,7 @@ const FriDB = {
     var clean = {};
     allowed.forEach(function(k){ if(k in e && e[k] !== undefined && e[k] !== null) clean[k] = e[k]; });
     if (e.id) {
-      clean.id = e.id;
+      delete clean.id;
       return await this.query('enfants', 'PATCH', clean, '?id=eq.'+e.id);
     }
     return await this.query('enfants', 'POST', clean);
@@ -97,7 +97,7 @@ const FriDB = {
   },
   async saveInscription(i) {
     if (i.id) {
-      return await this.query('inscriptions', 'PATCH', i, `?id=eq.${i.id}`);
+      const {id:_ii, ...idata} = i; return await this.query('inscriptions', 'PATCH', idata, `?id=eq.${i.id}`);
     }
     const {id, ...data} = i;
     return await this.query('inscriptions', 'POST', data);
@@ -112,7 +112,7 @@ const FriDB = {
   },
   async saveTache(t) {
     if (t.id) {
-      return await this.query('taches', 'PATCH', t, `?id=eq.${t.id}`);
+      const {id:_ti, ...tdata} = t; return await this.query('taches', 'PATCH', tdata, `?id=eq.${t.id}`);
     }
     const {id, ...data} = t;
     return await this.query('taches', 'POST', data);
@@ -142,7 +142,7 @@ const FriDB = {
     return await this.query('entrees_budget', 'GET', null, '?order=id');
   },
   async saveEntree(e) {
-    if (e.id) return await this.query('entrees_budget', 'PATCH', e, `?id=eq.${e.id}`);
+    if (e.id){ const {id:_ei,...ed}=e; return await this.query('entrees_budget', 'PATCH', ed, `?id=eq.${e.id}`); }
     const {id, ...data} = e;
     return await this.query('entrees_budget', 'POST', data);
   },
@@ -153,7 +153,7 @@ const FriDB = {
     return await this.query('depenses_budget', 'GET', null, '?order=id');
   },
   async saveDepense(d) {
-    if (d.id) return await this.query('depenses_budget', 'PATCH', d, `?id=eq.${d.id}`);
+    if (d.id){ const {id:_di,...dd}=d; return await this.query('depenses_budget', 'PATCH', dd, `?id=eq.${d.id}`); }
     const {id, ...data} = d;
     return await this.query('depenses_budget', 'POST', data);
   },
@@ -166,7 +166,7 @@ const FriDB = {
     return await this.query('idees', 'GET', null, '?order=created_at.desc');
   },
   async saveIdee(i) {
-    if (i.id) return await this.query('idees', 'PATCH', i, `?id=eq.${i.id}`);
+    if (i.id){ const {id:_idi,...id2}=i; return await this.query('idees', 'PATCH', id2, `?id=eq.${i.id}`); }
     const {id, ...data} = i;
     return await this.query('idees', 'POST', data);
   },
@@ -179,7 +179,7 @@ const FriDB = {
     return await this.query('documents', 'GET', null, '?order=nom');
   },
   async saveDocument(d) {
-    if (d.id) return await this.query('documents', 'PATCH', d, `?id=eq.${d.id}`);
+    if (d.id){ const {id:_doci,...docd}=d; return await this.query('documents', 'PATCH', docd, `?id=eq.${d.id}`); }
     const {id, ...data} = d;
     return await this.query('documents', 'POST', data);
   },
@@ -190,7 +190,7 @@ const FriDB = {
     return await this.query('categories_docs', 'GET', null, '?order=nom');
   },
   async saveCatDoc(c) {
-    if (c.id) return await this.query('categories_docs', 'PATCH', c, `?id=eq.${c.id}`);
+    if (c.id){ const {id:_cdi,...cdd}=c; return await this.query('categories_docs', 'PATCH', cdd, `?id=eq.${c.id}`); }
     const {id, ...data} = c;
     return await this.query('categories_docs', 'POST', data);
   },
@@ -203,7 +203,7 @@ const FriDB = {
     return await this.query('incidents', 'GET', null, '?order=created_at.desc');
   },
   async saveIncident(i) {
-    if (i.id) return await this.query('incidents', 'PATCH', i, `?id=eq.${i.id}`);
+    if (i.id){ const {id:_inci,...incd}=i; return await this.query('incidents', 'PATCH', incd, `?id=eq.${i.id}`); }
     const {id, ...data} = i;
     return await this.query('incidents', 'POST', data);
   },
@@ -216,7 +216,7 @@ const FriDB = {
     return await this.query('sondages', 'GET', null, '?order=created_at.desc');
   },
   async saveSondage(s) {
-    if (s.id) return await this.query('sondages', 'PATCH', s, `?id=eq.${s.id}`);
+    if (s.id){ const {id:_si,...sd}=s; return await this.query('sondages', 'PATCH', sd, `?id=eq.${s.id}`); }
     const {id, ...data} = s;
     return await this.query('sondages', 'POST', data);
   },
@@ -233,7 +233,7 @@ const FriDB = {
     return await this.query('campagnes', 'GET', null, '?order=created_at.desc');
   },
   async saveCampagne(c) {
-    if (c.id) return await this.query('campagnes', 'PATCH', c, `?id=eq.${c.id}`);
+    if (c.id){ const {id:_ci,...cd}=c; return await this.query('campagnes', 'PATCH', cd, `?id=eq.${c.id}`); }
     const {id, ...data} = c;
     return await this.query('campagnes', 'POST', data);
   },
@@ -254,7 +254,7 @@ const FriDB = {
     return compte;
   },
   async saveCompte(c) {
-    if (c.id) return await this.query('comptes', 'PATCH', c, `?id=eq.${c.id}`);
+    if (c.id){ const {id:_coi,...cod}=c; return await this.query('comptes', 'PATCH', cod, `?id=eq.${c.id}`); }
     const {id, ...data} = c;
     return await this.query('comptes', 'POST', data);
   },
@@ -444,6 +444,7 @@ FriDB.quickSave = async function(table, obj) {
         clean[k] = JSON.stringify(clean[k]);
       }
     });
+    delete clean.id;
     return await FriDB.query(table, 'PATCH', clean, '?id=eq.'+obj.id);
   }
   delete clean.id;
