@@ -57,7 +57,7 @@ const FriDB = {
   },
   async saveActivite(a) {
     var allowed = ['nom','description','date','date_limite','heure_debut','heure_fin','lieu',
-      'prest_id','age_min','age_max','places','inscrits','surveillants','cout','cout_type',
+      'prest_id','prest_contact','prest_email','prest_tel','prest_url','age_min','age_max','places','inscrits','surveillants','cout','cout_type',
       'cout_facture','materiel','tenue','statut','annee','categorie',
       't_public','t_parent','t_meteo','t_service','notes','image'];
     var clean = {};
@@ -127,7 +127,8 @@ const FriDB = {
   },
   async savePrestataire(p) {
     if (p.id) {
-      return await this.query('prestataires', 'PATCH', p, `?id=eq.${p.id}`);
+      const {id, ...data} = p;
+      return await this.query('prestataires', 'PATCH', data, `?id=eq.${p.id}`);
     }
     const {id, ...data} = p;
     return await this.query('prestataires', 'POST', data);

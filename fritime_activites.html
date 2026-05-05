@@ -425,10 +425,7 @@ const STATUT_LABELS={idee:"Idée",approuvee:"Approuvée (comité)",planifiee:"Pl
 const CAT_ICONS={Sport:"⚽",Nature:"🌿",Arts:"🎨",Cuisine:"🍳",Musique:"🎵",Autre:"✨"};
 
 let categories=["Sport","Nature","Arts","Cuisine","Musique","Autre"];
-let prestataires=[
-  {id:1,prenom:"Julie",nom:"Favre",email:"julie@terracotta.ch",tel:"+41 79 444 55 66",url:"https://atelierterracotta.ch"},
-  {id:2,prenom:"Marc",nom:"Dupont",email:"marc@guiderando.ch",tel:"+41 79 111 22 33",url:""},
-];
+let prestataires=[];
 let nextPrestId=3;
 
 let activites=[];
@@ -722,6 +719,11 @@ async function loadActivitesDB(){
   if(typeof FriDB === 'undefined'){ console.warn('FriDB non disponible'); return; }
   try {
     console.log('Chargement activités depuis Supabase...');
+    // Load prestataires for the dropdown
+    try {
+      var dbPrest = await FriDB.getPrestataires();
+      if(dbPrest && dbPrest.length) prestataires = dbPrest;
+    } catch(ep){ console.warn('Prestataires load error:', ep); }
     var dbData = await FriDB.getActivites();
     console.log('Activités reçues:', dbData ? dbData.length : 0);
     if(dbData && dbData.length) {
