@@ -356,10 +356,9 @@ function doLogout(){
   </div>
   <div id="new-prest-block" style="display:none;background:#f5f5f3;border-radius:8px;padding:12px;margin-bottom:.75rem">
     <div style="font-size:12px;font-weight:500;color:#888;margin-bottom:8px">Nouveau prestataire</div>
-    <div class="fg" style="margin-bottom:.5rem"><label class="fl">Nom de l'entreprise / organisation *</label><input class="fi" id="np-nom-entreprise" /></div>
     <div class="fr">
-      <div class="fg" style="margin-bottom:.5rem"><label class="fl">Prénom contact</label><input class="fi" id="np-prenom" /></div>
-      <div class="fg" style="margin-bottom:.5rem"><label class="fl">Nom contact</label><input class="fi" id="np-nom" /></div>
+      <div class="fg" style="margin-bottom:.5rem"><label class="fl">Prénom</label><input class="fi" id="np-prenom" /></div>
+      <div class="fg" style="margin-bottom:.5rem"><label class="fl">Nom</label><input class="fi" id="np-nom" /></div>
     </div>
     <div class="fr">
       <div class="fg" style="margin-bottom:.5rem"><label class="fl">Email</label><input class="fi" type="email" id="np-email" /></div>
@@ -427,6 +426,7 @@ const CAT_ICONS={Sport:"⚽",Nature:"🌿",Arts:"🎨",Cuisine:"🍳",Musique:"�
 let categories=[];
 let prestataires=[];
 let nextPrestId=100;
+
 
 let activites=[];
 let nextId=4;
@@ -496,10 +496,7 @@ async function addCat(){
   const v=document.getElementById("f-new-cat-val").value.trim();if(!v)return;
   if(!categories.includes(v)){
     categories.push(v);
-    if(typeof FriDB!=="undefined"){
-      try{await FriDB.saveCategorie(v);console.log("Catégorie sauvegardée ✓",v);}
-      catch(e){console.warn("Save catégorie:",e);}
-    }
+    if(typeof FriDB!=="undefined"){try{await FriDB.saveCategorie(v);}catch(e){}}
   }
   fillCatSelect();document.getElementById("f-cat").value=v;
   document.getElementById("f-new-cat-val").value="";
@@ -515,34 +512,27 @@ function toggleNewPrest(){
   b.style.display=b.style.display==="none"?"block":"none";
 }
 function handlePrestChange(){
-  const val=document.getElementById("f-prest").value;
-  const p=prestataires.find(function(x){return String(x.id)===String(val);});
+  const id=parseInt(document.getElementById("f-prest").value);
+  const p=prestataires.find(x=>x.id===id);
   if(p){
-    const contact=((p.cp||p.prenom||"")+" "+(p.cn||p.nom||"")).trim();
+    const contact=((p.cp||p.prenom||"")+" "+(p.cn||"")).trim();
     const contactEl=document.getElementById("f-prest-contact");if(contactEl)contactEl.value=contact;
     const emailEl=document.getElementById("f-prest-email");if(emailEl)emailEl.value=p.email||"";
     const telEl=document.getElementById("f-prest-tel");if(telEl)telEl.value=p.tel||"";
     const urlEl=document.getElementById("f-prest-url");if(urlEl)urlEl.value=p.url||"";
   }
 }
-async function saveNewPrest(){
-  var nomEnt=document.getElementById("np-nom-entreprise")?document.getElementById("np-nom-entreprise").value.trim():"";
-  if(!nomEnt){alert("Le nom de l'entreprise est obligatoire");return;}
-  var p={nom:nomEnt,
-    type:document.getElementById("np-type")?document.getElementById("np-type").value:"Autre",
-    statut:"actif",
-    cp:document.getElementById("np-prenom")?document.getElementById("np-prenom").value.trim():"",
-    cn:document.getElementById("np-nom")?document.getElementById("np-nom").value.trim():"",
-    email:document.getElementById("np-email")?document.getElementById("np-email").value.trim():"",
-    tel:document.getElementById("np-tel")?document.getElementById("np-tel").value.trim():"",
-    url:document.getElementById("np-url")?document.getElementById("np-url").value.trim():"",
-    gratuit:false};
-  if(typeof FriDB!=="undefined"){try{var res=await FriDB.savePrestataire(p);if(res&&res[0]&&res[0].id)p.id=res[0].id;else p.id=nextPrestId++;}catch(e){p.id=nextPrestId++;}}else{p.id=nextPrestId++;}
+function saveNewPrest(){
+  const prenom=document.getElementById("np-prenom").value.trim();
+  const nom=document.getElementById("np-nom").value.trim();
+  if(!prenom&&!nom){alert("Entrez au moins un nom");return;}
+  const p={id:nextPrestId++,prenom,nom,email:document.getElementById("np-email").value.trim(),tel:document.getElementById("np-tel").value.trim(),url:document.getElementById("np-url").value.trim()};
   prestataires.push(p);
   fillPrestSelect();
-  document.getElementById("f-prest").value=String(p.id);
+  document.getElementById("f-prest").value=p.id;
+  ["np-prenom","np-nom","np-email","np-tel","np-url"].forEach(id=>document.getElementById(id).value="");
   document.getElementById("new-prest-block").style.display="none";
-  ["np-nom-entreprise","np-prenom","np-nom","np-email","np-tel","np-url"].forEach(function(id){var el=document.getElementById(id);if(el)el.value="";});
+  handlePrestChange();
 }
 
 function previewImg(input){
@@ -592,9 +582,9 @@ function openEditAct(id){
   document.getElementById("f-materiel").value=a.materiel||"";
   document.getElementById("f-tenue").value=a.tenue||"";
   document.getElementById("f-notes").value=a.notes||"";
-  var tp=document.getElementById("t-parent");if(tp)tp.checked=a.tParent||false;
-  var tm=document.getElementById("t-meteo");if(tm)tm.checked=a.tMeteo||false;
-  var ts=document.getElementById("t-service");if(ts)ts.checked=a.tService||false;
+  document.getElementById("t-parent").checked=a.tParent||false;
+  document.getElementById("t-meteo").checked=a.tMeteo||false;
+  document.getElementById("t-service").checked=a.tService||false;
   fillCatSelect();document.getElementById("f-cat").value=a.categorie||"";
   fillPrestSelect();document.getElementById("f-prest").value=a.prestId||"";
   if(a.image){const img=document.getElementById("f-img-preview");img.src=a.image;img.style.display="block";}
@@ -681,9 +671,9 @@ function renderDet(){
     ${a.tenue?`<div class="dl">Tenue</div><div class="dv">${a.tenue}</div>`:""}
     <div style="display:flex;gap:6px;flex-wrap:wrap;margin:10px 0">
       ${a.tPublic?`<span class="chip">Inscriptions publiques</span>`:""}
-      ${a.tParent?`<span class="chip" style="background:#faeeda;color:#633806">👨‍👩‍👦 Parent requis</span>`:""}
+      ${a.tParent?`<span class="chip">Parent requis</span>`:""}
       ${a.tMeteo?`<span class="chip">Annulable si mauvais temps</span>`:""}
-      ${a.tService?`<span class="chip" style="background:#eaf3de;color:#275a0a;font-weight:600">✅ Envoyé Fri-Time</span>`:""}
+      ${a.tService?`<span class="chip">Envoyé Fri-Time</span>`:""}
     </div>
     ${a.notes?`<div class="dl">Notes internes</div><div style="font-size:13px;background:#f5f5f3;padding:8px 10px;border-radius:8px;margin-bottom:10px">${a.notes}</div>`:""}
     <div style="display:flex;justify-content:space-between;margin-top:1rem;padding-top:1rem;border-top:1px solid #eee">
@@ -733,7 +723,7 @@ async function loadActivitesDB(){
   try {
     console.log('Chargement activités depuis Supabase...');
     try{var dbCats=await FriDB.getCategories();if(dbCats&&dbCats.length){categories=dbCats.map(function(c){return c.nom;});fillCatSelect();}}catch(ec){}
-    try{var dbPrest=await FriDB.getPrestataires();console.log('[Prest] reçus:',dbPrest?dbPrest.length:0);if(dbPrest&&dbPrest.length)prestataires=dbPrest;}catch(ep){console.warn('[Prest] erreur:',ep);}
+    try{var dbPrest=await FriDB.getPrestataires();if(dbPrest&&dbPrest.length)prestataires=dbPrest;}catch(ep){}
     var dbData = await FriDB.getActivites();
     console.log('Activités reçues:', dbData ? dbData.length : 0);
     if(dbData && dbData.length) {
