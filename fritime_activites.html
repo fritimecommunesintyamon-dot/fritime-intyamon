@@ -448,7 +448,7 @@ let editId=null;
 function fd(d){if(!d)return"";const[y,m,j]=d.split("-");return`${j}.${m}.${y}`;}
 
 function renderMetrics(){
-  const c={};STATUTS.forEach(s=>c[s]=activites.filter(a=>a.statut===s).length);
+  const c={};STATUTS.forEach(s=>c[s]=activites.slice().sort(function(a,b){return (a.nom||"").localeCompare(b.nom||"","fr");}).filter(a=>a.statut===s).length);
   document.getElementById("metrics").innerHTML=[
     {val:activites.length,lbl:"Total"},
     {val:(c.planifiee||0)+(c.validee||0),lbl:"En cours"},
@@ -519,7 +519,7 @@ function addCat(){
 
 function fillPrestSelect(){
   const s=document.getElementById("f-prest");if(!s)return;
-  s.innerHTML='<option value="">— Aucun —</option>'+prestataires.map(function(p){var l=p.nom||((p.cp||'')+' '+(p.cn||'')).trim()||'#'+p.id;return '<option value="'+p.id+'">'+l+'</option>';}).join("");
+  s.innerHTML='<option value="">— Aucun —</option>'+prestataires.slice().sort(function(a,b){var la=a.nom||((a.cp||'')+(a.cn||''));var lb=b.nom||((b.cp||'')+(b.cn||''));return la.localeCompare(lb,'fr');}).map(function(p){var l=p.nom||((p.cp||'')+' '+(p.cn||'')).trim()||'#'+p.id;return '<option value="'+p.id+'">'+l+'</option>';}).join("");
 }
 function toggleNewPrest(){
   const b=document.getElementById("new-prest-block");
