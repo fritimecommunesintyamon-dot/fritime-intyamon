@@ -507,8 +507,22 @@ function fillSousCatSelect(cat){
   const filtered=cat?sousCategories.filter(function(sc){return sc.cat===cat;}):sousCategories;
   s.innerHTML='<option value="">— Aucune —</option>'+filtered.map(function(sc){return '<option value="'+sc.nom+'">'+sc.nom+'</option>';}).join("");
 }
-function onCatChange(){
+async function onCatChange(){
   const cat=document.getElementById("f-cat").value;
+  // Try to load sous-cats for this category if not yet loaded
+  if(cat && typeof FriDB!=="undefined"){
+    try{
+      var fresh=await FriDB.getSousCategories(cat);
+      if(fresh&&fresh.length){
+        // Merge into sousCategories
+        fresh.forEach(function(sc){
+          if(!sousCategories.find(function(x){return x.nom===sc.nom&&x.cat===sc.categorie;})){
+            sousCategories.push({nom:sc.nom,cat:sc.categorie});
+          }
+        });
+      }
+    }catch(e){}
+  }
   fillSousCatSelect(cat);
 }
 function toggleNewSousCat(){document.getElementById("f-new-souscat").classList.toggle("visible");}
@@ -533,6 +547,7 @@ async function addCat(){
     if(typeof FriDB!=="undefined"){try{await FriDB.saveCategorie(v);}catch(e){}}
   }
   fillCatSelect();document.getElementById("f-cat").value=v;
+  fillSousCatSelect(v);
   document.getElementById("f-new-cat-val").value="";
   document.getElementById("f-new-cat").classList.remove("visible");
 }
