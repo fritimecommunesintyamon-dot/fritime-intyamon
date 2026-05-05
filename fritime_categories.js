@@ -66,7 +66,7 @@ var FriCats = {
     this.fillSousCatSelect(sousCatSelectId, cat, v);
     if (input) input.value = '';
     var div = document.getElementById(newSousCatDivId);
-    if (div) div.classList.remove('visible');
+    if (div) { div.classList.remove('visible'); div.style.display='none'; }
   },
 
   // Charger et remplir au démarrage d'un module

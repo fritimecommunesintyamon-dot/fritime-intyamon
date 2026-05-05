@@ -318,7 +318,7 @@ function doLogout(){
     </div>
     <div class="fg"><label class="fl">Catégorie</label>
       <div style="display:flex;gap:6px">
-        <select class="fi" id="f-cat" style="flex:1"></select>
+        <select class="fi" id="f-cat" style="flex:1" onchange="onCatChange()"></select>
         <button class="btn btn-sm" onclick="toggleNewCat()" type="button">+</button>
       </div>
       <div id="new-cat-row" style="display:none;margin-top:6px">
@@ -326,6 +326,16 @@ function doLogout(){
           <input class="fi" id="new-cat-val" placeholder="Nouvelle catégorie..." style="flex:1" />
           <button class="btn btn-sm" onclick="addCat()" type="button">OK</button>
         </div>
+    </div>
+    <div class="fg"><label class="fl">Sous-catégorie</label>
+      <div style="display:flex;gap:6px">
+        <select class="fi" id="f-souscat" style="flex:1" onchange=""></select>
+        <button class="btn btn-sm" onclick="toggleNewSousCat()" type="button">+</button>
+      </div>
+      <div id="new-souscat-row" style="display:none;margin-top:6px">
+        <input class="fi" id="f-new-souscat-val" placeholder="Nouvelle sous-catégorie..." />
+        <button class="btn btn-sm" onclick="addSousCat()" style="margin-top:4px" type="button">OK</button>
+      </div>
       </div>
     </div>
   </div>
@@ -516,7 +526,7 @@ async function addCat(v){
     await FriCats.addCategorie("f-new-cat-val","f-cat","f-souscat","f-new-cat");
   }
 }
-async function addSousCat(){ await FriCats.addSousCategorie("f-new-souscat-val","f-cat","f-souscat","f-new-souscat"); }
+async function addSousCat(){ await FriCats.addSousCategorie("f-new-souscat-val","f-cat","f-souscat","new-souscat-row"); }
 function toggleNewSousCat_unused(){}
 
 function toggleNewCat(){
@@ -736,10 +746,10 @@ render();
   });
 })();
 
-function toggleNewSousCat(){ document.getElementById("f-new-souscat").classList.toggle("visible"); }
+function toggleNewSousCat(){ var d=document.getElementById("new-souscat-row");if(d)d.style.display=d.style.display==="none"?"block":"none"; }
 async function onCatChange(){ await FriCats.onCatChange("f-cat","f-souscat"); }
 async function onCatChangeIdees(){ await FriCats.onCatChange("f-cat","f-souscat"); }
-async function addSousCat(){ await FriCats.addSousCategorie("f-new-souscat-val","f-cat","f-souscat","f-new-souscat"); }
+async function addSousCat(){ await FriCats.addSousCategorie("f-new-souscat-val","f-cat","f-souscat","new-souscat-row"); }
 async function addSousCatIdees(){ await FriCats.addSousCategorie("f-new-souscat-val","f-cat","f-souscat","f-new-souscat"); }
 
 async function loadPrestatairesDB(){
