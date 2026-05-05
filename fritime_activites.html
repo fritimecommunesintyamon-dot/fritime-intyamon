@@ -557,7 +557,7 @@ function openCreate(){
   document.getElementById("create-title").textContent="Nouvelle activité";
   document.getElementById("f-del-btn").style.display="none";
   ["f-nom","f-desc","f-date","f-date-limite","f-heure-debut","f-heure-fin","f-lieu","f-prest-contact","f-prest-email","f-prest-tel","f-prest-url","f-age-min","f-age-max","f-places","f-surveillants","f-cout","f-materiel","f-tenue","f-notes"].forEach(id=>{const el=document.getElementById(id);if(el)el.value="";});
-  ["t-public","t-parent","t-meteo","t-service"].forEach(id=>document.getElementById(id).checked=false);
+  ["t-parent","t-meteo","t-service"].forEach(id=>{const el=document.getElementById(id);if(el)el.checked=false;});
   document.getElementById("f-statut").value="idee";
   document.getElementById("f-img-preview").style.display="none";
   fillCatSelect();fillPrestSelect();
