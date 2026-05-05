@@ -497,36 +497,76 @@ function nextStep(){
     document.getElementById("success-email").textContent=email;
     document.getElementById("ref-numero").textContent="Référence : "+ref;
     showStep(6);
-    // Save inscription to Supabase
-    const prefs = prefOrder.length ? prefOrder : selIds;
-    const inscriptionData = {
-      prenom: prenom,
-      nom: nom,
-      ddn: document.getElementById("e-ddn").value || null,
-      commune: document.getElementById("e-commune") ? document.getElementById("e-commune").value.trim() : "",
-      parent_prenom: document.getElementById("p-prenom").value.trim(),
-      parent_nom: document.getElementById("p-nom").value.trim(),
-      email: email,
-      telephone: document.getElementById("p-tel").value.trim(),
-      activites_choisies: JSON.stringify(prefs),
-      reference: ref,
-      statut: "en_attente",
-      date_inscription: new Date().toISOString().split("T")[0]
-    };
-    fetch('https://pixktldfpjtnimngvgqz.supabase.co/rest/v1/inscriptions_publiques', {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "apikey": "sb_publishable_ZV04eYw85SDFQi43SwZJTg_igofPU8X",
-        "Authorization": "Bearer sb_publishable_ZV04eYw85SDFQi43SwZJTg_igofPU8X",
-        "Prefer": "return=minimal"
-      },
-      body: JSON.stringify(inscriptionData)
-    }).then(function(r){
-      if(r.ok) console.log("Inscription sauvegardée Supabase ✓");
-      else r.text().then(function(t){ console.warn("Supabase erreur:", r.status, t); });
-    }).catch(function(e){ console.warn("Erreur save inscription:", e); });
-    // Send confirmation email
+
+    // Save enfant and inscriptions to Supabase
+    (async function() {
+      try {
+        const headers = {
+          "Content-Type": "application/json",
+          "apikey": "sb_publishable_ZV04eYw85SDFQi43SwZJTg_igofPU8X",
+          "Authorization": "Bearer sb_publishable_ZV04eYw85SDFQi43SwZJTg_igofPU8X",
+          "Prefer": "return=representation"
+        };
+        
+        // 1. Create enfant
+        const enfantData = {
+          prenom: prenom,
+          nom: nom,
+          ddn: document.getElementById("e-ddn").value || null,
+          age: parseInt(document.getElementById("e-age").value) || 0,
+          commune: document.getElementById("e-commune") ? document.getElementById("e-commune").value.trim() : "",
+          pp: document.getElementById("p-prenom").value.trim(),
+          pn: document.getElementById("p-nom").value.trim(),
+          pe: email,
+          pt: document.getElementById("p-tel").value.trim(),
+          statut: "actif",
+          parts: 0
+        };
+        
+        const enfantRes = await fetch('https://pixktldfpjtnimngvgqz.supabase.co/rest/v1/enfants', {
+          method: "POST",
+          headers: headers,
+          body: JSON.stringify(enfantData)
+        });
+        
+        if (!enfantRes.ok) {
+          console.warn("Erreur création enfant:", enfantRes.status, await enfantRes.text());
+          return;
+        }
+        
+        const enfantCreated = await enfantRes.json();
+        const enfantId = enfantCreated[0] && enfantCreated[0].id;
+        console.log("Enfant créé Supabase ✓ id:", enfantId);
+        
+        if (!enfantId) return;
+        
+        // 2. Create one inscription per activity
+        const prefs = prefOrder.length ? prefOrder : selIds;
+        for (let i = 0; i < prefs.length; i++) {
+          const actId = prefs[i];
+          const inscData = {
+            enfant_id: enfantId,
+            activite_id: actId,
+            statut: "attente",
+            pref: i + 1,
+            notes: "Inscrit via formulaire public — Réf: " + ref
+          };
+          const inscRes = await fetch('https://pixktldfpjtnimngvgqz.supabase.co/rest/v1/inscriptions', {
+            method: "POST",
+            headers: headers,
+            body: JSON.stringify(inscData)
+          });
+          if (inscRes.ok) {
+            console.log("Inscription créée ✓ activite_id:", actId);
+          } else {
+            console.warn("Erreur inscription activite", actId, inscRes.status);
+          }
+        }
+      } catch(e) {
+        console.warn("Erreur save:", e);
+      }
+    })();
+        // Send confirmation email
     const actsChoisis=selIds.map(function(id){
       const a=ACTS.find(function(x){return x.id===id;});
       return a?a.nom:"Activité #"+id;
