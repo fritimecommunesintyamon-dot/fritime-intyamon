@@ -122,6 +122,13 @@ const FriDB = {
   },
 
   // ─── PRESTATAIRES ────────────────────────────
+  async getSousCategories(categorie) {
+    const filter = categorie ? '?categorie=eq.'+encodeURIComponent(categorie)+'&order=nom' : '?order=nom';
+    return await this.query('sous_categories', 'GET', null, filter);
+  },
+  async saveSousCategorie(nom, categorie) {
+    return await this.query('sous_categories', 'POST', {nom: nom, categorie: categorie});
+  },
   async getCategories() {
     return await this.query('categories', 'GET', null, '?order=nom');
   },

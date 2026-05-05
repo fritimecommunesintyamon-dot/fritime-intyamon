@@ -311,12 +311,22 @@ function doLogout(){
   <div class="fr">
     <div class="fg"><label class="fl">Catégorie</label>
       <div class="select-with-add">
-        <select class="fi" id="f-cat" style="flex:1"></select>
+        <select class="fi" id="f-cat" style="flex:1" onchange="onCatChange()"></select>
         <button class="btn btn-sm" onclick="toggleNewCat()" type="button">+</button>
       </div>
       <div class="new-inline" id="f-new-cat">
         <input class="fi" id="f-new-cat-val" placeholder="Nouvelle catégorie..." style="flex:1" />
         <button class="btn btn-sm" onclick="addCat()" type="button">OK</button>
+      </div>
+    </div>
+    <div class="fg"><label class="fl">Sous-catégorie</label>
+      <div class="select-with-add">
+        <select class="fi" id="f-souscat" style="flex:1"></select>
+        <button class="btn btn-sm" onclick="toggleNewSousCat()" type="button">+</button>
+      </div>
+      <div class="new-inline" id="f-new-souscat">
+        <input class="fi" id="f-new-souscat-val" placeholder="Nouvelle sous-catégorie..." style="flex:1" />
+        <button class="btn btn-sm" onclick="addSousCat()" type="button">OK</button>
       </div>
     </div>
     <div class="fg"><label class="fl">Statut</label>
@@ -424,6 +434,7 @@ const STATUT_LABELS={idee:"Idée",approuvee:"Approuvée (comité)",planifiee:"Pl
 const CAT_ICONS={Sport:"⚽",Nature:"🌿",Arts:"🎨",Cuisine:"🍳",Musique:"🎵",Autre:"✨"};
 
 let categories=[];
+let sousCategories=[];
 let prestataires=[];
 let nextPrestId=100;
 
@@ -491,6 +502,29 @@ function fillCatSelect(){
   const s=document.getElementById("f-cat");if(!s)return;
   s.innerHTML=`<option value="">— Choisir —</option>`+categories.map(c=>`<option value="${c}">${c}</option>`).join("");
 }
+function fillSousCatSelect(cat){
+  const s=document.getElementById("f-souscat");if(!s)return;
+  const filtered=cat?sousCategories.filter(function(sc){return sc.cat===cat;}):sousCategories;
+  s.innerHTML='<option value="">— Aucune —</option>'+filtered.map(function(sc){return '<option value="'+sc.nom+'">'+sc.nom+'</option>';}).join("");
+}
+function onCatChange(){
+  const cat=document.getElementById("f-cat").value;
+  fillSousCatSelect(cat);
+}
+function toggleNewSousCat(){document.getElementById("f-new-souscat").classList.toggle("visible");}
+async function addSousCat(){
+  const v=document.getElementById("f-new-souscat-val").value.trim();if(!v)return;
+  const cat=document.getElementById("f-cat").value;
+  const exists=sousCategories.find(function(sc){return sc.nom===v&&sc.cat===cat;});
+  if(!exists){
+    sousCategories.push({nom:v,cat:cat});
+    if(typeof FriDB!=="undefined"){try{await FriDB.saveSousCategorie(v,cat);}catch(e){console.warn(e);}}
+  }
+  fillSousCatSelect(cat);
+  document.getElementById("f-souscat").value=v;
+  document.getElementById("f-new-souscat-val").value="";
+  document.getElementById("f-new-souscat").classList.remove("visible");
+}
 function toggleNewCat(){document.getElementById("f-new-cat").classList.toggle("visible");}
 async function addCat(){
   const v=document.getElementById("f-new-cat-val").value.trim();if(!v)return;
@@ -550,7 +584,7 @@ function openCreate(){
   ["t-parent","t-meteo","t-service"].forEach(id=>{const el=document.getElementById(id);if(el)el.checked=false;});
   document.getElementById("f-statut").value="idee";
   document.getElementById("f-img-preview").style.display="none";
-  fillCatSelect();fillPrestSelect();
+  fillCatSelect();fillSousCatSelect("");fillPrestSelect();
   document.getElementById("mCreate").style.display="flex";
 }
 
@@ -586,6 +620,7 @@ function openEditAct(id){
   document.getElementById("t-meteo").checked=a.tMeteo||false;
   document.getElementById("t-service").checked=a.tService||false;
   fillCatSelect();document.getElementById("f-cat").value=a.categorie||"";
+  fillSousCatSelect(a.categorie||"");if(document.getElementById("f-souscat"))document.getElementById("f-souscat").value=a.sousCategorie||"";
   fillPrestSelect();document.getElementById("f-prest").value=a.prestId||"";
   if(a.image){const img=document.getElementById("f-img-preview");img.src=a.image;img.style.display="block";}
   else{document.getElementById("f-img-preview").style.display="none";}
@@ -599,7 +634,7 @@ async function saveActivite(){
   const nom=document.getElementById("f-nom").value.trim();
   if(!nom){alert("Le titre est obligatoire");return;}
   const imgEl=document.getElementById("f-img-preview");
-  const data={nom,desc:document.getElementById("f-desc").value.trim(),date:document.getElementById("f-date").value||null,dateLimite:document.getElementById("f-date-limite").value||null,heureDebut:document.getElementById("f-heure-debut").value,heureFin:document.getElementById("f-heure-fin").value,lieu:document.getElementById("f-lieu").value.trim(),statut:document.getElementById("f-statut").value,annee:document.getElementById("f-annee").value,categorie:document.getElementById("f-cat").value,prestId:parseInt(document.getElementById("f-prest").value)||null,prestContact:document.getElementById("f-prest-contact").value.trim(),prestEmail:document.getElementById("f-prest-email").value.trim(),prestTel:document.getElementById("f-prest-tel").value.trim(),prestUrl:document.getElementById("f-prest-url").value.trim(),ageMin:parseInt(document.getElementById("f-age-min").value)||null,ageMax:parseInt(document.getElementById("f-age-max").value)||null,places:parseInt(document.getElementById("f-places").value)||0,surveillants:parseInt(document.getElementById("f-surveillants").value)||0,cout:parseFloat(document.getElementById("f-cout").value)||0,coutType:document.getElementById("f-cout-type").value,coutFacture:document.getElementById("f-cout-facture").value,materiel:document.getElementById("f-materiel").value.trim(),tenue:document.getElementById("f-tenue").value.trim(),tPublic:false,tParent:document.getElementById("t-parent").checked,tMeteo:document.getElementById("t-meteo").checked,tService:document.getElementById("t-service").checked,notes:document.getElementById("f-notes").value.trim(),image:imgEl.style.display!=="none"?imgEl.src:null};
+  const data={nom,desc:document.getElementById("f-desc").value.trim(),date:document.getElementById("f-date").value||null,dateLimite:document.getElementById("f-date-limite").value||null,heureDebut:document.getElementById("f-heure-debut").value,heureFin:document.getElementById("f-heure-fin").value,lieu:document.getElementById("f-lieu").value.trim(),statut:document.getElementById("f-statut").value,annee:document.getElementById("f-annee").value,categorie:document.getElementById("f-cat").value,sousCategorie:document.getElementById("f-souscat")?document.getElementById("f-souscat").value:"",prestId:parseInt(document.getElementById("f-prest").value)||null,prestContact:document.getElementById("f-prest-contact").value.trim(),prestEmail:document.getElementById("f-prest-email").value.trim(),prestTel:document.getElementById("f-prest-tel").value.trim(),prestUrl:document.getElementById("f-prest-url").value.trim(),ageMin:parseInt(document.getElementById("f-age-min").value)||null,ageMax:parseInt(document.getElementById("f-age-max").value)||null,places:parseInt(document.getElementById("f-places").value)||0,surveillants:parseInt(document.getElementById("f-surveillants").value)||0,cout:parseFloat(document.getElementById("f-cout").value)||0,coutType:document.getElementById("f-cout-type").value,coutFacture:document.getElementById("f-cout-facture").value,materiel:document.getElementById("f-materiel").value.trim(),tenue:document.getElementById("f-tenue").value.trim(),tPublic:false,tParent:document.getElementById("t-parent").checked,tMeteo:document.getElementById("t-meteo").checked,tService:document.getElementById("t-service").checked,notes:document.getElementById("f-notes").value.trim(),image:imgEl.style.display!=="none"?imgEl.src:null};
 
   if(editId){
     data.id=editId;
@@ -722,6 +757,7 @@ async function loadActivitesDB(){
   if(typeof FriDB === 'undefined'){ console.warn('FriDB non disponible'); return; }
   try {
     console.log('Chargement activités depuis Supabase...');
+    try{var dbSC=await FriDB.getSousCategories();if(dbSC&&dbSC.length)sousCategories=dbSC.map(function(sc){return {nom:sc.nom,cat:sc.categorie};});}catch(esc){}
     try{var dbCats=await FriDB.getCategories();if(dbCats&&dbCats.length){categories=dbCats.map(function(c){return c.nom;});fillCatSelect();}}catch(ec){}
     try{var dbPrest=await FriDB.getPrestataires();if(dbPrest&&dbPrest.length)prestataires=dbPrest;}catch(ep){}
     var dbData = await FriDB.getActivites();
