@@ -592,10 +592,9 @@ function openEditAct(id){
   document.getElementById("f-materiel").value=a.materiel||"";
   document.getElementById("f-tenue").value=a.tenue||"";
   document.getElementById("f-notes").value=a.notes||"";
-  document.getElementById("t-public").checked=a.tPublic||false;
-  document.getElementById("t-parent").checked=a.tParent||false;
-  document.getElementById("t-meteo").checked=a.tMeteo||false;
-  document.getElementById("t-service").checked=a.tService||false;
+  var tp=document.getElementById("t-parent");if(tp)tp.checked=a.tParent||false;
+  var tm=document.getElementById("t-meteo");if(tm)tm.checked=a.tMeteo||false;
+  var ts=document.getElementById("t-service");if(ts)ts.checked=a.tService||false;
   fillCatSelect();document.getElementById("f-cat").value=a.categorie||"";
   fillPrestSelect();document.getElementById("f-prest").value=a.prestId||"";
   if(a.image){const img=document.getElementById("f-img-preview");img.src=a.image;img.style.display="block";}
