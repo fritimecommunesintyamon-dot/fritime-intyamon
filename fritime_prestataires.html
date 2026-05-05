@@ -554,7 +554,7 @@ function openEdit(id){
 async function savePrest(){
   const nom=document.getElementById("f-nom").value.trim();
   if(!nom){alert("Le nom est obligatoire");return;}
-  const data={nom:nom,type:document.getElementById("f-type").value,statut:document.getElementById("f-statut").value,cat:document.getElementById("f-cat").value,cp:document.getElementById("f-cp").value.trim(),cn:document.getElementById("f-cn").value.trim(),email:document.getElementById("f-email").value.trim(),tel:document.getElementById("f-tel").value.trim(),url:document.getElementById("f-url").value.trim(),adresse:document.getElementById("f-adresse").value.trim(),gratuit:document.getElementById("f-gratuit").checked,acts:[...editActs],notes:document.getElementById("f-notes").value.trim()};
+  const data={nom:nom,type:document.getElementById("f-type").value,statut:document.getElementById("f-statut").value,cat:document.getElementById("f-cat").value,souscat:document.getElementById("f-souscat")?document.getElementById("f-souscat").value:"",cp:document.getElementById("f-cp").value.trim(),cn:document.getElementById("f-cn").value.trim(),email:document.getElementById("f-email").value.trim(),tel:document.getElementById("f-tel").value.trim(),url:document.getElementById("f-url").value.trim(),adresse:document.getElementById("f-adresse").value.trim(),gratuit:document.getElementById("f-gratuit").checked,acts:[...editActs],notes:document.getElementById("f-notes").value.trim()};
   if(editId){
     prestataires=prestataires.map(function(p){return p.id===editId?Object.assign({},p,data):p;});
     if(typeof FriDB!=='undefined'){
