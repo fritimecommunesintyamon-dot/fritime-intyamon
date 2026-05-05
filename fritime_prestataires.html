@@ -523,6 +523,7 @@ function openCreate(){
   document.getElementById("f-type").selectedIndex=0;
   editActs=[];
   fillCatSelect("");
+  fillSousCatSelect("");
   renderActsList();
   document.getElementById("mCreate").style.display="flex";
 }
@@ -711,8 +712,7 @@ async function loadPrestatairesDB(){
   try{
     try{var dbSC=await FriDB.getSousCategories();if(dbSC&&dbSC.length)sousCategories=dbSC.map(function(sc){return {nom:sc.nom,cat:sc.categorie};});}catch(esc){}
     try{var dbCats=await FriDB.getCategories();if(dbCats&&dbCats.length){
-      var catSel=document.getElementById("f-cat");
-      if(catSel){catSel.innerHTML='<option value="">— Choisir —</option>'+dbCats.map(function(c){return '<option>'+c.nom+'</option>';}).join("");}
+      categories=dbCats.map(function(c){return c.nom;});
       var catFilter=document.getElementById("filter-cat");
       if(catFilter){catFilter.innerHTML='<option value="">Toutes</option>'+dbCats.map(function(c){return '<option>'+c.nom+'</option>';}).join("");}
     }}catch(ec){}
