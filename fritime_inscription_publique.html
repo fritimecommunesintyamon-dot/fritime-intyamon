@@ -497,6 +497,35 @@ function nextStep(){
     document.getElementById("success-email").textContent=email;
     document.getElementById("ref-numero").textContent="Référence : "+ref;
     showStep(6);
+    // Save inscription to Supabase
+    const prefs = prefOrder.length ? prefOrder : selIds;
+    const inscriptionData = {
+      prenom: prenom,
+      nom: nom,
+      ddn: document.getElementById("e-ddn").value || null,
+      commune: document.getElementById("e-commune") ? document.getElementById("e-commune").value.trim() : "",
+      parent_prenom: document.getElementById("p-prenom").value.trim(),
+      parent_nom: document.getElementById("p-nom").value.trim(),
+      email: email,
+      telephone: document.getElementById("p-tel").value.trim(),
+      activites_choisies: JSON.stringify(prefs),
+      reference: ref,
+      statut: "en_attente",
+      date_inscription: new Date().toISOString().split("T")[0]
+    };
+    fetch('https://pixktldfpjtnimngvgqz.supabase.co/rest/v1/inscriptions_publiques', {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "apikey": "sb_publishable_ZV04eYw85SDFQi43SwZJTg_igofPU8X",
+        "Authorization": "Bearer sb_publishable_ZV04eYw85SDFQi43SwZJTg_igofPU8X",
+        "Prefer": "return=minimal"
+      },
+      body: JSON.stringify(inscriptionData)
+    }).then(function(r){
+      if(r.ok) console.log("Inscription sauvegardée Supabase ✓");
+      else r.text().then(function(t){ console.warn("Supabase erreur:", r.status, t); });
+    }).catch(function(e){ console.warn("Erreur save inscription:", e); });
     // Send confirmation email
     const actsChoisis=selIds.map(function(id){
       const a=ACTS.find(function(x){return x.id===id;});
