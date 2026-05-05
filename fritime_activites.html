@@ -727,7 +727,7 @@ async function loadActivitesDB(){
   if(typeof FriDB === 'undefined'){ console.warn('FriDB non disponible'); return; }
   try {
     console.log('Chargement activités depuis Supabase...');
-    try{var dbPrest=await FriDB.getPrestataires();if(dbPrest&&dbPrest.length)prestataires=dbPrest;}catch(ep){}
+    try{var dbPrest=await FriDB.getPrestataires();console.log('[Prest] reçus:',dbPrest?dbPrest.length:0);if(dbPrest&&dbPrest.length)prestataires=dbPrest;}catch(ep){console.warn('[Prest] erreur:',ep);}
     var dbData = await FriDB.getActivites();
     console.log('Activités reçues:', dbData ? dbData.length : 0);
     if(dbData && dbData.length) {
