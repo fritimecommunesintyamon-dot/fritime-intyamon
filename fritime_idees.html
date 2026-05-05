@@ -961,9 +961,16 @@ async function loadIdeesDB(){
   while(typeof FriDB==='undefined'&&a<30){await new Promise(function(r){setTimeout(r,100);});a++;}
   if(typeof FriDB==='undefined') return;
   try{
-    console.log("[Idees] Chargement catégories...", typeof FriCats, typeof FriDB);
     await FriCats.loadAndFill("f-cat","f-souscat");
-    console.log("[Idees] Catégories chargées:", window.categories ? window.categories.length : 0);
+    // Sync local variables with window variables set by FriCats
+    if(window.categories) categories = window.categories;
+    if(window.sousCategories) sousCategories = window.sousCategories;
+    // Fill filter select
+    var filterCat=document.getElementById("filter-cat");
+    if(filterCat && categories.length){
+      filterCat.innerHTML='<option value="">Toutes catégories</option>'+
+        categories.map(function(c){return '<option value="'+c+'">'+c+'</option>';}).join("");
+    }
     // Populate filter select too
     var filterCat=document.getElementById("filter-cat");
     if(filterCat && window.categories && window.categories.length){
