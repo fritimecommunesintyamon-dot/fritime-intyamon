@@ -424,7 +424,7 @@ const STATUTS=["idee","approuvee","planifiee","validee","terminee","annulee"];
 const STATUT_LABELS={idee:"Idée",approuvee:"Approuvée (comité)",planifiee:"Planifiée",validee:"Validée (Fri-Time)",terminee:"Terminée",annulee:"Annulée"};
 const CAT_ICONS={Sport:"⚽",Nature:"🌿",Arts:"🎨",Cuisine:"🍳",Musique:"🎵",Autre:"✨"};
 
-let categories=["Sport","Nature","Arts","Cuisine","Musique","Autre"];
+let categories=[];
 let prestataires=[];
 let nextPrestId=100;
 
@@ -492,9 +492,15 @@ function fillCatSelect(){
   s.innerHTML=`<option value="">— Choisir —</option>`+categories.map(c=>`<option value="${c}">${c}</option>`).join("");
 }
 function toggleNewCat(){document.getElementById("f-new-cat").classList.toggle("visible");}
-function addCat(){
+async function addCat(){
   const v=document.getElementById("f-new-cat-val").value.trim();if(!v)return;
-  if(!categories.includes(v))categories.push(v);
+  if(!categories.includes(v)){
+    categories.push(v);
+    if(typeof FriDB!=="undefined"){
+      try{await FriDB.saveCategorie(v);console.log("Catégorie sauvegardée ✓",v);}
+      catch(e){console.warn("Save catégorie:",e);}
+    }
+  }
   fillCatSelect();document.getElementById("f-cat").value=v;
   document.getElementById("f-new-cat-val").value="";
   document.getElementById("f-new-cat").classList.remove("visible");
@@ -727,6 +733,7 @@ async function loadActivitesDB(){
   if(typeof FriDB === 'undefined'){ console.warn('FriDB non disponible'); return; }
   try {
     console.log('Chargement activités depuis Supabase...');
+    try{var dbCats=await FriDB.getCategories();if(dbCats&&dbCats.length){categories=dbCats.map(function(c){return c.nom;});fillCatSelect();}}catch(ec){}
     try{var dbPrest=await FriDB.getPrestataires();console.log('[Prest] reçus:',dbPrest?dbPrest.length:0);if(dbPrest&&dbPrest.length)prestataires=dbPrest;}catch(ep){console.warn('[Prest] erreur:',ep);}
     var dbData = await FriDB.getActivites();
     console.log('Activités reçues:', dbData ? dbData.length : 0);

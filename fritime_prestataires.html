@@ -398,7 +398,7 @@ function doLogout(){
 </div>
 
 <script>
-let categories=["Sport","Nature","Arts","Cuisine","Musique","Autre"];
+let categories=[];
 let editActs=[];
 let noteTemp=0;
 let selId=null;
@@ -708,6 +708,12 @@ async function loadPrestatairesDB(){
   while(typeof FriDB==='undefined'&&a<30){await new Promise(function(r){setTimeout(r,100);});a++;}
   if(typeof FriDB==='undefined') return;
   try{
+    try{var dbCats=await FriDB.getCategories();if(dbCats&&dbCats.length){
+      var catSel=document.getElementById("f-cat");
+      if(catSel){catSel.innerHTML='<option value="">— Choisir —</option>'+dbCats.map(function(c){return '<option>'+c.nom+'</option>';}).join("");}
+      var catFilter=document.getElementById("filter-cat");
+      if(catFilter){catFilter.innerHTML='<option value="">Toutes</option>'+dbCats.map(function(c){return '<option>'+c.nom+'</option>';}).join("");}
+    }}catch(ec){}
     var db_prestataires = await FriDB.getPrestataires();
     if(db_prestataires && db_prestataires.length) prestataires = db_prestataires.map(function(p){
         var parsed = Object.assign({evals:[], acts:[]}, p);

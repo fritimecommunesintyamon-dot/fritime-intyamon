@@ -122,6 +122,15 @@ const FriDB = {
   },
 
   // ─── PRESTATAIRES ────────────────────────────
+  async getCategories() {
+    return await this.query('categories', 'GET', null, '?order=nom');
+  },
+  async saveCategorie(nom) {
+    return await this.query('categories', 'POST', {nom: nom});
+  },
+  async deleteCategorie(id) {
+    return await this.query('categories', 'DELETE', null, '?id=eq.'+id);
+  },
   async getPrestataires() {
     return await this.query('prestataires', 'GET', null, '?order=nom');
   },
