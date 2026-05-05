@@ -82,6 +82,14 @@ var FriCats = {
     } catch(e) {}
     this.fillCatSelect(catSelectId, currentCat||'');
     this.fillSousCatSelect(sousCatSelectId, currentCat||'', currentSousCat||'');
+    // Also fill any filter selects marked with data-fricat-filter attribute
+    var self = this;
+    document.querySelectorAll('[data-fricat-filter="cat"]').forEach(function(s){
+      var cur = s.value;
+      s.innerHTML = '<option value="">Toutes catégories</option>' +
+        (window.categories||[]).map(function(c){ return '<option value="'+c+'">'+c+'</option>'; }).join('');
+      if(cur) s.value = cur;
+    });
   },
 
   // Recharger sous-catégories depuis Supabase pour une catégorie

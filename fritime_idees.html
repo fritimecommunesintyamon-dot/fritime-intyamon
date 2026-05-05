@@ -301,7 +301,7 @@ function doLogout(){
   <button class="filter-btn" onclick="setFilter('approuvee',this)">Approuvées</button>
   <button class="filter-btn" onclick="setFilter('activite',this)">Transformées</button>
   <button class="filter-btn" onclick="setFilter('utilise',this)">Déjà utilisées</button>
-  <select class="sort-select" id="filter-cat" onchange="render()">
+  <select class="sort-select" id="filter-cat" data-fricat-filter="cat" onchange="render()">
     <option value="">Toutes catégories</option>
   </select>
   <select class="sort-select" id="sort" onchange="render()">
@@ -962,6 +962,12 @@ async function loadIdeesDB(){
   if(typeof FriDB==='undefined') return;
   try{
     await FriCats.loadAndFill("f-cat","f-souscat");
+    // Populate filter select too
+    var filterCat=document.getElementById("filter-cat");
+    if(filterCat && window.categories && window.categories.length){
+      filterCat.innerHTML='<option value="">Toutes catégories</option>'+
+        window.categories.map(function(c){return '<option value="'+c+'">'+c+'</option>';}).join("");
+    }
 
     var db_idees = await FriDB.getIdees();
     if(db_idees && db_idees.length) {
