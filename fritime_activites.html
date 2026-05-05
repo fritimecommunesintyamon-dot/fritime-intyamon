@@ -477,9 +477,9 @@ function renderGrid(){
         </div>
         <div style="margin-top:6px">
           ${a.tPublic?`<span class="chip">Public</span>`:""}
-          ${a.tParent?`<span class="chip">Parent requis</span>`:""}
-          ${a.tMeteo?`<span class="chip">Météo</span>`:""}
-          ${a.tService?`<span class="chip">Envoyé Fri-Time</span>`:""}
+          ${a.tParent?`<span class="chip" style="background:#faeeda;color:#633806">👨‍👩‍👦 Parent requis</span>`:""}
+          ${a.tMeteo?`<span class="chip" style="background:#e6f1fb;color:#0c447c">🌧️ Météo</span>`:""}
+          ${a.tService?`<span class="chip" style="background:#eaf3de;color:#275a0a;font-weight:600">✅ Envoyé Fri-Time</span>`:""}
         </div>
       </div>
     </div>`).join("");
@@ -676,9 +676,9 @@ function renderDet(){
     ${a.tenue?`<div class="dl">Tenue</div><div class="dv">${a.tenue}</div>`:""}
     <div style="display:flex;gap:6px;flex-wrap:wrap;margin:10px 0">
       ${a.tPublic?`<span class="chip">Inscriptions publiques</span>`:""}
-      ${a.tParent?`<span class="chip">Parent requis</span>`:""}
+      ${a.tParent?`<span class="chip" style="background:#faeeda;color:#633806">👨‍👩‍👦 Parent requis</span>`:""}
       ${a.tMeteo?`<span class="chip">Annulable si mauvais temps</span>`:""}
-      ${a.tService?`<span class="chip">Envoyé Fri-Time</span>`:""}
+      ${a.tService?`<span class="chip" style="background:#eaf3de;color:#275a0a;font-weight:600">✅ Envoyé Fri-Time</span>`:""}
     </div>
     ${a.notes?`<div class="dl">Notes internes</div><div style="font-size:13px;background:#f5f5f3;padding:8px 10px;border-radius:8px;margin-bottom:10px">${a.notes}</div>`:""}
     <div style="display:flex;justify-content:space-between;margin-top:1rem;padding-top:1rem;border-top:1px solid #eee">

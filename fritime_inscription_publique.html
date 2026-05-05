@@ -389,6 +389,8 @@ function renderActs(){
             <span class="badge-hl bh-age">👥 ${a.ageMin}–${a.ageMax} ans</span>
             <span class="badge-hl bh-deadline">⏰ Date limite d'inscription : ${fd(a.deadline)}</span>
             ${a.cout===0?`<span class="badge-hl bh-gratuit">🆓 Gratuit</span>`:`<span class="badge-hl bh-payant">💰 ${a.cout} CHF / enfant</span>`}
+            ${a.tParent?`<span class="badge-hl" style="background:#faeeda;color:#633806">👨‍👩‍👦 Présence d'un parent requise</span>`:''}
+            ${a.tMeteo?`<span class="badge-hl" style="background:#e6f1fb;color:#0c447c">🌧️ Annulée si mauvais temps</span>`:''}
           </div>
         </div>
       </div>
