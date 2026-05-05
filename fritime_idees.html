@@ -427,7 +427,8 @@ function doLogout(){
 </div>
 
 <script>
-let categories=["Sport","Nature","Arts","Cuisine","Musique","Autre"];
+let categories=[];
+let sousCategories=[];
 let editId=null;
 let selId=null;
 let filtre="toutes";
@@ -950,8 +951,8 @@ Cours de théâtre | Arts"></textarea>
 })();
 
 function toggleNewSousCat(){ document.getElementById("f-new-souscat").classList.toggle("visible"); }
-async function onCatChange(){ await FriCats.onCatChange("f-cat","f-souscat"); }
-async function onCatChangeIdees(){ await FriCats.onCatChange("f-cat","f-souscat"); }
+async function onCatChange(){ await FriCats.refreshSousCats(document.getElementById("f-cat").value,"f-souscat"); }
+async function onCatChangeIdees(){ await FriCats.refreshSousCats(document.getElementById("f-cat").value,"f-souscat"); }
 async function addSousCat(){ await FriCats.addSousCategorie("f-new-souscat-val","f-cat","f-souscat","f-new-souscat"); }
 async function addSousCatIdees(){ await FriCats.addSousCategorie("f-new-souscat-val","f-cat","f-souscat","f-new-souscat"); }
 
@@ -960,6 +961,8 @@ async function loadIdeesDB(){
   while(typeof FriDB==='undefined'&&a<30){await new Promise(function(r){setTimeout(r,100);});a++;}
   if(typeof FriDB==='undefined') return;
   try{
+    await FriCats.loadAndFill("f-cat","f-souscat");
+
     var db_idees = await FriDB.getIdees();
     if(db_idees && db_idees.length) {
       idees = db_idees.map(function(item){
