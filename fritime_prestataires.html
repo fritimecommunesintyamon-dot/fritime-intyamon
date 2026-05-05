@@ -92,6 +92,7 @@ textarea.fi{resize:vertical;min-height:60px}
   <script src="fritime_sync.js"></script>
   <script src="fritime_auth.js"></script>
   <script src="fritime_supabase.js"></script>
+  <script src="fritime_categories.js"></script>
 
 <style id="sidebar-css">
 .ft-wrap{display:flex;min-height:calc(100vh - 52px)}
@@ -486,18 +487,15 @@ function fillCatSelect(current){
   const sel=document.getElementById("f-cat");
   sel.innerHTML=categories.map(c=>`<option value="${c}"${c===current?" selected":""}>${c}</option>`).join("");
 }
-function fillSousCatSelect(cat){
-  const s=document.getElementById("f-souscat");if(!s)return;
-  const filtered=cat?sousCategories.filter(function(sc){return sc.cat===cat;}):sousCategories;
-  s.innerHTML='<option value="">— Aucune —</option>'+filtered.map(function(sc){return '<option value="'+sc.nom+'">'+sc.nom+'</option>';}).join("");
-}
-async function onCatChange(){
+function fillSousCatSelect(cat){ FriCats.fillSousCatSelect("f-souscat", cat); }
+// onCatChange replaced
+async function onCatChange_old(){
   const cat=document.getElementById("f-cat").value;
   if(cat&&typeof FriDB!=="undefined"){try{var fresh=await FriDB.getSousCategories(cat);if(fresh&&fresh.length){fresh.forEach(function(sc){if(!sousCategories.find(function(x){return x.nom===sc.nom&&x.cat===sc.categorie;}))sousCategories.push({nom:sc.nom,cat:sc.categorie});});}}catch(e){}}
   fillSousCatSelect(cat);
 }
-function toggleNewSousCat(){document.getElementById("f-new-souscat").classList.toggle("visible");}
-async function addSousCat(){
+function toggleNewSousCat_kept(){document.getElementById("f-new-souscat").classList.toggle("visible");}
+async function addSousCat_old(){
   const v=document.getElementById("f-new-souscat-val").value.trim();if(!v)return;
   const cat=document.getElementById("f-cat").value;
   if(!sousCategories.find(function(sc){return sc.nom===v&&sc.cat===cat;})){
@@ -727,17 +725,18 @@ render();
   });
 })();
 
+function toggleNewSousCat(){ document.getElementById("f-new-souscat").classList.toggle("visible"); }
+async function onCatChange(){ await FriCats.onCatChange("f-cat","f-souscat"); }
+async function onCatChangeIdees(){ await FriCats.onCatChange("f-cat","f-souscat"); }
+async function addSousCat(){ await FriCats.addSousCategorie("f-new-souscat-val","f-cat","f-souscat","f-new-souscat"); }
+async function addSousCatIdees(){ await FriCats.addSousCategorie("f-new-souscat-val","f-cat","f-souscat","f-new-souscat"); }
+
 async function loadPrestatairesDB(){
   var a=0;
   while(typeof FriDB==='undefined'&&a<30){await new Promise(function(r){setTimeout(r,100);});a++;}
   if(typeof FriDB==='undefined') return;
   try{
-    try{var dbSC=await FriDB.getSousCategories();if(dbSC&&dbSC.length)sousCategories=dbSC.map(function(sc){return {nom:sc.nom,cat:sc.categorie};});}catch(esc){}
-    try{var dbCats=await FriDB.getCategories();if(dbCats&&dbCats.length){
-      categories=dbCats.map(function(c){return c.nom;});
-      var catFilter=document.getElementById("filter-cat");
-      if(catFilter){catFilter.innerHTML='<option value="">Toutes</option>'+dbCats.map(function(c){return '<option>'+c.nom+'</option>';}).join("");}
-    }}catch(ec){}
+    await FriCats.load();
     var db_prestataires = await FriDB.getPrestataires();
     if(db_prestataires && db_prestataires.length) prestataires = db_prestataires.map(function(p){
         var parsed = Object.assign({evals:[], acts:[]}, p);

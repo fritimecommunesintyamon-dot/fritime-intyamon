@@ -94,6 +94,7 @@ textarea.fi{resize:vertical;min-height:70px}
   <script src="fritime_sync.js"></script>
   <script src="fritime_auth.js"></script>
   <script src="fritime_supabase.js"></script>
+  <script src="fritime_categories.js"></script>
 
 <style id="sidebar-css">
 .ft-wrap{display:flex;min-height:calc(100vh - 52px)}
@@ -498,15 +499,8 @@ function renderGrid(){
 
 function setFilter(f){currentFilter=f;renderFilters();renderGrid();}
 
-function fillCatSelect(){
-  const s=document.getElementById("f-cat");if(!s)return;
-  s.innerHTML=`<option value="">— Choisir —</option>`+categories.map(c=>`<option value="${c}">${c}</option>`).join("");
-}
-function fillSousCatSelect(cat){
-  const s=document.getElementById("f-souscat");if(!s)return;
-  const filtered=cat?sousCategories.filter(function(sc){return sc.cat===cat;}):sousCategories;
-  s.innerHTML='<option value="">— Aucune —</option>'+filtered.map(function(sc){return '<option value="'+sc.nom+'">'+sc.nom+'</option>';}).join("");
-}
+function fillCatSelect(){ FriCats.fillCatSelect("f-cat"); }
+function fillSousCatSelect(cat){ FriCats.fillSousCatSelect("f-souscat", cat); }
 async function onCatChange(){
   const cat=document.getElementById("f-cat").value;
   // Try to load sous-cats for this category if not yet loaded
@@ -526,19 +520,7 @@ async function onCatChange(){
   fillSousCatSelect(cat);
 }
 function toggleNewSousCat(){document.getElementById("f-new-souscat").classList.toggle("visible");}
-async function addSousCat(){
-  const v=document.getElementById("f-new-souscat-val").value.trim();if(!v)return;
-  const cat=document.getElementById("f-cat").value;
-  const exists=sousCategories.find(function(sc){return sc.nom===v&&sc.cat===cat;});
-  if(!exists){
-    sousCategories.push({nom:v,cat:cat});
-    if(typeof FriDB!=="undefined"){try{await FriDB.saveSousCategorie(v,cat);}catch(e){console.warn(e);}}
-  }
-  fillSousCatSelect(cat);
-  document.getElementById("f-souscat").value=v;
-  document.getElementById("f-new-souscat-val").value="";
-  document.getElementById("f-new-souscat").classList.remove("visible");
-}
+async function addSousCat(){ await FriCats.addSousCategorie("f-new-souscat-val","f-cat","f-souscat","f-new-souscat"); }
 function toggleNewCat(){document.getElementById("f-new-cat").classList.toggle("visible");}
 async function addCat(){
   const v=document.getElementById("f-new-cat-val").value.trim();if(!v)return;
@@ -599,7 +581,7 @@ function openCreate(){
   ["t-parent","t-meteo","t-service"].forEach(id=>{const el=document.getElementById(id);if(el)el.checked=false;});
   document.getElementById("f-statut").value="idee";
   document.getElementById("f-img-preview").style.display="none";
-  fillCatSelect();fillSousCatSelect("");fillPrestSelect();
+  FriCats.fillCatSelect("f-cat");FriCats.fillSousCatSelect("f-souscat","");fillPrestSelect();
   document.getElementById("mCreate").style.display="flex";
 }
 
@@ -634,8 +616,7 @@ function openEditAct(id){
   document.getElementById("t-parent").checked=a.tParent||false;
   document.getElementById("t-meteo").checked=a.tMeteo||false;
   document.getElementById("t-service").checked=a.tService||false;
-  fillCatSelect();document.getElementById("f-cat").value=a.categorie||"";
-  fillSousCatSelect(a.categorie||"");if(document.getElementById("f-souscat"))document.getElementById("f-souscat").value=a.sousCategorie||"";
+  FriCats.fillCatSelect("f-cat",a.categorie||"");FriCats.fillSousCatSelect("f-souscat",a.categorie||"",a.sousCategorie||"");
   fillPrestSelect();document.getElementById("f-prest").value=a.prestId||"";
   if(a.image){const img=document.getElementById("f-img-preview");img.src=a.image;img.style.display="block";}
   else{document.getElementById("f-img-preview").style.display="none";}
