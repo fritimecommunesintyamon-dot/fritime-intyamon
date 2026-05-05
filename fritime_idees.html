@@ -443,7 +443,7 @@ const CAT_ICONS={Sport:"⚽",Nature:"🌿",Arts:"🎨",Cuisine:"🍳",Musique:"�
 function renderMetrics(){
   document.getElementById("metrics").innerHTML=[
     {val:idees.length,lbl:"Total"},
-    {val:idees.filter(i=>i.statut==="discussion").length,lbl:"En discussion"},
+    {val:idees.slice().sort(function(a,b){return (a.titre||"").localeCompare(b.titre||"","fr");}).filter(i=>i.statut==="discussion").length,lbl:"En discussion"},
     {val:idees.filter(i=>i.statut==="approuvee").length,lbl:"Approuvées"},
     {val:idees.filter(i=>i.statut==="activite").length,lbl:"Transformées"},
     {val:idees.filter(i=>i.utilise).length,lbl:"Déjà utilisées"},
@@ -613,7 +613,7 @@ function openEdit(id){
 async function saveIdee(){
   const nom=document.getElementById('f-titre').value.trim();
   if(!nom){alert('Le titre est obligatoire');return;}
-  const data={titre:nom,cat:document.getElementById('f-cat').value,saison:'',desc:document.getElementById('f-desc').value.trim(),ageMin:parseInt(document.getElementById('f-agemin').value)||null,ageMax:parseInt(document.getElementById('f-agemax').value)||null,coutEstime:parseFloat(document.getElementById('f-cout').value)||null,prestataireSuggere:document.getElementById('f-source').value.trim(),statut:document.getElementById('f-statut').value,notes:document.getElementById('f-notes').value.trim(),votes:[],utilise:document.getElementById('f-utilise').checked};
+  const data={titre:nom,categorie:document.getElementById('f-cat').value,cat:document.getElementById('f-cat').value,saison:'',desc:document.getElementById('f-desc').value.trim(),ageMin:parseInt(document.getElementById('f-agemin').value)||null,ageMax:parseInt(document.getElementById('f-agemax').value)||null,coutEstime:parseFloat(document.getElementById('f-cout').value)||null,prestataireSuggere:document.getElementById('f-source').value.trim(),statut:document.getElementById('f-statut').value,notes:document.getElementById('f-notes').value.trim(),votes:[],utilise:document.getElementById('f-utilise').checked};
   if(editId){
     idees=idees.map(function(x){return String(x.id)===String(editId)?Object.assign({},x,data):x;});
     if(typeof FriDB!=='undefined') try{await FriDB.quickSave('idees',Object.assign({id:editId},data));}catch(e){console.warn(e);}

@@ -354,7 +354,6 @@ FriDB.toDb = function(obj) {
   if ('activite' in mapped && typeof mapped.activite === 'number') { 
     mapped.activite_id = mapped.activite; delete mapped.activite; 
   }
-  if ('cat' in mapped) { mapped.categorie = mapped.cat; delete mapped.cat; }
   if ('souscat' in mapped) { mapped.sous_categorie = mapped.souscat; delete mapped.souscat; }
   if ('sousCategorie' in mapped) { mapped.sous_categorie = mapped.sousCategorie; delete mapped.sousCategorie; }
   if ('dateActivite' in mapped) { mapped.date_activite = mapped.dateActivite; delete mapped.dateActivite; }
