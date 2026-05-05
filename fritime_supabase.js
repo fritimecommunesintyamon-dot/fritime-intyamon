@@ -58,7 +58,7 @@ const FriDB = {
   async saveActivite(a) {
     var allowed = ['nom','description','date','date_limite','heure_debut','heure_fin','lieu',
       'prest_id','prest_contact','prest_email','prest_tel','prest_url','age_min','age_max','places','inscrits','surveillants','cout','cout_type',
-      'cout_facture','materiel','tenue','statut','annee','categorie',
+      'cout_facture','materiel','tenue','statut','annee','categorie','sous_categorie',
       't_public','t_parent','t_meteo','t_service','notes','image'];
     var clean = {};
     allowed.forEach(function(k){ if(k in a && a[k] !== undefined && a[k] !== null) clean[k] = a[k]; });
@@ -304,8 +304,8 @@ FriDB.COLUMNS = {
     'adresse','gratuit','acts','notes'],
   entrees_budget: ['id','source','description','prevu','recu','statut','annee'],
   depenses_budget: ['id','description','activite','prevu','reel','realise','type','facture','annee'],
-  idees: ['id','titre','description','categorie','saison','cout_estime','age_min','age_max',
-    'prestataire_suggere','statut','votes','notes'],
+  idees: ['id','titre','description','categorie','sous_categorie','saison','cout_estime','age_min','age_max',
+    'prestataire_suggere','statut','votes','notes','utilise','image','source','date'],
   documents: ['id','nom','cat','type','description','url','taille','date'],
   incidents: ['id','date','heure','lieu','activite','type','gravite','description',
     'blesses','temoins','actions','redacteur','statut'],
@@ -354,6 +354,9 @@ FriDB.toDb = function(obj) {
   if ('activite' in mapped && typeof mapped.activite === 'number') { 
     mapped.activite_id = mapped.activite; delete mapped.activite; 
   }
+  if ('cat' in mapped) { mapped.categorie = mapped.cat; delete mapped.cat; }
+  if ('souscat' in mapped) { mapped.sous_categorie = mapped.souscat; delete mapped.souscat; }
+  if ('sousCategorie' in mapped) { mapped.sous_categorie = mapped.sousCategorie; delete mapped.sousCategorie; }
   if ('dateActivite' in mapped) { mapped.date_activite = mapped.dateActivite; delete mapped.dateActivite; }
   if ('dateEnvoi' in mapped) { mapped.date_envoi = mapped.dateEnvoi; delete mapped.dateEnvoi; }
   if ('coutEstime' in mapped) { mapped.cout_estime = mapped.coutEstime; delete mapped.coutEstime; }
@@ -384,6 +387,8 @@ FriDB.fromDb = function(obj) {
   if ('t_parent' in mapped) { mapped.tParent = mapped.t_parent; delete mapped.t_parent; }
   if ('t_meteo' in mapped) { mapped.tMeteo = mapped.t_meteo; delete mapped.t_meteo; }
   if ('t_service' in mapped) { mapped.tService = mapped.t_service; delete mapped.t_service; }
+  if ('categorie' in mapped) { mapped.cat = mapped.categorie; }
+  if ('sous_categorie' in mapped) { mapped.souscat = mapped.sous_categorie; }
   if ('ban_motif' in mapped) { mapped.banMotif = mapped.ban_motif; delete mapped.ban_motif; }
   if ('date_entree' in mapped) { mapped.dateEntree = mapped.date_entree; delete mapped.date_entree; }
   if ('fin_engagement' in mapped) { mapped.finEngagement = mapped.fin_engagement; delete mapped.fin_engagement; }
