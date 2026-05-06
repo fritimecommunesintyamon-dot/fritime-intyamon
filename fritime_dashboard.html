@@ -417,6 +417,7 @@ async function loadDashboardDB(){
     dbBudgetD=(await FriDB.getDepenses().catch(function(){return[];}));
     dbTaches=(await FriDB.getTaches().catch(function(){return[];}));
     dbEnfants=(await FriDB.getEnfants().catch(function(){return[];}));
+    console.log("[Dashboard] activites:",dbActivites.length,"inscriptions:",dbInscriptions.length,"budget entrees:",dbBudgetE.length,"depenses:",dbBudgetD.length);
   }catch(e){console.warn("Dashboard DB:",e);}
   render();
 }
