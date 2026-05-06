@@ -558,23 +558,36 @@ function toggleNewCat(prefix){
   r.classList.toggle("visible");
 }
 async function addCat(prefix){
-  const v=document.getElementById(prefix+"-new-cat-val").value.trim();
+  var inp=document.getElementById(prefix+"-new-cat-val");
+  var v=inp?inp.value.trim():"";
+  console.log("[addCat] Ajout catégorie:", v, "| FriDB:", typeof FriDB);
   if(!v)return;
   var cats=window.categories=window.categories||[];
+  categories=cats;
   if(!cats.includes(v)){
     cats.push(v);
-    categories=cats;
     if(typeof FriDB!=="undefined"){
-      try{await FriDB.saveCategorie(v);console.log("Catégorie sauvegardée ✓",v);}
-      catch(e){console.warn("Save catégorie:",e);}
+      try{
+        var res=await FriDB.saveCategorie(v);
+        console.log("Catégorie sauvegardée ✓", v, res);
+      }catch(e){
+        console.warn("Erreur save catégorie:", e);
+      }
+    }else{
+      console.warn("[addCat] FriDB non disponible");
+    }
+  }else{
+    console.log("[addCat] Catégorie déjà présente localement:", v);
+    // Try to save anyway in case it's missing from Supabase
+    if(typeof FriDB!=="undefined"){
+      try{await FriDB.saveCategorie(v);}catch(e){}
     }
   }
   FriCats.fillCatSelect(prefix+"-cat",v);
-  // Also update filter-cat
   var filterCat=document.getElementById("filter-cat");
-  if(filterCat){filterCat.innerHTML='<option value="">Toutes catégories</option>'+cats.map(function(c){return '<option value="'+c+'">'+c+'</option>';}).join("");}
+  if(filterCat){filterCat.innerHTML='<option value="">Toutes catégories</option>'+cats.slice().sort(function(a,b){return a.localeCompare(b,"fr");}).map(function(c){return '<option value="'+c+'">'+c+'</option>';}).join("");}
+  if(inp)inp.value="";
   document.getElementById(prefix+"-cat").value=v;
-  document.getElementById(prefix+"-new-cat-val").value="";
   document.getElementById(prefix+"-new-cat").classList.remove("visible");
 }
 
