@@ -613,15 +613,36 @@ function openEdit(id){
 async function saveIdee(){
   const nom=document.getElementById('f-titre').value.trim();
   if(!nom){alert('Le titre est obligatoire');return;}
-  const data={titre:nom,categorie:document.getElementById('f-cat').value,cat:document.getElementById('f-cat').value,saison:'',desc:document.getElementById('f-desc').value.trim(),ageMin:parseInt(document.getElementById('f-agemin').value)||null,ageMax:parseInt(document.getElementById('f-agemax').value)||null,coutEstime:parseFloat(document.getElementById('f-cout').value)||null,prestataireSuggere:document.getElementById('f-source').value.trim(),statut:document.getElementById('f-statut').value,notes:document.getElementById('f-notes').value.trim(),votes:[],utilise:document.getElementById('f-utilise').checked};
+  const data={
+    titre:nom,
+    categorie:document.getElementById('f-cat').value,
+    cat:document.getElementById('f-cat').value,
+    souscat:document.getElementById('f-souscat')?document.getElementById('f-souscat').value:'',
+    sous_categorie:document.getElementById('f-souscat')?document.getElementById('f-souscat').value:'',
+    desc:document.getElementById('f-desc').value.trim(),
+    ageMin:parseInt(document.getElementById('f-agemin').value)||null,
+    ageMax:parseInt(document.getElementById('f-agemax').value)||null,
+    coutEstime:parseFloat(document.getElementById('f-cout').value)||null,
+    prestataireSuggere:document.getElementById('f-source').value.trim(),
+    statut:document.getElementById('f-statut').value,
+    notes:document.getElementById('f-notes').value.trim(),
+    votes:[],
+    utilise:document.getElementById('f-utilise').checked
+  };
   if(editId){
     idees=idees.map(function(x){return String(x.id)===String(editId)?Object.assign({},x,data):x;});
-    if(typeof FriDB!=='undefined') try{await FriDB.quickSave('idees',Object.assign({id:editId},data));}catch(e){console.warn(e);}
-  } else {
-    var newObj=Object.assign({id:nid++},data);
     if(typeof FriDB!=='undefined'){
-      try{var _r=await FriDB.quickSave('idees',newObj); if(_r&&_r[0]&&_r[0].id) newObj.id=_r[0].id;}catch(e){console.warn(e);}
+      try{await FriDB.saveIdee(Object.assign({id:editId},data));console.log('Idée modifiée ✓');}catch(e){console.warn(e);}
     }
+  } else {
+    var newObj=Object.assign({},data);
+    if(typeof FriDB!=='undefined'){
+      try{
+        var _r=await FriDB.saveIdee(newObj);
+        if(_r&&_r[0]&&_r[0].id) newObj.id=_r[0].id;
+        else newObj.id=nid++;
+      }catch(e){console.warn(e);newObj.id=nid++;}
+    } else {newObj.id=nid++;}
     idees.push(newObj);
   }
   closeCreate();render();
