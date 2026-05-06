@@ -645,7 +645,7 @@ async function deleteDepense(){if(confirm("Supprimer cette dépense ?")){
 }}
 
 async function saveEntree(){
-  const data={source:document.getElementById("e-source").value,desc:document.getElementById("e-desc").value.trim(),prevu:parseFloat(document.getElementById("e-prevu").value)||0,recu:parseFloat(document.getElementById("e-recu").value)||0,statut:document.getElementById("e-statut").value,annee:document.getElementById("e-annee").value,notes:document.getElementById("e-notes").value.trim()};
+  const data={source:document.getElementById("e-source").value,description:document.getElementById("e-desc").value.trim(),prevu:parseFloat(document.getElementById("e-prevu").value)||0,recu:parseFloat(document.getElementById("e-recu").value)||0,statut:document.getElementById("e-statut").value,annee:document.getElementById("e-annee").value,notes:document.getElementById("e-notes").value.trim()};
   if(editEntreeId){
     entrees=entrees.map(e=>e.id===editEntreeId?{...e,...data}:e);
     if(typeof FriDB!=="undefined") try{const {id:_ei,...ed}={id:editEntreeId,...data};await FriDB.query("entrees_budget","PATCH",ed,"?id=eq."+editEntreeId);}catch(e){console.warn(e);}
@@ -705,7 +705,7 @@ function openDepenseEdit(id){
 }
 function closeMDepense(){document.getElementById("mDepense").style.display="none";}
 async function saveDepense(){
-  const data={desc:document.getElementById("d-desc").value.trim(),activite:document.getElementById("d-activite").value,prevu:parseFloat(document.getElementById("d-prevu").value)||0,reel:parseFloat(document.getElementById("d-reel").value)||0,realise:parseFloat(document.getElementById("d-realise").value)||0,type:document.getElementById("d-type").value,facture:document.getElementById("d-facture").value,annee:document.getElementById("d-annee").value,notes:document.getElementById("d-notes").value.trim()};
+  const data={description:document.getElementById("d-desc").value.trim(),activite:document.getElementById("d-activite").value,prevu:parseFloat(document.getElementById("d-prevu").value)||0,reel:parseFloat(document.getElementById("d-reel").value)||0,realise:parseFloat(document.getElementById("d-realise").value)||0,type:document.getElementById("d-type").value,facture:document.getElementById("d-facture").value,annee:document.getElementById("d-annee").value,notes:document.getElementById("d-notes").value.trim()};
   if(editDepenseId){
     depenses=depenses.map(d=>d.id===editDepenseId?{...d,...data}:d);
     if(typeof FriDB!=="undefined") try{const {id:_di,...dd}={id:editDepenseId,...data};await FriDB.query("depenses_budget","PATCH",dd,"?id=eq."+editDepenseId);}catch(e){console.warn(e);}
