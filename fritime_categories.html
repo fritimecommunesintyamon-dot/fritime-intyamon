@@ -213,10 +213,20 @@ async function renameCategorie(oldNom){
   if(idx > -1) categories[idx] = newNom;
   if(typeof FriDB !== "undefined"){
     try{
+      // 1. Renommer dans la table categories
       var existing = await FriDB.getCategories();
       var cat = existing ? existing.find(function(c){ return c.nom === oldNom; }) : null;
       if(cat) await FriDB.query("categories","PATCH",{nom:newNom},"?id=eq."+cat.id);
-    }catch(e){ console.warn(e); }
+      // 2. Mettre à jour activites
+      await FriDB.query("activites","PATCH",{categorie:newNom},"?categorie=eq."+encodeURIComponent(oldNom));
+      // 3. Mettre à jour idees (champ categorie)
+      await FriDB.query("idees","PATCH",{categorie:newNom},"?categorie=eq."+encodeURIComponent(oldNom));
+      // 4. Mettre à jour prestataires (champ cat)
+      await FriDB.query("prestataires","PATCH",{cat:newNom},"?cat=eq."+encodeURIComponent(oldNom));
+      // 5. Mettre à jour sous_categories (champ categorie)
+      await FriDB.query("sous_categories","PATCH",{categorie:newNom},"?categorie=eq."+encodeURIComponent(oldNom));
+      console.log("Catégorie renommée dans toutes les tables ✓", oldNom, "->", newNom);
+    }catch(e){ console.warn("Erreur rename cascade:", e); }
   }
   renderCats();
 }
