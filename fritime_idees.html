@@ -335,7 +335,7 @@ function doLogout(){
   <div class="sec sec-first">Informations</div>
   <div class="fg"><label class="fl">Titre *</label><input class="fi" id="f-titre" placeholder="Ex: Journée escalade indoor" /></div>
   <div class="fr">
-    <div class="fg"><label class="fl">Catégorie principale</label>
+    <div class="fg"><label class="fl" style="display:flex;justify-content:space-between;align-items:center">Catégorie principale <button class="btn btn-sm" onclick="FriCats.openGestionModal()" type="button" style="font-size:11px;padding:2px 7px">✏️ Gérer</button></label>
       <div class="cat-row">
         <select class="fi" id="f-cat" style="flex:1" onchange="onCatChangeIdees()"></select>
         <button class="btn btn-sm" onclick="toggleNewCat('f')" type="button" style="flex-shrink:0">+</button>

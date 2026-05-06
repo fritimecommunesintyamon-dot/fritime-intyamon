@@ -431,7 +431,7 @@ function avgNote(evals){
 function fmtDate(d){if(!d)return"";const[y,m,j]=d.split("-");return`${j}.${m}.${y}`;}
 
 function renderMetrics(){
-  const actifs=prestataires.filter(p=>p.statut==="actif").length;
+  const actifs=prestataires.slice().sort(function(a,b){return (a.nom||"").localeCompare(b.nom||"","fr");}).filter(p=>p.statut==="actif").length;
   const acontacter=prestataires.filter(p=>p.statut==="acontacter").length;
   const gratuits=prestataires.filter(p=>p.gratuit).length;
   const notees=prestataires.filter(p=>(p.evals||[]).length>0);
@@ -598,7 +598,7 @@ async function savePrest(){
   if(!nom){alert("Le nom est obligatoire");return;}
   const data={nom:nom,type:document.getElementById("f-type").value,statut:document.getElementById("f-statut").value,cat:document.getElementById("f-cat").value,souscat:document.getElementById("f-souscat")?document.getElementById("f-souscat").value:"",cp:document.getElementById("f-cp").value.trim(),cn:document.getElementById("f-cn").value.trim(),email:document.getElementById("f-email").value.trim(),tel:document.getElementById("f-tel").value.trim(),url:document.getElementById("f-url").value.trim(),adresse:document.getElementById("f-adresse").value.trim(),gratuit:document.getElementById("f-gratuit").checked,acts:[...editActs],notes:document.getElementById("f-notes").value.trim()};
   if(editId){
-    prestataires=prestataires.map(function(p){return p.id===editId?Object.assign({},p,data):p;});
+    prestataires=prestataires.slice().sort(function(a,b){return (a.nom||"").localeCompare(b.nom||"","fr");}).map(function(p){return p.id===editId?Object.assign({},p,data):p;});
     if(typeof FriDB!=='undefined'){
       try{
         var res=await FriDB.savePrestataire(Object.assign({id:editId},data));

@@ -80,7 +80,7 @@ textarea.fi{resize:vertical;min-height:70px}
 .status-btn.sel-validee{background:#eaf3de;color:#275a0a;border-color:#c0dd97}
 .status-btn.sel-terminee{background:#e1f5ee;color:#085041;border-color:#9fe1cb}
 .status-btn.sel-annulee{background:#fcebeb;color:#791f1f;border-color:#f7c1c1}
-.select-with-add{display:flex;gap:6px}
+.select-with-add{display:flex;gap:6px;flex-wrap:wrap}
 .new-inline{display:none;gap:6px;margin-top:6px}
 .new-inline.visible{display:flex}
 .empty{text-align:center;padding:3rem 1rem;color:#888;font-size:14px}
@@ -310,11 +310,10 @@ function doLogout(){
     <img id="f-img-preview" class="img-preview" />
   </div>
   <div class="fr">
-    <div class="fg"><label class="fl">Catégorie</label>
+    <div class="fg"><label class="fl" style="display:flex;justify-content:space-between;align-items:center">Catégorie <button class="btn btn-sm" onclick="FriCats.openGestionModal()" type="button" style="font-size:11px;padding:2px 7px">✏️ Gérer</button></label>
       <div class="select-with-add">
         <select class="fi" id="f-cat" style="flex:1" onchange="onCatChange()"></select>
         <button class="btn btn-sm" onclick="toggleNewCat()" type="button">+</button>
-        <button class="btn btn-sm" onclick="FriCats.openGestionModal()" type="button" title="Gérer les catégories">✏️</button>
       </div>
       <div class="new-inline" id="f-new-cat">
         <input class="fi" id="f-new-cat-val" placeholder="Nouvelle catégorie..." style="flex:1" />
