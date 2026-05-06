@@ -647,8 +647,14 @@ async function deleteDepense(){if(confirm("Supprimer cette dépense ?")){
 async function saveEntree(){
   const data={source:document.getElementById("e-source").value,description:document.getElementById("e-desc").value.trim(),prevu:parseFloat(document.getElementById("e-prevu").value)||0,recu:parseFloat(document.getElementById("e-recu").value)||0,statut:document.getElementById("e-statut").value,annee:document.getElementById("e-annee").value,notes:document.getElementById("e-notes").value.trim()};
   if(editEntreeId){
+    console.log("[saveEntree] PATCH id:", editEntreeId, "data:", JSON.stringify(data).substring(0,100));
     entrees=entrees.map(e=>e.id===editEntreeId?{...e,...data}:e);
-    if(typeof FriDB!=="undefined") try{const {id:_ei,...ed}={id:editEntreeId,...data};await FriDB.query("entrees_budget","PATCH",ed,"?id=eq."+editEntreeId);}catch(e){console.warn(e);}
+    if(typeof FriDB!=="undefined"){
+      try{
+        var patchRes=await FriDB.query("entrees_budget","PATCH",data,"?id=eq."+editEntreeId);
+        console.log("[saveEntree] PATCH result:", patchRes);
+      }catch(e){console.warn("[saveEntree] PATCH error:",e);}
+    }
   } else {
     var newE={id:nEntree++,...data};
     if(typeof FriDB!=="undefined"){
