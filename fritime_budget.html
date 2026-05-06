@@ -491,10 +491,9 @@ function renderGlobal(){
 
   // Cards
   document.getElementById("cards-global").innerHTML=[
-    {val:chf(totalEntreesPrevu),lbl:"Entrées prévues",sub:chf(totalEntreesRecu)+" reçus"},
-    {val:chf(totalDepPrevu),lbl:"Dépenses prévues",sub:chf(totalDepReel)+" réel"},
-    {val:chf(totalDepRealise),lbl:"Dépenses réalisées",sub:pct(totalDepRealise,totalDepPrevu)+" du budget"},
-    {val:pct(totalDepRealise,totalEntreesRecu),lbl:"Budget consommé",sub:"sur entrées reçues"},
+    {val:chf(totalEntreesPrevu),lbl:"Entrées prévues",sub:chf(totalEntreesRecu)+" reçues"},
+    {val:chf(totalDepPrevu),lbl:"Dépenses prévues",sub:chf(totalDepReel)+" réelles"},
+    {val:pct(totalDepRealise,totalEntreesRecu),lbl:"Budget consommé",sub:chf(totalDepRealise)+" sur "+chf(totalEntreesRecu)},
   ].map(x=>`<div class="card-stat"><div class="card-stat-val">${x.val}</div><div class="card-stat-lbl">${x.lbl}</div><div class="card-stat-sub">${x.sub}</div></div>`).join("");
 
   // Recap table
