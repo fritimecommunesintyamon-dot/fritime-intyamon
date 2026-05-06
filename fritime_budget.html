@@ -463,7 +463,7 @@ function renderGlobal(){
   const totalEntreesPrevu=E.reduce((s,e)=>s+(e.prevu||0),0);
   const totalEntreesRecu=E.reduce((s,e)=>s+(e.recu||0),0);
   const totalDepPrevu=D.reduce((s,d)=>s+(d.prevu||0),0);
-  const totalDepReel=D.reduce((s,d)=>s+(d.reel||0),0);
+  const totalDepReel=D.reduce((s,d)=>s+(d.realise||d.reel||0),0);
   const totalDepRealise=D.reduce((s,d)=>s+(d.realise||0),0);
   const soldePrevu=totalEntreesPrevu-totalDepPrevu;
   const soldeReel=totalEntreesRecu-totalDepReel;
