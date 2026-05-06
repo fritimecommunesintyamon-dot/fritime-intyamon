@@ -282,7 +282,10 @@ function doLogout(){
 
 <div class="header">
   <div><h1>Inscriptions</h1><div class="subtitle">Suivi des participants par activité — Fri-Time</div></div>
+  <div style="display:flex;gap:8px">
   <button class="btn btn-primary" onclick="openAddInscription()">+ Inscrire un enfant</button>
+  <button class="btn" style="background:#eaf3de;color:#275a0a;border-color:#c0dd97;font-weight:600" onclick="ouvrirSelectionModal()">🎯 Lancer la sélection</button>
+</div>
 </div>
 
 <!-- Flux de statut -->
@@ -720,6 +723,169 @@ async function loadInscriptionsDB(){
   }catch(e){console.warn('[Insc Load] DB erreur:',e);}
 }
 loadInscriptionsDB();
+</script>
+
+<!-- Modal sélection automatique -->
+<div id="mSelection" class="overlay" onclick="if(event.target.id==='mSelection')document.getElementById('mSelection').style.display='none'">
+<div class="modal" style="max-width:620px" onclick="event.stopPropagation()">
+  <div class="modal-title">🎯 Lancer la sélection automatique</div>
+  <div style="background:#e6f1fb;border-radius:8px;padding:12px;font-size:13px;color:#0c447c;margin-bottom:1rem">
+    <strong>Critères appliqués :</strong><br>
+    1. Priorité aux enfants n'ayant jamais participé<br>
+    2. Équité : moins de participations passées = priorité<br>
+    3. Respect de l'ordre de préférence de la famille<br>
+    4. Tirage au sort en cas d'égalité
+  </div>
+  <div class="fg">
+    <label class="fl">Activité concernée</label>
+    <select class="fi" id="sel-activite" onchange="previewSelection()">
+      <option value="">— Choisir une activité —</option>
+    </select>
+  </div>
+  <div id="sel-preview" style="display:none;margin-bottom:1rem">
+    <div style="font-size:12px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Aperçu de la sélection</div>
+    <div id="sel-preview-content"></div>
+  </div>
+  <div class="mf">
+    <button class="btn" onclick="document.getElementById('mSelection').style.display='none'">Annuler</button>
+    <button class="btn btn-primary" id="sel-confirm-btn" onclick="confirmerSelection()" style="display:none">✓ Confirmer la sélection</button>
+  </div>
+</div>
+</div>
+
+<script>
+function ouvrirSelectionModal(){
+  // Populate activity selector with activities that have waiting inscriptions
+  var sel = document.getElementById("sel-activite");
+  sel.innerHTML = '<option value="">— Choisir une activité —</option>';
+  var actsWithWaiting = activites.filter(function(a){
+    return inscriptions.some(function(i){ return String(i.activiteId)===String(a.id) && i.statut==="attente"; });
+  });
+  actsWithWaiting.sort(function(a,b){return (a.nom||"").localeCompare(b.nom||"","fr");}).forEach(function(a){
+    var waiting = inscriptions.filter(function(i){return String(i.activiteId)===String(a.id)&&i.statut==="attente";}).length;
+    var confirmed = inscriptions.filter(function(i){return String(i.activiteId)===String(a.id)&&i.statut==="confirme";}).length;
+    var places = a.places||0;
+    var dispo = places - confirmed;
+    sel.innerHTML += '<option value="'+a.id+'">'+(a.nom||"")+" — "+waiting+" en attente, "+dispo+"/"+places+" places dispo</option>";
+  });
+  document.getElementById("sel-preview").style.display="none";
+  document.getElementById("sel-confirm-btn").style.display="none";
+  document.getElementById("mSelection").style.display="flex";
+}
+
+function calculerNbParticipations(enfantId){
+  // Count confirmed inscriptions for this child across all activities
+  return inscriptions.filter(function(i){
+    return String(i.enfantId)===String(enfantId) && i.statut==="confirme";
+  }).length;
+}
+
+function previewSelection(){
+  var actId = document.getElementById("sel-activite").value;
+  if(!actId){ document.getElementById("sel-preview").style.display="none"; return; }
+  
+  var activite = activites.find(function(a){ return String(a.id)===String(actId); });
+  if(!activite) return;
+  
+  var places = activite.places||0;
+  var confirmes = inscriptions.filter(function(i){ return String(i.activiteId)===String(actId)&&i.statut==="confirme"; }).length;
+  var placesDisponibles = places - confirmes;
+  
+  // Get all waiting inscriptions for this activity
+  var enAttente = inscriptions.filter(function(i){ return String(i.activiteId)===String(actId)&&i.statut==="attente"; });
+  
+  // Score each candidate
+  var candidats = enAttente.map(function(insc){
+    var enfant = enfants.find(function(e){ return String(e.id)===String(insc.enfantId); });
+    var nbPartic = calculerNbParticipations(insc.enfantId);
+    return {
+      insc: insc,
+      enfant: enfant,
+      nbPartic: nbPartic,
+      pref: insc.pref||99,
+      alea: Math.random() // tirage au sort pour départager
+    };
+  });
+  
+  // Sort by criteria:
+  // 1. jamais participé (nbPartic === 0) = priorité absolue
+  // 2. moins de participations
+  // 3. ordre de préférence
+  // 4. aléatoire
+  candidats.sort(function(a, b){
+    // Critère 1: jamais participé en premier
+    var aJamais = a.nbPartic === 0 ? 0 : 1;
+    var bJamais = b.nbPartic === 0 ? 0 : 1;
+    if(aJamais !== bJamais) return aJamais - bJamais;
+    // Critère 2: moins de participations
+    if(a.nbPartic !== b.nbPartic) return a.nbPartic - b.nbPartic;
+    // Critère 3: ordre de préférence
+    if(a.pref !== b.pref) return a.pref - b.pref;
+    // Critère 4: aléatoire
+    return a.alea - b.alea;
+  });
+  
+  var selectionnes = candidats.slice(0, placesDisponibles);
+  var nonSelectionnes = candidats.slice(placesDisponibles);
+  
+  // Store for confirmation
+  window._selectionResult = { selectionnes: selectionnes, nonSelectionnes: nonSelectionnes, actId: actId };
+  
+  // Display preview
+  var html = '<div style="margin-bottom:8px"><strong>'+selectionnes.length+' sélectionné(s)</strong> sur '+candidats.length+' en attente — '+placesDisponibles+' place(s) disponible(s)</div>';
+  
+  if(selectionnes.length){
+    html += '<div style="font-size:11px;font-weight:600;color:#275a0a;text-transform:uppercase;margin-bottom:6px">✓ Sélectionnés</div>';
+    html += selectionnes.map(function(c){
+      var nom = c.enfant ? (c.enfant.prenom||"")+" "+(c.enfant.nom||"") : "Enfant #"+c.insc.enfantId;
+      var raison = c.nbPartic===0 ? "jamais participé" : c.nbPartic+" participation(s)";
+      return '<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:#eaf3de;border-radius:8px;margin-bottom:4px">'+
+        '<span style="font-size:16px">✓</span>'+
+        '<div style="flex:1"><strong>'+nom+'</strong> <span style="font-size:11px;color:#275a0a">('+raison+')</span></div>'+
+        '</div>';
+    }).join("");
+  }
+  
+  if(nonSelectionnes.length){
+    html += "<div style=\"font-size:11px;font-weight:600;color:#888;text-transform:uppercase;margin:8px 0 6px\">En attente</div>";
+    html += nonSelectionnes.map(function(c){
+      var nom = c.enfant ? (c.enfant.prenom||"")+" "+(c.enfant.nom||"") : "Enfant #"+c.insc.enfantId;
+      return '<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:#f5f5f3;border-radius:8px;margin-bottom:4px">'+
+        '<span style="font-size:16px;color:#aaa">⏳</span>'+
+        '<strong style="color:#888">'+nom+'</strong>'+
+        '</div>';
+    }).join("");
+  }
+  
+  document.getElementById("sel-preview-content").innerHTML = html;
+  document.getElementById("sel-preview").style.display = "block";
+  document.getElementById("sel-confirm-btn").style.display = selectionnes.length ? "inline-block" : "none";
+}
+
+async function confirmerSelection(){
+  var result = window._selectionResult;
+  if(!result) return;
+  
+  var btn = document.getElementById("sel-confirm-btn");
+  btn.textContent = "Confirmation en cours...";
+  btn.disabled = true;
+  
+  var errors = 0;
+  for(var k=0; k<result.selectionnes.length; k++){
+    var insc = result.selectionnes[k].insc;
+    try{
+      await FriDB.query("inscriptions","PATCH",{statut:"confirme"},"?id=eq."+insc.id);
+      inscriptions = inscriptions.map(function(i){ return i.id===insc.id ? Object.assign({},i,{statut:"confirme"}) : i; });
+    }catch(e){ errors++; console.warn("Erreur confirmation:", e); }
+  }
+  
+  document.getElementById("mSelection").style.display="none";
+  renderAll();
+  
+  var msg = result.selectionnes.length+" enfant(s) confirmé(s)";
+  if(errors) msg += " ("+errors+" erreur(s))";
+  alert("✓ "+msg);
+}
 </script>
 </body>
 </html>
