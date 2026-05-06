@@ -466,15 +466,27 @@ function renderGlobal(){
   const totalDepReel=D.reduce((s,d)=>s+(d.reel||0),0);
   const totalDepRealise=D.reduce((s,d)=>s+(d.realise||0),0);
   const soldePrevu=totalEntreesPrevu-totalDepPrevu;
-  const soldeReel=totalEntreesRecu-totalDepRealise;
+  const soldeReel=totalEntreesRecu-totalDepReel;
 
   // Solde box
   const sBox=document.getElementById("solde-box");
   const isPos=soldeReel>=0;
   sBox.innerHTML=`<div class="solde-box" style="background:${isPos?"#eaf3de":"#fcebeb"}">
-    <div style="font-size:11px;color:${isPos?"#275a0a":"#791f1f"};text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Solde disponible (réel)</div>
-    <div style="font-size:32px;font-weight:700;color:${isPos?"#275a0a":"#791f1f"}">${chf(soldeReel)}</div>
-    <div style="font-size:12px;color:${isPos?"#3b6d11":"#a32d2d"};margin-top:4px">Prévisionnel : ${chf(soldePrevu)}</div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
+      <div>
+        <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Dépenses réelles</div>
+        <div style="font-size:22px;font-weight:700;color:#791f1f">${chf(totalDepReel)}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Entrées reçues</div>
+        <div style="font-size:22px;font-weight:700;color:#275a0a">${chf(totalEntreesRecu)}</div>
+      </div>
+    </div>
+    <div style="border-top:1px solid ${isPos?"#c0dd97":"#f4c0c0"};padding-top:10px">
+      <div style="font-size:11px;color:${isPos?"#275a0a":"#791f1f"};text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Solde disponible</div>
+      <div style="font-size:32px;font-weight:700;color:${isPos?"#275a0a":"#791f1f"}">${chf(soldeReel)}</div>
+      <div style="font-size:12px;color:#888;margin-top:4px">Prévisionnel : ${chf(soldePrevu)}</div>
+    </div>
   </div>`;
 
   // Cards
