@@ -454,6 +454,8 @@ function render(){
   console.log("[Render] dbActivites:", dbActivites.length, "dbBudgetE:", dbBudgetE.length, "dbBudgetD:", dbBudgetD.length);
   var acts=currentPeriode==="annee"?dbActivites:filterPeriode(dbActivites,"date");
   console.log("[Render] acts filtered:", acts.length, "range:", getRange().from, "to", getRange().to);
+  // Si aucune activité filtrée, afficher toutes les activités
+  if(acts.length===0) acts=dbActivites;
   var actOk=acts.filter(function(a){return a.statut==="validee"||a.statut==="planifiee"||a.statut==="approuvee";});
   var actFin=acts.filter(function(a){return a.statut==="terminee";});
   var inscrits=acts.reduce(function(s,a){return s+(a.inscrits||0);},0);
