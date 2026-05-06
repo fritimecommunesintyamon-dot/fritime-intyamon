@@ -466,6 +466,7 @@ function getFiltered(){
   else if(sort==="statut")list=[...list].sort((a,b)=>["idee","discussion","approuvee","activite"].indexOf(a.statut)-["idee","discussion","approuvee","activite"].indexOf(b.statut));
   else if(sort==="cat")list=[...list].sort((a,b)=>(a.cat||"").localeCompare(b.cat||""));
   else if(sort==="cout")list=[...list].sort((a,b)=>(a.cout||0)-(b.cout||0));
+  else if(sort==="nom")list=[...list].sort((a,b)=>(a.titre||"").localeCompare(b.titre||"","fr"));
   return list;
 }
 
