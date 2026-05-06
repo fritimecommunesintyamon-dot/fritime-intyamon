@@ -458,11 +458,11 @@ function render(){
   if(acts.length===0) acts=dbActivites;
   var actOk=acts.filter(function(a){return a.statut==="validee"||a.statut==="planifiee"||a.statut==="approuvee";});
   var actFin=acts.filter(function(a){return a.statut==="terminee";});
-  var inscrits=acts.reduce(function(s,a){return s+(a.inscrits||0);},0);
+  var inscrits=dbActivites.reduce(function(s,a){return s+(a.inscrits||0);},0);
   var prestActifs=dbPrestataires.filter(function(p){return p.statut==="actif";});
   var tachesOuv=dbTaches.filter(function(t){return t.statut!=="terminee"&&t.statut!=="done";});
-  var entrees=dbBudgetE.reduce(function(s,e){return s+(parseFloat(e.montant)||0);},0);
-  var depenses=dbBudgetD.reduce(function(s,d){return s+(parseFloat(d.montant)||0);},0);
+  var entrees=dbBudgetE.reduce(function(s,e){return s+(parseFloat(e.recu)||parseFloat(e.prevu)||0);},0);
+  var depenses=dbBudgetD.reduce(function(s,d){return s+(parseFloat(d.reel)||parseFloat(d.prevu)||0);},0);
   var solde=entrees-depenses;
 
   // Metrics
@@ -511,7 +511,7 @@ function render(){
   var actsInsc=(acts.length?acts:dbActivites).filter(function(a){return (a.places||0)>0||(a.inscrits||0)>0;}).slice(0,6);
   document.getElementById("inscriptions-list").innerHTML=actsInsc.length?actsInsc.map(function(a){
     var places=a.places||0;var ins=a.inscrits||0;
-    var att=dbInscriptions.filter(function(i){return String(i.activiteId)===String(a.id)&&i.statut==="attente";}).length;
+    var att=dbInscriptions.filter(function(i){return (String(i.activiteId)===String(a.id)||String(i.activite_id)===String(a.id))&&i.statut==="attente";}).length;
     var pct3=places?Math.min(100,Math.round(ins/places*100)):0;
     return '<div class="insc-item"><div style="flex:1"><div class="insc-act">'+a.nom+'</div>'+
       '<div class="insc-sub">'+fd(a.date)+'</div>'+
