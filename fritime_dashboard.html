@@ -402,174 +402,154 @@ function doLogout(){
 </div>
 
 <script>
-const DATA={
-  printemps:{
-    label:"Printemps 2026",
-    metrics:[
-      {val:"0",lbl:"Activités confirmées",sub:"aucune activité planifiée",cls:"green"},
-      {val:"0",lbl:"Inscriptions reçues",sub:"aucune inscription",cls:"blue"},
-      {val:"0",lbl:"Prestataires confirmés",sub:"aucun prestataire",cls:"green"},
-      {val:"0",lbl:"Tâches en attente",sub:"aucune tâche",cls:"orange"},
-      {val:"0",lbl:"Budget restant (CHF)",sub:"budget à définir",cls:"highlight"},
-    ],
-    activites:[],
-    budget:{entrees:0,depenses:0,total:0,solde:0,pct:0},
-    inscriptions:[],
-    prestataires:[],
-    alertes:[],
-  },
-  hiver:{
-    label:"Hiver 2025",
-    metrics:[
-      {val:"0",lbl:"Activités réalisées",sub:"aucune activité",cls:"green"},
-      {val:"0",lbl:"Participants",sub:"",cls:"blue"},
-      {val:"0",lbl:"Prestataires",sub:"",cls:"green"},
-      {val:"0",lbl:"Incidents",sub:"",cls:"green"},
-      {val:"0",lbl:"Budget restant (CHF)",sub:"budget à définir",cls:"highlight"},
-    ],
-    activites:[],
-    budget:{entrees:0,depenses:0,total:0,solde:0,pct:0},
-    inscriptions:[],
-    prestataires:[],
-    alertes:[],
-  },
-  annee:{
-    label:"Année 2025–2026",
-    metrics:[
-      {val:"0",lbl:"Activités au total",sub:"",cls:"green"},
-      {val:"0",lbl:"Participations",sub:"",cls:"blue"},
-      {val:"0",lbl:"Prestataires actifs",sub:"",cls:"green"},
-      {val:"0",lbl:"Incidents signalés",sub:"",cls:"orange"},
-      {val:"0",lbl:"Budget restant (CHF)",sub:"budget à définir",cls:"highlight"},
-    ],
-    activites:[],
-    budget:{entrees:0,depenses:0,total:0,solde:0,pct:0},
-    inscriptions:[],
-    prestataires:[],
-    alertes:[],
-  }
-};
-
+let dbActivites=[], dbInscriptions=[], dbPrestataires=[], dbBudgetE=[], dbBudgetD=[], dbTaches=[], dbEnfants=[];
 let currentPeriode="printemps";
+
+async function loadDashboardDB(){
+  var a=0;
+  while(typeof FriDB==="undefined"&&a<30){await new Promise(function(r){setTimeout(r,100);});a++;}
+  if(typeof FriDB==="undefined"){render();return;}
+  try{
+    dbActivites=(await FriDB.getActivites().catch(function(){return[];}));
+    dbInscriptions=(await FriDB.getInscriptions().catch(function(){return[];}));
+    dbPrestataires=(await FriDB.getPrestataires().catch(function(){return[];}));
+    dbBudgetE=(await FriDB.getEntrees().catch(function(){return[];}));
+    dbBudgetD=(await FriDB.getDepenses().catch(function(){return[];}));
+    dbTaches=(await FriDB.getTaches().catch(function(){return[];}));
+    dbEnfants=(await FriDB.getEnfants().catch(function(){return[];}));
+  }catch(e){console.warn("Dashboard DB:",e);}
+  render();
+}
 
 function setPeriode(p,btn){
   currentPeriode=p;
-  document.querySelectorAll(".periode-btn").forEach(b=>b.classList.remove("active"));
+  document.querySelectorAll(".periode-btn").forEach(function(b){b.classList.remove("active");});
   btn.classList.add("active");
   render();
 }
 
-function ini(nom){const p=nom.split(" ");return((p[0]||"")[0]+(p[1]||"")[0]).toUpperCase();}
-function chf(n){return n.toLocaleString("fr-CH")+" CHF";}
+function fd(d){if(!d)return"—";var pts=d.split("-");return pts[2]+"."+pts[1]+"."+pts[0];}
+function chf(n){return(n||0).toLocaleString("fr-CH")+" CHF";}
 function pctCls(p){return p>=80?"prog-red":p>=50?"prog-orange":"prog-green";}
+function ini(n){var p=(n||"").split(" ");return((p[0]||"")[0]||"")+((p[1]||"")[0]||"");}
 
-function checkPendingComptes(){
-  var comptes = JSON.parse(localStorage.getItem("ft_comptes")||"[]");
-  var pending = comptes.filter(function(c){return !c.actif;});
-  var alertes = DATA[currentPeriode].alertes;
-  
-  // Remove old pending compte alerts
-  alertes = alertes.filter(function(a){return a.type !== "compte_pending";});
-  
-  if(pending.length > 0){
-    alertes.unshift({
-      ico:"🔴",
-      titre:"Demande d'accès en attente — "+pending.length+" compte(s)",
-      sub:"Nouveaux membres à valider : "+pending.map(function(c){return c.prenom+" "+c.nom;}).join(", "),
-      urgent:true,
-      date:"",
-      type:"compte_pending"
-    });
-  }
-  DATA[currentPeriode].alertes = alertes;
+function getRange(){
+  if(currentPeriode==="printemps") return {from:"2026-02-01",to:"2026-07-31",label:"Printemps 2026"};
+  if(currentPeriode==="hiver") return {from:"2025-10-01",to:"2026-01-31",label:"Hiver 2025"};
+  return {from:"2025-09-01",to:"2026-08-31",label:"Année 2025–2026"};
 }
 
-function render(){checkPendingComptes();
-  const d=DATA[currentPeriode];
-  document.getElementById("periode-label").textContent=d.label;
+function filterPeriode(items, field){
+  var r=getRange();
+  return items.filter(function(i){var d=i[field]||i.date||"";return !d||(d>=r.from&&d<=r.to);});
+}
+
+function render(){
+  var range=getRange();
+  document.getElementById("periode-label").textContent=range.label;
+  var acts=currentPeriode==="annee"?dbActivites:filterPeriode(dbActivites,"date");
+  var actOk=acts.filter(function(a){return a.statut==="validee"||a.statut==="planifiee"||a.statut==="approuvee";});
+  var actFin=acts.filter(function(a){return a.statut==="terminee";});
+  var inscrits=acts.reduce(function(s,a){return s+(a.inscrits||0);},0);
+  var prestActifs=dbPrestataires.filter(function(p){return p.statut==="actif";});
+  var tachesOuv=dbTaches.filter(function(t){return t.statut!=="terminee"&&t.statut!=="done";});
+  var entrees=dbBudgetE.reduce(function(s,e){return s+(parseFloat(e.montant)||0);},0);
+  var depenses=dbBudgetD.reduce(function(s,d){return s+(parseFloat(d.montant)||0);},0);
+  var solde=entrees-depenses;
 
   // Metrics
-  document.getElementById("metrics").innerHTML=d.metrics.map(m=>`
-    <div class="metric ${m.cls==="highlight"?"highlight":m.cls==="green"?"green":m.cls==="orange"?"orange":m.cls==="red"?"red":"blue"}">
-      <div class="metric-val">${m.val}</div>
-      <div class="metric-lbl">${m.lbl}</div>
-      ${m.sub?`<div class="metric-sub">${m.sub}</div>`:""}
-    </div>`).join("");
+  var metrics=currentPeriode==="annee"?[
+    {val:dbActivites.length,lbl:"Activités au total",sub:actFin.length+" réalisées",cls:"green"},
+    {val:inscrits,lbl:"Participations totales",sub:"",cls:"blue"},
+    {val:prestActifs.length,lbl:"Prestataires actifs",sub:"",cls:"green"},
+    {val:tachesOuv.length,lbl:"Tâches en attente",sub:"",cls:"orange"},
+    {val:chf(solde),lbl:"Solde budget",sub:chf(depenses)+" dépensés",cls:"highlight"},
+  ]:[
+    {val:actOk.length,lbl:"Activités confirmées",sub:acts.length+" au total",cls:"green"},
+    {val:inscrits,lbl:"Inscriptions reçues",sub:dbEnfants.length+" enfants",cls:"blue"},
+    {val:prestActifs.length,lbl:"Prestataires actifs",sub:"",cls:"green"},
+    {val:tachesOuv.length,lbl:"Tâches en attente",sub:"",cls:"orange"},
+    {val:chf(solde),lbl:"Solde budget",sub:chf(depenses)+" dépensés",cls:"highlight"},
+  ];
 
-  // Activités
-  const STATUT={approuvee:"Approuvée",planifiee:"Planifiée",validee:"Validée",terminee:"Terminée"};
-  document.getElementById("activites-tbody").innerHTML=d.activites.map(a=>`<tr>
-    <td style="font-weight:500">${a.nom}</td>
-    <td style="color:#888">${a.date}</td>
-    <td style="font-size:12px">${a.prestataire}</td>
-    <td>
-      <div style="font-weight:600">${a.inscrits}<span style="color:#aaa;font-weight:400">/${a.places}</span></div>
-      <div style="width:60px;height:4px;background:#eee;border-radius:20px;overflow:hidden;margin-top:3px">
-        <div style="width:${Math.min(100,Math.round(a.inscrits/a.places*100))}%;height:4px;background:#275a0a;border-radius:20px"></div>
-      </div>
-    </td>
-    <td><span class="badge badge-${a.statut}">${STATUT[a.statut]||a.statut}</span></td>
-  </tr>`).join("");
-
-  // Budget
-  const b=d.budget;
-  const pct=Math.round(b.depenses/b.total*100);
-  document.getElementById("budget-wrap").innerHTML=`
-    <div class="budget-row"><span class="budget-label">Dépenses réalisées</span><span class="budget-val">${chf(b.depenses)}</span></div>
-    <div class="prog-wrap"><div class="prog-bar ${pctCls(pct)}" style="width:${pct}%"></div></div>
-    <div class="budget-row"><span class="budget-label">Entrées reçues</span><span class="budget-val">${chf(b.entrees)}</span></div>
-    <div class="prog-wrap"><div class="prog-bar prog-green" style="width:${Math.round(b.entrees/b.total*100)}%"></div></div>
-    <div class="budget-solde">
-      <div><div style="font-size:11px;color:#888;margin-bottom:2px;text-transform:uppercase;letter-spacing:.05em">Solde disponible</div>
-      <div class="budget-solde-val ${b.solde<1000?"":"" }">${chf(b.solde)}</div></div>
-      <div style="font-size:12px;color:#888">${pct}% consommé</div>
-    </div>`;
-
-  // Inscriptions
-  document.getElementById("inscriptions-list").innerHTML=d.inscriptions.map(i=>{
-    const total=i.confirmes+i.attente;
-    const pct=Math.min(100,Math.round(i.confirmes/i.places*100));
-    return`<div class="insc-item">
-      <div style="flex:1">
-        <div class="insc-act">${i.act}</div>
-        <div class="insc-sub">${i.date}</div>
-        <div class="insc-bar"><div class="insc-fill" style="width:${pct}%"></div></div>
-      </div>
-      <div class="insc-stats">
-        <div class="insc-stat"><div class="insc-stat-val" style="color:#275a0a">${i.confirmes}</div><div class="insc-stat-lbl">Confirmés</div></div>
-        <div style="color:#eee;font-size:16px">|</div>
-        <div class="insc-stat"><div class="insc-stat-val" style="color:#633806">${i.attente}</div><div class="insc-stat-lbl">Attente</div></div>
-        <div style="color:#eee;font-size:16px">|</div>
-        <div class="insc-stat"><div class="insc-stat-val" style="color:#aaa">${i.places}</div><div class="insc-stat-lbl">Places</div></div>
-      </div>
-    </div>`;
+  document.getElementById("metrics").innerHTML=metrics.map(function(m){
+    return '<div class="metric '+m.cls+'"><div class="metric-val">'+m.val+'</div><div class="metric-lbl">'+m.lbl+'</div>'+(m.sub?'<div class="metric-sub">'+m.sub+'</div>':'')+'</div>';
   }).join("");
 
+  // Activités table
+  var STATUT={approuvee:"Approuvée",planifiee:"Planifiée",validee:"Validée",terminee:"Terminée",idee:"Idée",annulee:"Annulée"};
+  document.getElementById("activites-tbody").innerHTML=actOk.slice(0,8).map(function(a){
+    var places=a.places||0;var ins=a.inscrits||0;var pct=places?Math.min(100,Math.round(ins/places*100)):0;
+    return '<tr><td style="font-weight:500">'+a.nom+'</td><td style="color:#888">'+fd(a.date)+'</td><td style="font-size:12px">'+(a.prestContact||"—")+'</td>'+
+      '<td><div style="font-weight:600">'+ins+'<span style="color:#aaa;font-weight:400">/'+places+'</span></div>'+
+      '<div style="width:60px;height:4px;background:#eee;border-radius:20px;overflow:hidden;margin-top:3px">'+
+      '<div style="width:'+pct+'%;height:4px;background:#275a0a;border-radius:20px"></div></div></td>'+
+      '<td><span class="badge badge-'+(a.statut||"idee")+'">'+(STATUT[a.statut]||a.statut)+'</span></td></tr>';
+  }).join("")||'<tr><td colspan="5" style="text-align:center;color:#bbb;padding:1.5rem">Aucune activité confirmée</td></tr>';
+
+  // Budget
+  var pct2=entrees>0?Math.round(depenses/entrees*100):0;
+  document.getElementById("budget-wrap").innerHTML=
+    '<div class="budget-row"><span class="budget-label">Dépenses</span><span class="budget-val">'+chf(depenses)+'</span></div>'+
+    '<div class="prog-wrap"><div class="prog-bar '+pctCls(pct2)+'" style="width:'+Math.min(100,pct2)+'%"></div></div>'+
+    '<div class="budget-row"><span class="budget-label">Entrées</span><span class="budget-val">'+chf(entrees)+'</span></div>'+
+    '<div class="prog-wrap"><div class="prog-bar prog-green" style="width:100%"></div></div>'+
+    '<div class="budget-solde"><div>'+
+    '<div style="font-size:11px;color:#888;margin-bottom:2px;text-transform:uppercase;letter-spacing:.05em">Solde disponible</div>'+
+    '<div class="budget-solde-val">'+chf(solde)+'</div></div>'+
+    '<div style="font-size:12px;color:#888">'+pct2+'% consommé</div></div>';
+
+  // Inscriptions
+  var actsInsc=acts.filter(function(a){return a.places>0;}).slice(0,6);
+  document.getElementById("inscriptions-list").innerHTML=actsInsc.length?actsInsc.map(function(a){
+    var places=a.places||0;var ins=a.inscrits||0;
+    var att=dbInscriptions.filter(function(i){return String(i.activiteId)===String(a.id)&&i.statut==="attente";}).length;
+    var pct3=places?Math.min(100,Math.round(ins/places*100)):0;
+    return '<div class="insc-item"><div style="flex:1"><div class="insc-act">'+a.nom+'</div>'+
+      '<div class="insc-sub">'+fd(a.date)+'</div>'+
+      '<div class="insc-bar"><div class="insc-fill" style="width:'+pct3+'%"></div></div></div>'+
+      '<div class="insc-stats">'+
+      '<div class="insc-stat"><div class="insc-stat-val" style="color:#275a0a">'+ins+'</div><div class="insc-stat-lbl">Inscrits</div></div>'+
+      '<div style="color:#eee;font-size:16px">|</div>'+
+      '<div class="insc-stat"><div class="insc-stat-val" style="color:#633806">'+att+'</div><div class="insc-stat-lbl">Attente</div></div>'+
+      '<div style="color:#eee;font-size:16px">|</div>'+
+      '<div class="insc-stat"><div class="insc-stat-val" style="color:#aaa">'+places+'</div><div class="insc-stat-lbl">Places</div></div>'+
+      '</div></div>';
+  }).join(""):'<div style="text-align:center;padding:1.5rem;color:#bbb;font-size:13px">Aucune inscription</div>';
+
   // Prestataires
-  document.getElementById("prestataires-list").innerHTML=d.prestataires.map(p=>`
-    <div class="prest-item">
-      <div class="prest-avatar">${ini(p.nom)}</div>
-      <div style="flex:1">
-        <div class="prest-name">${p.nom}</div>
-        <div class="prest-sub">${p.entreprise}</div>
-      </div>
-      <span class="prest-act">${p.activite}</span>
-    </div>`).join("");
+  document.getElementById("prestataires-list").innerHTML=prestActifs.slice(0,5).map(function(p){
+    var nom=p.nom||((p.cp||"")+" "+(p.cn||"")).trim()||"—";
+    var contact=((p.cp||"")+" "+(p.cn||"")).trim()||"";
+    return '<div class="prest-item"><div class="prest-avatar">'+(ini(nom).toUpperCase()||"?")+'</div>'+
+      '<div style="flex:1"><div class="prest-name">'+nom+'</div><div class="prest-sub">'+contact+'</div></div>'+
+      '<span class="prest-act">'+(p.cat||p.type||"")+'</span></div>';
+  }).join("")||'<div style="text-align:center;padding:1.5rem;color:#bbb;font-size:13px">Aucun prestataire actif</div>';
 
   // Alertes
-  document.getElementById("alertes-count").textContent=d.alertes.length+" point(s)";
-  document.getElementById("alertes-list").innerHTML=d.alertes.length?d.alertes.map(a=>`
-    <div class="alert-item${a.urgent?" urgent":""}">
-      <span class="alert-ico">${a.ico}</span>
-      <div style="flex:1">
-        <div class="alert-title">${a.titre}</div>
-        <div class="alert-sub">${a.sub}</div>
-      </div>
-      ${a.date?`<span class="alert-date">${a.date}</span>`:""}
-    </div>`).join(""):`<div style="text-align:center;padding:1.5rem;color:#bbb;font-size:13px">Aucun point d'attention</div>`;
+  var alertes=[];
+  var actsSansPrest=actOk.filter(function(a){return !a.prestId&&!a.prestContact;});
+  if(actsSansPrest.length) alertes.push({ico:"⚠️",titre:actsSansPrest.length+" activité(s) sans prestataire",sub:actsSansPrest.slice(0,3).map(function(a){return a.nom;}).join(", "),urgent:false,date:""});
+  var actsSansDate=actOk.filter(function(a){return !a.date;});
+  if(actsSansDate.length) alertes.push({ico:"📅",titre:actsSansDate.length+" activité(s) sans date",sub:actsSansDate.slice(0,3).map(function(a){return a.nom;}).join(", "),urgent:false,date:""});
+  var tachHaute=dbTaches.filter(function(t){return (t.priorite==="haute"||t.priorite==="high")&&t.statut!=="terminee";});
+  if(tachHaute.length) alertes.push({ico:"🔴",titre:tachHaute.length+" tâche(s) priorité haute",sub:tachHaute.slice(0,3).map(function(t){return t.titre||t.nom||"";}).join(", "),urgent:true,date:""});
+  if(solde<0) alertes.push({ico:"💸",titre:"Budget déficitaire",sub:"Solde : "+chf(solde),urgent:true,date:""});
+  var comptes=JSON.parse(localStorage.getItem("ft_comptes")||"[]");
+  var pending=comptes.filter(function(c){return !c.actif;});
+  if(pending.length) alertes.unshift({ico:"🔴",titre:"Demande d'accès en attente — "+pending.length+" compte(s)",sub:"À valider : "+pending.slice(0,3).map(function(c){return c.prenom+" "+c.nom;}).join(", "),urgent:true,date:""});
+
+  document.getElementById("alertes-count").textContent=alertes.length+" point(s)";
+  document.getElementById("alertes-list").innerHTML=alertes.length?alertes.map(function(a){
+    return '<div class="alert-item'+(a.urgent?" urgent":"")+'"><span class="alert-ico">'+a.ico+'</span>'+
+      '<div style="flex:1"><div class="alert-title">'+a.titre+'</div><div class="alert-sub">'+a.sub+'</div></div>'+
+      (a.date?'<span class="alert-date">'+a.date+'</span>':'')+
+      '</div>';
+  }).join(""):'<div style="text-align:center;padding:1.5rem;color:#bbb;font-size:13px">Aucun point d attention</div>';
 }
 
 render();
+loadDashboardDB();
 </script>
 </div>
 </div>
