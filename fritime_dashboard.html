@@ -406,9 +406,12 @@ let dbActivites=[], dbInscriptions=[], dbPrestataires=[], dbBudgetE=[], dbBudget
 let currentPeriode="printemps";
 
 async function loadDashboardDB(){
-  var a=0;
-  while(typeof FriDB==="undefined"&&a<30){await new Promise(function(r){setTimeout(r,100);});a++;}
-  if(typeof FriDB==="undefined"){render();return;}
+  // Wait for FriDB
+  await new Promise(function(r){setTimeout(r,500);});
+  if(typeof FriDB==="undefined"){
+    await new Promise(function(r){setTimeout(r,1500);});
+  }
+  if(typeof FriDB==="undefined"){console.warn("FriDB non dispo");render();return;}
   try{
     dbActivites=(await FriDB.getActivites().catch(function(){return[];}));
     dbInscriptions=(await FriDB.getInscriptions().catch(function(){return[];}));
@@ -549,7 +552,6 @@ function render(){
   }).join(""):'<div style="text-align:center;padding:1.5rem;color:#bbb;font-size:13px">Aucun point d attention</div>';
 }
 
-render();
 loadDashboardDB();
 </script>
 </div>
