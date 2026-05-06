@@ -199,6 +199,7 @@ textarea.fi{resize:vertical;min-height:70px}
 
   <div class="ft-nav-section">Contenu</div>
   <a class="ft-nav-item" href="fritime_idees.html" data-page="idees"><span class="ft-nav-ico">💡</span> Banque d'idées</a>
+  <a class="ft-nav-item" href="fritime_categories.html" data-page="categories"><span class="ft-nav-ico">🏷️</span> Catégories</a>
   <a class="ft-nav-item" href="fritime_documents.html" data-page="documents"><span class="ft-nav-ico">📁</span> Documents</a>
 
   <div class="ft-nav-section">Sécurité</div>
@@ -270,6 +271,7 @@ function doLogout(){
   <a href="fritime_prestataires.html">🤝 Prestataires</a>
   <div class="ft-sb-sec">Contenu</div>
   <a href="fritime_idees.html">💡 Banque d'idées</a>
+  <a href="fritime_categories.html">🏷️ Catégories</a>
   <a href="fritime_documents.html">📁 Documents</a>
   <div class="ft-sb-sec">Sécurité</div>
   <a href="fritime_incidents.html">⚠️ Incidents</a>
@@ -310,7 +312,7 @@ function doLogout(){
     <img id="f-img-preview" class="img-preview" />
   </div>
   <div class="fr">
-    <div class="fg"><label class="fl" style="display:flex;justify-content:space-between;align-items:center">Catégorie <button class="btn btn-sm" onclick="FriCats.openGestionModal()" type="button" style="font-size:11px;padding:2px 7px">✏️ Gérer</button></label>
+    <div class="fg"><label class="fl">Catégorie</label>
       <div class="select-with-add">
         <select class="fi" id="f-cat" style="flex:1" onchange="onCatChange()"></select>
         <button class="btn btn-sm" onclick="toggleNewCat()" type="button">+</button>
