@@ -557,11 +557,22 @@ function toggleNewCat(prefix){
   const r=document.getElementById(prefix+"-new-cat");
   r.classList.toggle("visible");
 }
-function addCat(prefix){
+async function addCat(prefix){
   const v=document.getElementById(prefix+"-new-cat-val").value.trim();
   if(!v)return;
-  if(!categories.includes(v))categories.push(v);
-  fillCatSelect(prefix,v);
+  var cats=window.categories=window.categories||[];
+  if(!cats.includes(v)){
+    cats.push(v);
+    categories=cats;
+    if(typeof FriDB!=="undefined"){
+      try{await FriDB.saveCategorie(v);console.log("Catégorie sauvegardée ✓",v);}
+      catch(e){console.warn("Save catégorie:",e);}
+    }
+  }
+  FriCats.fillCatSelect(prefix+"-cat",v);
+  // Also update filter-cat
+  var filterCat=document.getElementById("filter-cat");
+  if(filterCat){filterCat.innerHTML='<option value="">Toutes catégories</option>'+cats.map(function(c){return '<option value="'+c+'">'+c+'</option>';}).join("");}
   document.getElementById(prefix+"-cat").value=v;
   document.getElementById(prefix+"-new-cat-val").value="";
   document.getElementById(prefix+"-new-cat").classList.remove("visible");
