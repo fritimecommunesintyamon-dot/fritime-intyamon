@@ -758,6 +758,7 @@ function ouvrirSelectionModal(){
   // Populate activity selector with activities that have waiting inscriptions
   var sel = document.getElementById("sel-activite");
   sel.innerHTML = '<option value="">— Choisir une activité —</option>';
+  var today = new Date().toISOString().split("T")[0];
   var actsWithWaiting = activites.filter(function(a){
     return inscriptions.some(function(i){ return String(i.activiteId)===String(a.id) && i.statut==="attente"; });
   });
@@ -766,7 +767,11 @@ function ouvrirSelectionModal(){
     var confirmed = inscriptions.filter(function(i){return String(i.activiteId)===String(a.id)&&i.statut==="confirme";}).length;
     var places = a.places||0;
     var dispo = places - confirmed;
-    sel.innerHTML += '<option value="'+a.id+'">'+(a.nom||"")+" — "+waiting+" en attente, "+dispo+"/"+places+" places dispo</option>";
+    var dateLimite = a.dateLimite||a.date_limite||"";
+    var bloque = dateLimite && today <= dateLimite;
+    var label = (a.nom||"")+" — "+waiting+" en attente, "+dispo+"/"+places+" places dispo";
+    if(bloque) label += " ⏳ Inscriptions ouvertes jusqu'au "+dateLimite.split("-").reverse().join(".");
+    sel.innerHTML += '<option value="'+a.id+'" data-limite="'+dateLimite+'">'+label+'</option>';
   });
   document.getElementById("sel-preview").style.display="none";
   document.getElementById("sel-confirm-btn").style.display="none";
@@ -786,6 +791,19 @@ function previewSelection(){
   
   var activite = activites.find(function(a){ return String(a.id)===String(actId); });
   if(!activite) return;
+  
+  var today = new Date().toISOString().split("T")[0];
+  var dateLimite = activite.dateLimite||activite.date_limite||"";
+  if(dateLimite && today <= dateLimite){
+    var dl = dateLimite.split("-").reverse().join(".");
+    document.getElementById("sel-preview-content").innerHTML = 
+      "<div style=\"background:#faeeda;border-radius:8px;padding:12px;color:#633806;font-size:13px\">" +
+      "⏳ <strong>Sélection bloquée</strong><br>Les inscriptions sont encore ouvertes jusqu'au <strong>" + dl + "</strong>.<br>" +
+      "La sélection ne peut être lancée qu'après la date limite d'inscription.</div>";
+    document.getElementById("sel-preview").style.display="block";
+    document.getElementById("sel-confirm-btn").style.display="none";
+    return;
+  }
   
   var places = activite.places||0;
   var confirmes = inscriptions.filter(function(i){ return String(i.activiteId)===String(actId)&&i.statut==="confirme"; }).length;
