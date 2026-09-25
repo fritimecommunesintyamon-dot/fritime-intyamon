@@ -936,13 +936,13 @@ async function envoyerConfirmationsActivite(actId){
     var insc = confirmes[k];
     var enfant = enfants.find(function(e){ return String(e.id)===String(insc.enfantId); });
     if(!enfant){ erreurs++; continue; }
-    // Build parent object from enfant data
+    // Build parent object from enfant data (pp=prenom, pn=nom, pe=email)
     var parent = {
-      prenom: enfant.prenomParent || enfant.prenom_parent || '',
-      nom: enfant.nomParent || enfant.nom_parent || '',
-      email: enfant.email || enfant.emailParent || ''
+      prenom: enfant.pp || '',
+      nom: enfant.pn || '',
+      email: enfant.pe || ''
     };
-    if(!parent.email){ erreurs++; continue; }
+    if(!parent.email){ console.warn("Email manquant pour enfant:", enfant.prenom, enfant.nom); erreurs++; continue; }
     try{
       await FriBrevo.sendConfirmationParticipation(enfant, parent, act);
       ok++;
