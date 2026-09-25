@@ -96,6 +96,7 @@ tr:hover td{background:#fafaf8}
   <script src="fritime_sync.js"></script>
   <script src="fritime_auth.js"></script>
   <script src="fritime_supabase.js"></script>
+  <script src="fritime_brevo.js"></script>
 
 <style id="sidebar-css">
 .ft-wrap{display:flex;min-height:calc(100vh - 52px)}
@@ -419,6 +420,7 @@ function renderActSelector(){
       <div class="act-sub">${fmtDate(a.date)} · ${a.places} places</div>
       <div class="prog-wrap"><div class="prog-bar" style="width:${Math.min(100,pct)}%"></div></div>
       <div class="prog-label">${confirms} confirmé(s) / ${a.places}</div>
+      ${renderBoutonEmail(a.id)}
     </div>`;
   }).join("");
 }
@@ -748,7 +750,10 @@ loadInscriptionsDB();
   </div>
   <div class="mf">
     <button class="btn" onclick="document.getElementById('mSelection').style.display='none'">Annuler</button>
-    <button class="btn btn-primary" id="sel-confirm-btn" onclick="confirmerSelection()" style="display:none">✓ Confirmer la sélection</button>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-primary" id="sel-confirm-btn" onclick="confirmerSelection()" style="display:none">✓ Confirmer la sélection</button>
+      <button class="btn" id="sel-email-btn" onclick="envoyerConfirmations()" style="display:none;background:#eaf3de;color:#275a0a;border-color:#c0dd97">📧 Envoyer les confirmations</button>
+    </div>
   </div>
 </div>
 </div>
@@ -902,7 +907,51 @@ async function confirmerSelection(){
   
   var msg = result.selectionnes.length+" enfant(s) confirmé(s)";
   if(errors) msg += " ("+errors+" erreur(s))";
-  alert("✓ "+msg);
+  alert("✓ "+msg + "\nTu peux maintenant envoyer les mails de confirmation depuis le module Inscriptions.");
+}
+</script>
+
+<script>
+// Ajouter un bouton "Envoyer confirmations" par activité dans la vue inscriptions
+function renderBoutonEmail(actId){
+  var act = activites.find(function(a){ return String(a.id)===String(actId); });
+  if(!act) return "";
+  var confirmes = inscriptions.filter(function(i){ return String(i.activiteId)===String(actId)&&i.statut==="confirme"; });
+  if(!confirmes.length) return "";
+  return "<button class=\"btn btn-sm\" data-actid=\""+actId+"\" style=\"background:#eaf3de;color:#275a0a;border-color:#c0dd97;margin-top:8px\" onclick=\"envoyerConfirmationsActivite(this.dataset.actid)\">📧 Envoyer les confirmations ("+confirmes.length+")</button>";
+}
+
+async function envoyerConfirmationsActivite(actId){
+  if(typeof FriBrevo === "undefined"){ alert("Module email non chargé."); return; }
+  var act = activites.find(function(a){ return String(a.id)===String(actId); });
+  if(!act){ alert("Activité introuvable."); return; }
+  
+  var confirmes = inscriptions.filter(function(i){ return String(i.activiteId)===String(actId)&&i.statut==="confirme"; });
+  if(!confirmes.length){ alert("Aucune inscription confirmée pour cette activité."); return; }
+  
+  if(!confirm("Envoyer "+confirmes.length+" mail(s) de confirmation pour : "+act.nom+" ?")) return;
+  
+  var ok=0, erreurs=0;
+  for(var k=0; k<confirmes.length; k++){
+    var insc = confirmes[k];
+    var enfant = enfants.find(function(e){ return String(e.id)===String(insc.enfantId); });
+    if(!enfant){ erreurs++; continue; }
+    // Build parent object from enfant data
+    var parent = {
+      prenom: enfant.prenomParent || enfant.prenom_parent || '',
+      nom: enfant.nomParent || enfant.nom_parent || '',
+      email: enfant.email || enfant.emailParent || ''
+    };
+    if(!parent.email){ erreurs++; continue; }
+    try{
+      await FriBrevo.sendConfirmationParticipation(enfant, parent, act);
+      ok++;
+    }catch(e){
+      console.warn("Erreur email:", e);
+      erreurs++;
+    }
+  }
+  alert("✓ "+ok+" mail(s) envoyé(s)"+(erreurs?" — "+erreurs+" échec(s)":""));
 }
 </script>
 </body>
