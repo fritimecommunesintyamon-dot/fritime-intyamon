@@ -140,7 +140,118 @@ const FriBrevo = {
       }
     }
     return results;
-  }
+  },
+  async sendConfirmationParticipation(enfant, parent, activite) {
+    var prenom = enfant.prenom || '';
+    var prenomParent = parent.prenom || parent.prenom_parent || '';
+    var nomParent = parent.nom || parent.nom_parent || '';
+    var emailParent = parent.email || '';
+    if (!emailParent) throw new Error('Email parent manquant');
+
+    var date = activite.date ? activite.date.split('-').reverse().join('.') : '—';
+    var heureDebut = activite.heureDebut || activite.heure_debut || '';
+    var heureFin = activite.heureFin || activite.heure_fin || '';
+    var horaire = heureDebut && heureFin ? heureDebut + ' – ' + heureFin : heureDebut || '—';
+    var lieu = activite.lieu || '—';
+    var tenue = activite.tenue || 'Aucune tenue particulière requise';
+    var materiel = activite.materiel || 'Rien à apporter';
+    var cout = activite.cout ? activite.cout + ' CHF' : 'Gratuit';
+    var prestataire = activite.prestContact || '';
+
+    var html = `
+<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f5f5f3;font-family:system-ui,sans-serif">
+<div style="max-width:600px;margin:0 auto;padding:24px 16px">
+
+  <div style="background:#1a1a1a;border-radius:12px 12px 0 0;padding:24px 28px">
+    <div style="font-size:18px;font-weight:700;color:#fff;letter-spacing:.05em">Fri-Time Intyamon</div>
+    <div style="font-size:13px;color:rgba(255,255,255,.5);margin-top:4px">Programme d'activités intercommunal</div>
+  </div>
+
+  <div style="background:#fff;padding:28px;border:1px solid #eee;border-top:none">
+    <div style="font-size:22px;font-weight:700;color:#275a0a;margin-bottom:6px">✓ Participation confirmée</div>
+    <p style="font-size:14px;color:#555;margin:0 0 20px">Bonjour ${prenomParent} ${nomParent},</p>
+    <p style="font-size:14px;color:#333;margin:0 0 20px">
+      Nous avons le plaisir de confirmer la participation de <strong>${prenom}</strong> à l'activité suivante :
+    </p>
+
+    <div style="background:#f5f5f3;border-radius:10px;padding:20px;margin-bottom:24px">
+      <div style="font-size:18px;font-weight:700;color:#1a1a1a;margin-bottom:14px">${activite.nom}</div>
+      <table style="width:100%;font-size:13px;color:#555;border-collapse:collapse">
+        <tr><td style="padding:5px 0;width:30px">📅</td><td style="padding:5px 0"><strong>Date</strong></td><td style="padding:5px 0">${date}</td></tr>
+        <tr><td style="padding:5px 0">🕐</td><td style="padding:5px 0"><strong>Horaire</strong></td><td style="padding:5px 0">${horaire}</td></tr>
+        <tr><td style="padding:5px 0">📍</td><td style="padding:5px 0"><strong>Lieu</strong></td><td style="padding:5px 0">${lieu}</td></tr>
+        ${prestataire ? `<tr><td style="padding:5px 0">🤝</td><td style="padding:5px 0"><strong>Animé par</strong></td><td style="padding:5px 0">${prestataire}</td></tr>` : ''}
+      </table>
+    </div>
+
+    <div style="font-size:13px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Informations pratiques</div>
+    <table style="width:100%;font-size:13px;color:#555;border-collapse:collapse;margin-bottom:24px">
+      <tr><td style="padding:5px 0;width:30px">👕</td><td style="padding:5px 0"><strong>Tenue</strong></td><td style="padding:5px 0">${tenue}</td></tr>
+      <tr><td style="padding:5px 0">🎒</td><td style="padding:5px 0"><strong>Matériel</strong></td><td style="padding:5px 0">${materiel}</td></tr>
+      <tr><td style="padding:5px 0">💰</td><td style="padding:5px 0"><strong>Coût</strong></td><td style="padding:5px 0">${cout}</td></tr>
+    </table>
+
+    <div style="background:#faeeda;border-radius:8px;padding:14px 16px;font-size:13px;color:#633806;margin-bottom:16px">
+      ⚠️ <strong>Absence :</strong> Toute absence non justifiée peut entraîner l'exclusion des inscriptions pour le reste de la saison.
+      En cas d'empêchement, merci de nous prévenir au plus vite afin de pouvoir pourvoir la place à un autre enfant.
+    </div>
+
+    <div style="background:#f5f5f3;border-radius:8px;padding:16px;margin-bottom:24px">
+      <div style="font-size:13px;font-weight:700;color:#1a1a1a;margin-bottom:12px">⚠️ Règles importantes à connaître</div>
+      <table style="width:100%;border-collapse:collapse;font-size:12px;color:#555">
+        <tr style="vertical-align:top">
+          <td style="padding:5px 8px 5px 0;width:16px">🛡️</td>
+          <td style="padding:5px 0"><strong>Assurance :</strong> En cas de dégât matériel ou autre, c'est l'assurance responsabilité civile privée du participant qui prend en charge les frais.</td>
+        </tr>
+        <tr style="vertical-align:top">
+          <td style="padding:5px 8px 5px 0">⚖️</td>
+          <td style="padding:5px 0"><strong>Responsabilité :</strong> L'organisateur et le comité Fri-Time déclinent toute responsabilité en cas d'accident, de dégâts matériels ou de vol.</td>
+        </tr>
+        <tr style="vertical-align:top">
+          <td style="padding:5px 8px 5px 0">📋</td>
+          <td style="padding:5px 0"><strong>Non-respect des règles :</strong> En cas de non-respect de la charte, des règles de sécurité ou des directives, le comité se réserve le droit de renvoi et de bannissement des futures activités.</td>
+        </tr>
+        <tr style="vertical-align:top">
+          <td style="padding:5px 8px 5px 0">📷</td>
+          <td style="padding:5px 0"><strong>Droit à l'image :</strong> En participant, vous acceptez que des photos prises lors des activités puissent être utilisées à des fins de promotion. Opposition : <a href="mailto:fritimecommunesintyamon@gmail.com" style="color:#0c447c">fritimecommunesintyamon@gmail.com</a></td>
+        </tr>
+        <tr style="vertical-align:top">
+          <td style="padding:5px 8px 5px 0">📝</td>
+          <td style="padding:5px 0"><strong>Rapport d'incident :</strong> En cas d'accident ou d'incident, un rapport officiel sera établi et les parents informés dans les meilleurs délais.</td>
+        </tr>
+        <tr style="vertical-align:top">
+          <td style="padding:5px 8px 5px 0">🚑</td>
+          <td style="padding:5px 0"><strong>Urgences :</strong> Les bénévoles sont formés aux premiers secours. En cas d'urgence : 144 ambulance · 117 police · 118 pompiers · 1414 Rega. <strong>Il est impératif d'être joignable par téléphone pendant toute la durée de l'activité.</strong></td>
+        </tr>
+        <tr style="vertical-align:top">
+          <td style="padding:5px 8px 5px 0">🏥</td>
+          <td style="padding:5px 0"><strong>Informations médicales :</strong> Pour la sécurité de votre enfant, signalez au comité toute allergie, traitement médical, ou condition de santé particulière (asthme, épilepsie, diabète…). Ces informations sont confidentielles.</td>
+        </tr>
+      </table>
+    </div>
+
+    <p style="font-size:13px;color:#888;margin:0">
+      Des questions ? Contactez-nous à 
+      <a href="mailto:fritimecommunesintyamon@gmail.com" style="color:#0c447c">fritimecommunesintyamon@gmail.com</a>
+    </p>
+  </div>
+
+  <div style="background:#f5f5f3;border-radius:0 0 12px 12px;padding:16px 28px;text-align:center">
+    <div style="font-size:12px;color:#aaa">© Fri-Time Intyamon · Programme intercommunal de l'Intyamon</div>
+  </div>
+
+</div>
+</body>
+</html>`;
+
+    var subject = 'Confirmation de participation — ' + activite.nom;
+    return await this.sendEmail(emailParent, subject, html);
+  },
+
+
 };
 
 window.FriBrevo = FriBrevo;
