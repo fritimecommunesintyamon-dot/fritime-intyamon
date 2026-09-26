@@ -533,9 +533,51 @@ function changeStatut(inscId,newStatut){
   renderAll();
 }
 
-function setPresence(inscId,val){
-  inscriptions=inscriptions.map(i=>i.id===inscId?{...i,presence:i.presence===val?null:val,statut:i.presence===val?i.statut:val}:i);
+async function setPresence(inscId,val){
+  console.log("[setPresence] id:", inscId, "val:", val, "enfants:", enfants.length);
+  var newPres = inscriptions.find(function(i){return i.id===inscId;});
+  if(!newPres) return;
+  var oldPres = newPres.presence;
+  var newPresVal = oldPres===val ? null : val;
+  var newStatut = oldPres===val ? newPres.statut : val;
+  inscriptions=inscriptions.map(function(i){return i.id===inscId?Object.assign({},i,{presence:newPresVal,statut:newStatut}):i;});
+  if(typeof FriDB!=="undefined"){
+    try{await FriDB.query("inscriptions","PATCH",{presence:newPresVal,statut:newStatut},"?id=eq."+inscId);}
+    catch(e){console.warn("setPresence:",e);}
+  }
+  // Si absent non justifié -> proposer bannissement
+  if(newPresVal==="absent"){
+    var insc2 = inscriptions.find(function(i){return i.id===inscId;});
+    var enfant = enfants.find(function(e){return insc2&&String(e.id)===String(insc2.enfantId);});
+    if(enfant && enfant.statut!=="banni"){
+      if(confirm("Marquer cet enfant ("+enfant.prenom+" "+enfant.nom+") comme absent non justifié et le bannir pour le reste de la saison ?")){
+        openBanDepuisInscription(enfant.id);
+      }
+    }
+  }
   renderAll();
+}
+
+function openBanDepuisInscription(enfantId){
+  var enfant = enfants.find(function(e){return String(e.id)===String(enfantId);});
+  if(!enfant) return;
+  // Open ban modal pre-filled
+  if(typeof openBanModal === "function"){
+    openBanModal(enfantId);
+  } else {
+    // Fallback: ban directly with default reason
+    bannerEnfant(enfantId, "Absence non justifiée à une activité confirmée");
+  }
+}
+
+async function bannerEnfant(enfantId, motif){
+  enfants=enfants.map(function(e){return String(e.id)===String(enfantId)?Object.assign({},e,{statut:"banni",banMotif:motif}):e;});
+  if(typeof FriDB!=="undefined"){
+    try{
+      await FriDB.query("enfants","PATCH",{statut:"banni",ban_motif:motif},"?id=eq."+enfantId);
+      console.log("Enfant banni ✓", enfantId);
+    }catch(e){console.warn("Ban erreur:",e);}
+  }
 }
 
 function marquerTousPresents(){
@@ -826,8 +868,16 @@ function previewSelection(){
       enfant: enfant,
       nbPartic: nbPartic,
       pref: insc.pref||99,
-      alea: Math.random() // tirage au sort pour départager
+      alea: Math.random(),
+      banni: enfant && enfant.statut === "banni"
     };
+  }).filter(function(c){
+    // Exclure les enfants bannis
+    if(c.banni){
+      console.log("[Sélection] Exclu (banni):", c.enfant ? c.enfant.prenom+" "+c.enfant.nom : c.insc.enfantId);
+      return false;
+    }
+    return true;
   });
   
   // Sort by criteria:
@@ -880,6 +930,21 @@ function previewSelection(){
     }).join("");
   }
   
+  // Show banned children who were excluded
+  var bannis = enAttente.filter(function(i){
+    var e = enfants.find(function(ef){return String(ef.id)===String(i.enfantId);});
+    return e && e.statut==="banni";
+  });
+  if(bannis.length){
+    html += "<div style=\"font-size:11px;font-weight:600;color:#791f1f;text-transform:uppercase;margin:8px 0 6px\">Exclus (bannis)</div>";
+    html += bannis.map(function(i){
+      var e = enfants.find(function(ef){return String(ef.id)===String(i.enfantId);});
+      var nom = e ? (e.prenom||"")+" "+(e.nom||"") : "#"+i.enfantId;
+      return "<div style=\"display:flex;align-items:center;gap:8px;padding:6px 10px;background:#fcebeb;border-radius:8px;margin-bottom:4px\">"+
+        "<span style=\"font-size:16px\">🚫</span><strong style=\"color:#791f1f\">"+nom+"</strong>"+
+        "<span style=\"font-size:11px;color:#a32d2d\">(banni)</span></div>";
+    }).join("");
+  }
   document.getElementById("sel-preview-content").innerHTML = html;
   document.getElementById("sel-preview").style.display = "block";
   document.getElementById("sel-confirm-btn").style.display = selectionnes.length ? "inline-block" : "none";
