@@ -252,6 +252,78 @@ const FriBrevo = {
   },
 
 
+  async sendNotificationBannissement(enfant, parent, motif, estAbsenceInjustifiee) {
+    var prenom = enfant.prenom || '';
+    var prenomParent = parent.prenom || '';
+    var nomParent = parent.nom || '';
+    var emailParent = parent.email || '';
+    if (!emailParent) throw new Error('Email parent manquant');
+
+    var contenuMotif = estAbsenceInjustifiee
+      ? `<p style="font-size:14px;color:#333;margin:0 0 16px">
+          Suite à une <strong>absence non justifiée</strong> à une activité pour laquelle 
+          <strong>${prenom}</strong> avait été sélectionné(e) et confirmé(e), le comité 
+          Fri-Time a pris la décision de suspendre sa participation aux activités 
+          pour le reste de la saison en cours.
+        </p>
+        <div style="background:#faeeda;border-radius:8px;padding:14px 16px;font-size:13px;color:#633806;margin-bottom:16px">
+          ⚠️ Conformément au règlement Fri-Time, toute absence non justifiée à une activité 
+          confirmée entraîne l'exclusion des inscriptions pour le reste de la saison.
+        </div>`
+      : `<p style="font-size:14px;color:#333;margin:0 0 16px">
+          Le comité Fri-Time a pris la décision de suspendre la participation de 
+          <strong>${prenom}</strong> aux activités pour le reste de la saison en cours.
+        </p>
+        <div style="background:#faeeda;border-radius:8px;padding:14px 16px;font-size:13px;color:#633806;margin-bottom:16px">
+          <strong>Motif :</strong> ${motif}
+        </div>`;
+
+    var html = `
+<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f5f5f3;font-family:system-ui,sans-serif">
+<div style="max-width:600px;margin:0 auto;padding:24px 16px">
+
+  <div style="background:#1a1a1a;border-radius:12px 12px 0 0;padding:24px 28px">
+    <div style="font-size:18px;font-weight:700;color:#fff;letter-spacing:.05em">Fri-Time Intyamon</div>
+    <div style="font-size:13px;color:rgba(255,255,255,.5);margin-top:4px">Programme d'activités intercommunal</div>
+  </div>
+
+  <div style="background:#fff;padding:28px;border:1px solid #eee;border-top:none">
+    <div style="font-size:22px;font-weight:700;color:#791f1f;margin-bottom:6px">🚫 Suspension de participation</div>
+    <p style="font-size:14px;color:#555;margin:0 0 20px">Bonjour ${prenomParent} ${nomParent},</p>
+    
+    ${contenuMotif}
+
+    <div style="background:#f5f5f3;border-radius:8px;padding:14px 16px;font-size:13px;color:#555;margin-bottom:24px">
+      Si vous pensez qu'il s'agit d'une erreur ou si vous souhaitez contester cette décision, 
+      contactez-nous dans les meilleurs délais à 
+      <a href="mailto:fritimecommunesintyamon@gmail.com" style="color:#0c447c">fritimecommunesintyamon@gmail.com</a>
+    </div>
+
+    <p style="font-size:13px;color:#888;margin:0">
+      Cordialement,<br>
+      Le comité Fri-Time Intyamon
+    </p>
+  </div>
+
+  <div style="background:#f5f5f3;border-radius:0 0 12px 12px;padding:16px 28px;text-align:center">
+    <div style="font-size:12px;color:#aaa">© Fri-Time Intyamon · Programme intercommunal de l'Intyamon</div>
+  </div>
+
+</div>
+</body>
+</html>`;
+
+    var subject = estAbsenceInjustifiee
+      ? 'Suspension de participation — Absence non justifiée — ' + prenom
+      : 'Suspension de participation — ' + prenom;
+
+    return await this.sendEmail(emailParent, subject, html);
+  },
+
+
 };
 
 window.FriBrevo = FriBrevo;

@@ -70,6 +70,7 @@ tr:hover td{background:#fafaf8;cursor:pointer}
   <script src="fritime_sync.js"></script>
   <script src="fritime_auth.js"></script>
   <script src="fritime_supabase.js"></script>
+  <script src="fritime_brevo.js"></script>
 
 <style id="sidebar-css">
 .ft-wrap{display:flex;min-height:calc(100vh - 52px)}
@@ -435,12 +436,24 @@ function openBanModal(id){
 function closeBan(){document.getElementById('mBan').style.display='none';}
 async function confirmBan(){
   const m=document.getElementById('ban-motif').value.trim();if(!m){alert('Motif obligatoire');return;}
+  const enfant=enfants.find(e=>e.id===banId);
   enfants=enfants.map(e=>e.id===banId?{...e,statut:'banni',banMotif:m}:e);
   if(typeof FriDB!=="undefined"){
     try{
       await FriDB.query("enfants","PATCH",{statut:"banni",ban_motif:m},"?id=eq."+banId);
       console.log("Enfant banni ✓",banId,m);
     }catch(e){console.warn("Ban erreur:",e);}
+  }
+  // Envoyer mail de notification au parent
+  if(enfant && typeof FriBrevo!=="undefined"){
+    var parent={prenom:enfant.pp||"",nom:enfant.pn||"",email:enfant.pe||""};
+    if(parent.email){
+      try{
+        var estAbsence = m.toLowerCase().includes("absence");
+        await FriBrevo.sendNotificationBannissement(enfant, parent, m, estAbsence);
+        console.log("Mail bannissement envoyé ✓");
+      }catch(e){console.warn("Mail bannissement erreur:",e);}
+    }
   }
   closeBan();if(selId===banId)renderDet();render();
 }

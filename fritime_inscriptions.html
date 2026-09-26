@@ -571,12 +571,24 @@ function openBanDepuisInscription(enfantId){
 }
 
 async function bannerEnfant(enfantId, motif){
+  var enfant = enfants.find(function(e){return String(e.id)===String(enfantId);});
   enfants=enfants.map(function(e){return String(e.id)===String(enfantId)?Object.assign({},e,{statut:"banni",banMotif:motif}):e;});
   if(typeof FriDB!=="undefined"){
     try{
       await FriDB.query("enfants","PATCH",{statut:"banni",ban_motif:motif},"?id=eq."+enfantId);
       console.log("Enfant banni ✓", enfantId);
     }catch(e){console.warn("Ban erreur:",e);}
+  }
+  // Envoyer mail de notification au parent
+  if(enfant && typeof FriBrevo!=="undefined"){
+    var parent={prenom:enfant.pp||"",nom:enfant.pn||"",email:enfant.pe||""};
+    if(parent.email){
+      try{
+        var estAbsence = motif.toLowerCase().includes("absence");
+        await FriBrevo.sendNotificationBannissement(enfant, parent, motif, estAbsence);
+        console.log("Mail bannissement envoyé ✓");
+      }catch(e){console.warn("Mail bannissement erreur:",e);}
+    }
   }
 }
 
