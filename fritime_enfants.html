@@ -532,5 +532,62 @@ async function loadEnfantsDB(){
 }
 loadEnfantsDB();
 </script>
+
+<!-- Modal modifier enfant -->
+<div id="mEdit" class="overlay" onclick="if(event.target.id==='mEdit')closeEdit()" style="display:none">
+<div class="modal" onclick="event.stopPropagation()">
+  <div class="modal-title">Modifier l'enfant</div>
+  <div class="fr">
+    <div class="fg"><label class="fl">Prénom *</label><input class="fi" id="ep" /></div>
+    <div class="fg"><label class="fl">Nom *</label><input class="fi" id="en" /></div>
+  </div>
+  <div class="fr">
+    <div class="fg"><label class="fl">Date de naissance</label><input class="fi" type="date" id="ed" /></div>
+    <div class="fg"><label class="fl">Âge</label><input class="fi" id="ea" readonly /></div>
+  </div>
+  <div class="fg"><label class="fl">Commune</label><input class="fi" id="ec" /></div>
+  <div class="fr">
+    <div class="fg"><label class="fl">Prénom parent</label><input class="fi" id="epp" /></div>
+    <div class="fg"><label class="fl">Nom parent</label><input class="fi" id="epn" /></div>
+  </div>
+  <div class="fr">
+    <div class="fg"><label class="fl">Email parent</label><input class="fi" type="email" id="epe" /></div>
+    <div class="fg"><label class="fl">Tél. parent</label><input class="fi" type="tel" id="ept" /></div>
+  </div>
+  <div class="fg"><label class="fl">Notes / Infos médicales</label><textarea class="fi" id="eno" rows="2"></textarea></div>
+  <div class="mf">
+    <button class="btn" onclick="closeEdit()">Annuler</button>
+    <button class="btn btn-primary" onclick="saveEdit()">Enregistrer</button>
+  </div>
+</div>
+</div>
+
+<script>
+async function saveEdit(){
+  const e = enfants.find(x=>x.id===selId);
+  if(!e) return;
+  const data = {
+    prenom: document.getElementById('ep').value.trim(),
+    nom: document.getElementById('en').value.trim(),
+    ddn: document.getElementById('ed').value||null,
+    commune: document.getElementById('ec').value.trim(),
+    pp: document.getElementById('epp').value.trim(),
+    pn: document.getElementById('epn').value.trim(),
+    pe: document.getElementById('epe').value.trim(),
+    pt: document.getElementById('ept').value.trim(),
+    notes: document.getElementById('eno').value.trim()
+  };
+  enfants = enfants.map(x=>x.id===selId?Object.assign({},x,data):x);
+  if(typeof FriDB!=="undefined"){
+    try{
+      await FriDB.query("enfants","PATCH",data,"?id=eq."+selId);
+      console.log("Enfant modifié ✓");
+    }catch(err){console.warn("saveEdit:",err);}
+  }
+  closeEdit();
+  renderDet();
+  render();
+}
+</script>
 </body>
 </html>
