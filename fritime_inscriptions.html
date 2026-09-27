@@ -1002,6 +1002,14 @@ async function envoyerConfirmationsActivite(actId){
   if(typeof FriBrevo === "undefined"){ alert("Module email non chargé."); return; }
   var act = activites.find(function(a){ return String(a.id)===String(actId); });
   if(!act){ alert("Activité introuvable."); return; }
+  // Reload fresh from Supabase to get latest responsable data
+  try{
+    var freshActs = await FriDB.getActivites();
+    if(freshActs && freshActs.length){
+      activites = freshActs;
+      act = activites.find(function(a){ return String(a.id)===String(actId); }) || act;
+    }
+  }catch(e){}
   
   var confirmes = inscriptions.filter(function(i){ return String(i.activiteId)===String(actId)&&i.statut==="confirme"; });
   if(!confirmes.length){ alert("Aucune inscription confirmée pour cette activité."); return; }
