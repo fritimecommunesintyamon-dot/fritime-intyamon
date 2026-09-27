@@ -128,7 +128,7 @@ const FriDB = {
     return await this.query('taches_modeles', 'GET', null, '?order=role,titre');
   },
   async saveTacheModele(t) {
-    const allowed = ['titre','role','description','suppleant_role'];
+    const allowed = ['titre','role','description','suppleant_id'];
     const clean = {};
     allowed.forEach(function(k){ if(k in t && t[k] !== undefined && t[k] !== null) clean[k] = t[k]; });
     if (t.id) {
@@ -319,7 +319,7 @@ FriDB.COLUMNS = {
     'notes','parts','statut','ban_motif'],
   inscriptions: ['id','enfant_id','activite_id','statut','pref','notes','presence'],
   taches: ['id','titre','description','assignee','priorite','activite_id','date_limite','statut','notes'],
-  taches_modeles: ['id','titre','role','description','suppleant_role'],
+  taches_modeles: ['id','titre','role','description','suppleant_id'],
   prestataires: ['id','nom','type','statut','cat','cp','cn','email','tel','url',
     'adresse','gratuit','acts','notes'],
   entrees_budget: ['id','source','description','prevu','recu','statut','annee','notes'],

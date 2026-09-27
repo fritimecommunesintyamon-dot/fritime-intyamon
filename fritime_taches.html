@@ -432,14 +432,9 @@ function doLogout(){
         <option value="Tous">🌐 Tous les rôles</option>
       </select>
     </div>
-    <div class="fg"><label class="fl">Suppléant (rôle)</label>
+    <div class="fg"><label class="fl">Suppléant</label>
       <select class="fi" id="mm-suppleant">
         <option value="">— Aucun —</option>
-        <option value="Président/e">👑 Président/e</option>
-        <option value="Vice-président/e">🥈 Vice-président/e</option>
-        <option value="Secrétaire">📝 Secrétaire</option>
-        <option value="Trésorier/ère">💰 Trésorier/ère</option>
-        <option value="Tous">🌐 Tous les rôles</option>
       </select>
     </div>
   </div>
@@ -707,6 +702,34 @@ function switchTab(tab){
 // ─── TÂCHES MODÈLES ─────────────────────────────────────────────────────────
 var modeles = [];
 var modeleSelId = null;
+var membresList = [];  // cache membres pour le select suppléant
+
+async function chargerMembresModele(){
+  if(membresList.length) return;
+  var ftData = localStorage.getItem("ft_data");
+  if(ftData){
+    try{ membresList = JSON.parse(ftData).membres || []; }catch(e){}
+  }
+  if(!membresList.length && typeof FriDB !== 'undefined'){
+    try{ membresList = await FriDB.getMembres(); }catch(e){}
+  }
+}
+
+function remplirSelectSuppleant(valeurCourante){
+  var sel = document.getElementById('mm-suppleant');
+  sel.innerHTML = '<option value="">— Aucun —</option>' +
+    membresList.map(function(m){
+      var label = (m.prenom||'') + ' ' + (m.nom||'');
+      var sel_ = String(m.id) === String(valeurCourante) ? ' selected' : '';
+      return '<option value="'+m.id+'"'+sel_+'>'+label+'</option>';
+    }).join('');
+}
+
+function nomSuppleant(id){
+  if(!id) return '';
+  var m = membresList.find(function(x){ return String(x.id)===String(id); });
+  return m ? (m.prenom||'')+' '+(m.nom||'') : '';
+}
 
 var ROLES = ['Président/e','Vice-président/e','Secrétaire','Trésorier/ère','Tous'];
 var ROLE_ICO = {'Président/e':'👑','Vice-président/e':'🥈','Secrétaire':'📝','Trésorier/ère':'💰','Tous':'🌐'};
@@ -721,6 +744,7 @@ var ROLE_COLOR = {
 async function loadModeles(){
   var a=0;
   while(typeof FriDB==='undefined'&&a<30){await new Promise(function(r){setTimeout(r,100);});a++;}
+  await chargerMembresModele();
   try{
     modeles = await FriDB.getTachesModeles();
   }catch(e){console.warn('Modèles DB:',e); modeles=[];}
@@ -740,8 +764,9 @@ function renderModeles(){
         '<button class="btn btn-sm" onclick="openCreateModele(\''+role+'\')">+ Ajouter</button>'+
       '</div>'+
       (items.length ? items.map(function(m){
-        var suppHtml = m.suppleant_role
-          ? '<span style="font-size:11px;color:#0c447c;margin-left:6px;background:#e6f1fb;padding:1px 7px;border-radius:20px">↪ Suppléant : '+(ROLE_ICO[m.suppleant_role]||'')+' '+escHtml(m.suppleant_role)+'</span>'
+        var suppNom = nomSuppleant(m.suppleant_id);
+        var suppHtml = suppNom
+          ? '<span style="font-size:11px;color:#0c447c;margin-left:6px;background:#e6f1fb;padding:1px 7px;border-radius:20px">↪ '+escHtml(suppNom)+'</span>'
           : '';
         return '<div class="modele-row">'+
           '<div class="modele-text">'+
@@ -760,27 +785,29 @@ function renderModeles(){
 
 function escHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-function openCreateModele(role){
+async function openCreateModele(role){
   modeleSelId = null;
+  await chargerMembresModele();
   document.getElementById('mModele-title').textContent = 'Nouveau modèle de tâche';
   document.getElementById('mm-titre').value = '';
   document.getElementById('mm-role').value = role || 'Tous';
-  document.getElementById('mm-suppleant').value = '';
   document.getElementById('mm-desc').value = '';
   document.getElementById('mm-del-btn').style.display = 'none';
+  remplirSelectSuppleant('');
   document.getElementById('mModele').style.display = 'flex';
 }
 
-function openEditModele(id){
+async function openEditModele(id){
   var m = modeles.find(function(x){ return x.id===id; });
   if(!m) return;
   modeleSelId = id;
+  await chargerMembresModele();
   document.getElementById('mModele-title').textContent = 'Modifier le modèle';
   document.getElementById('mm-titre').value = m.titre || '';
   document.getElementById('mm-role').value = m.role || 'Tous';
-  document.getElementById('mm-suppleant').value = m.suppleant_role || '';
   document.getElementById('mm-desc').value = m.description || '';
   document.getElementById('mm-del-btn').style.display = 'inline-block';
+  remplirSelectSuppleant(m.suppleant_id || '');
   document.getElementById('mModele').style.display = 'flex';
 }
 
@@ -791,10 +818,11 @@ function closeModele(){
 async function saveModele(){
   var titre = document.getElementById('mm-titre').value.trim();
   if(!titre){ alert('Le titre est obligatoire'); return; }
+  var suppVal = document.getElementById('mm-suppleant').value;
   var obj = {
     titre: titre,
     role: document.getElementById('mm-role').value,
-    suppleant_role: document.getElementById('mm-suppleant').value || null,
+    suppleant_id: suppVal ? parseInt(suppVal) : null,
     description: document.getElementById('mm-desc').value.trim() || null
   };
   if(modeleSelId) obj.id = modeleSelId;
