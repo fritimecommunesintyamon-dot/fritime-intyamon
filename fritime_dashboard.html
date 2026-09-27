@@ -536,13 +536,30 @@ function render(){
 
   // Alertes
   var alertes=[];
-  var actsSansPrest=actOk.filter(function(a){return !a.prestId&&!a.prestContact;});
+  // Toutes les activités actives (pas annulées ni terminées)
+  var actsActives=dbActivites.filter(function(a){return a.statut!=="annulee"&&a.statut!=="terminee";});
+  // Activités sans prestataire (toutes statuts actifs)
+  var actsSansPrest=actsActives.filter(function(a){return !a.prestId&&!a.prestContact&&!a.prestataire;});
   if(actsSansPrest.length) alertes.push({ico:"⚠️",titre:actsSansPrest.length+" activité(s) sans prestataire",sub:actsSansPrest.slice(0,3).map(function(a){return a.nom;}).join(", "),urgent:false,date:""});
-  var actsSansDate=actOk.filter(function(a){return !a.date;});
+  // Activités sans date
+  var actsSansDate=actsActives.filter(function(a){return !a.date;});
   if(actsSansDate.length) alertes.push({ico:"📅",titre:actsSansDate.length+" activité(s) sans date",sub:actsSansDate.slice(0,3).map(function(a){return a.nom;}).join(", "),urgent:false,date:""});
-  var tachHaute=dbTaches.filter(function(t){return (t.priorite==="haute"||t.priorite==="high")&&t.statut!=="terminee"&&t.statut!=="archivee";});
-  if(tachHaute.length) alertes.push({ico:"🔴",titre:tachHaute.length+" tâche(s) priorité haute",sub:tachHaute.slice(0,3).map(function(t){return t.titre||t.nom||"";}).join(", "),urgent:true,date:""});
+  // Tâches non terminées à priorité haute (tous les nommages possibles)
+  var tachHaute=dbTaches.filter(function(t){
+    var p=(t.priorite||t.priority||"").toLowerCase();
+    var s=t.statut||"";
+    return (p==="haute"||p==="high"||p==="urgent")&&s!=="terminee"&&s!=="archivee"&&s!=="done";
+  });
+  if(tachHaute.length) alertes.push({ico:"🔴",titre:tachHaute.length+" tâche(s) priorité haute non terminée(s)",sub:tachHaute.slice(0,3).map(function(t){return t.titre||t.nom||"";}).join(", "),urgent:true,date:""});
+  // Tâches ouvertes non assignées
+  var tachNonAssignees=dbTaches.filter(function(t){return t.statut==="ouverte"&&!t.assignee;});
+  if(tachNonAssignees.length) alertes.push({ico:"👤",titre:tachNonAssignees.length+" tâche(s) sans responsable",sub:tachNonAssignees.slice(0,3).map(function(t){return t.titre||t.nom||"";}).join(", "),urgent:false,date:""});
+  // Inscriptions en attente de validation
+  var inscAttente=dbInscriptions.filter(function(i){return i.statut==="attente"||i.statut==="en_attente";});
+  if(inscAttente.length) alertes.push({ico:"📋",titre:inscAttente.length+" inscription(s) en attente de validation",sub:"",urgent:false,date:""});
+  // Budget déficitaire
   if(solde<0) alertes.push({ico:"💸",titre:"Budget déficitaire",sub:"Solde : "+chf(solde),urgent:true,date:""});
+  // Comptes en attente (localStorage)
   var comptes=JSON.parse(localStorage.getItem("ft_comptes")||"[]");
   var pending=comptes.filter(function(c){return !c.actif;});
   if(pending.length) alertes.unshift({ico:"🔴",titre:"Demande d'accès en attente — "+pending.length+" compte(s)",sub:"À valider : "+pending.slice(0,3).map(function(c){return c.prenom+" "+c.nom;}).join(", "),urgent:true,date:""});
