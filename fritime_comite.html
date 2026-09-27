@@ -437,9 +437,11 @@ function respsDe(membreId){return responsabilites.filter(r=>r.titulaireId===memb
 function suppleantPour(membreId){return responsabilites.filter(r=>r.suppleantId===membreId);}
 function ini(m){return((m.prenom||'')[0]+(m.nom||'')[0]).toUpperCase();}
 function fmtDate(d){if(!d)return'';const[y,m,j]=d.split('-');return`${j}.${m}.${y}`;}
+var STATUT_ORDER={'encours':0,'assignee':1,'ouverte':2,'terminee':3,'archivee':4};
 function tachesOf(m){
   var nom=(m.prenom||'')+' '+(m.nom||'');
-  return tachesDB.filter(function(t){return t.assignee===nom && t.statut!=='archivee';});
+  return tachesDB.filter(function(t){return t.assignee===nom && t.statut!=='archivee';})
+    .sort(function(a,b){ return (STATUT_ORDER[a.statut]||9)-(STATUT_ORDER[b.statut]||9); });
 }
 
 function fillRoleSelect(id,currentVal){
@@ -956,14 +958,31 @@ async function assignerTachesModeles(membre, role) {
   if(!confirm('Attribuer automatiquement les tâches du rôle "' + role + '" à ' + membre.prenom + ' ' + membre.nom + ' ?')) return;
   try {
     var modeles = await FriDB.getTachesModeles();
-    var roleNormalise = role.replace(/e$/, '/e').replace('Présidente','Président/e').replace('Vice-présidente','Vice-président/e').replace('Trésorière','Trésorier/ère');
+    // Normaliser le rôle pour matcher les valeurs dans taches_modeles
+    var ROLE_MAP = {
+      'Présidente':'Président/e',
+      'Vice-présidente':'Vice-président/e',
+      'Trésorière':'Trésorier/ère',
+      'Président/e':'Président/e',
+      'Vice-président/e':'Vice-président/e',
+      'Trésorier/ère':'Trésorier/ère',
+      'Secrétaire':'Secrétaire'
+    };
+    var roleNorm = ROLE_MAP[role] || role;
     var aAssigner = modeles.filter(function(m){
-      return m.role === role || m.role === roleNormalise || m.role === 'Tous';
+      return m.role === roleNorm || m.role === 'Tous';
     });
     var assigneeNom = (membre.prenom || '') + ' ' + (membre.nom || '');
-    var nb = 0;
+    // Vérifier les tâches existantes pour éviter les doublons
+    var existantes = [];
+    try {
+      var tEx = await FriDB.getTaches();
+      existantes = (tEx || []).filter(function(t){ return t.assignee === assigneeNom; }).map(function(t){ return t.titre; });
+    } catch(e){}
+    var nb = 0, skipped = 0;
     for(var i=0; i<aAssigner.length; i++){
       var mod = aAssigner[i];
+      if(existantes.indexOf(mod.titre) !== -1){ skipped++; continue; }
       try {
         await FriDB.query('taches', 'POST', {
           titre: mod.titre,
@@ -975,7 +994,11 @@ async function assignerTachesModeles(membre, role) {
         nb++;
       } catch(e){ console.warn('Erreur création tâche:', e); }
     }
-    alert(nb + ' tâche(s) créée(s) pour ' + assigneeNom + '.');
+    var msg = nb + ' tâche(s) créée(s) pour ' + assigneeNom + '.';
+    if(skipped) msg += '\n(' + skipped + ' déjà existante(s) ignorée(s))';
+    alert(msg);
+    // Recharger les tâches dans la vue
+    try{ tachesDB = await FriDB.getTaches(); render(); }catch(e){}
   } catch(e) {
     console.warn('Erreur assignerTachesModeles:', e);
   }
