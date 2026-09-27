@@ -301,9 +301,9 @@ function doLogout(){
 <div class="toolbar">
   <input class="search" id="search" placeholder="Rechercher une tâche..." oninput="render()" />
   <button class="filter-btn active" onclick="setFilter('toutes',this)">Toutes</button>
-  <button class="filter-btn" onclick="setFilter('ouverte',this)">Ouvertes</button>
-  <button class="filter-btn" onclick="setFilter('assignee',this)">Assignées</button>
   <button class="filter-btn" onclick="setFilter('encours',this)">En cours</button>
+  <button class="filter-btn" onclick="setFilter('assignee',this)">Assignées</button>
+  <button class="filter-btn" onclick="setFilter('ouverte',this)">Non-assignées</button>
   <button class="filter-btn" onclick="setFilter('terminee',this)">Terminées</button>
   <div class="views">
     <button class="view-btn active" id="vt" onclick="setView('table',this)">Liste</button>
@@ -476,11 +476,16 @@ function renderMetrics(){
 function getFiltered(){
   const q=(document.getElementById('search')||{value:''}).value.toLowerCase();
   return taches.filter(t=>{
-    // Toujours exclure les archivées de la vue principale
-    if(t.statut==='archivee') return false;
-    // Regrouper 'encours' avec 'assignee' pour l'affichage
-    var statut=t.statut==='encours'?'assignee':t.statut;
-    const mf=filtre==='toutes'||statut===filtre;
+    var mf;
+    if(filtre==='toutes'){
+      mf = t.statut!=='archivee'; // vue principale = tout sauf archivées
+    } else if(filtre==='terminee'){
+      mf = t.statut==='archivee'; // "Terminées" = les archivées automatiquement
+    } else if(filtre==='assignee'){
+      mf = t.statut==='assignee'||t.statut==='encours';
+    } else {
+      mf = t.statut===filtre;
+    }
     const ms=!q||t.titre.toLowerCase().includes(q)||(t.assignee||'').toLowerCase().includes(q);
     return mf&&ms;
   });
@@ -513,7 +518,7 @@ function renderTable(){
       <td>${t.activite?`<span class="act-badge">${ACTES[t.activite]}</span>`:'<span style="color:#bbb;font-size:12px">—</span>'}</td>
       <td><span class="${prioCls(t.priorite)}">${prioLabel(t.priorite)}</span></td>
       <td class="${isOverdue(t.dateLimite)&&t.statut!=='terminee'&&t.statut!=='archivee'?'overdue':''}">${t.dateLimite?fmtDate(t.dateLimite):'<span style="color:#bbb">—</span>'}</td>
-      <td><span class="badge ${STATUT_CLS[t.statut]}">${STATUT_LABELS[t.statut]}</span></td>
+      <td><span class="badge ${STATUT_CLS[t.statut]||'badge-assignee'}">${STATUT_LABELS[t.statut==='encours'?'assignee':t.statut]||t.statut}</span></td>
     </tr>`;
   });
   tb.innerHTML=html;
@@ -521,9 +526,10 @@ function renderTable(){
 
 function renderKanban(){
   const kb=document.getElementById('kanban');
-  const colColors={ouverte:'#f1efea',assignee:'#e6f1fb',encours:'#faeeda',terminee:'#eaf3de',archivee:'#eee'};
+  const colColors={ouverte:'#f1efea',assignee:'#e6f1fb',terminee:'#eaf3de'};
   kb.innerHTML=STATUTS.map(s=>{
-    const cards=taches.filter(t=>t.statut===s);
+    // Regrouper 'encours' dans 'assignee' pour le kanban
+    const cards=taches.filter(t=>(t.statut===s||(s==='assignee'&&t.statut==='encours'))&&t.statut!=='archivee');
     return`<div class="kanban-col">
       <div class="kanban-header" style="background:${colColors[s]}">
         <span>${STATUT_LABELS[s]}</span><span style="font-size:12px;color:#888">${cards.length}</span>
@@ -559,8 +565,9 @@ async function saveCreate(){
   _saving=true;
   var btn=document.querySelector('#mCreate .btn-primary');
   if(btn){btn.disabled=true;btn.textContent='Enregistrement...';}
-  const statut=document.getElementById('ca').value?'assignee':'ouverte';
-  var newT={id:nid++,titre:t,desc:document.getElementById('cd').value.trim(),assignee:document.getElementById('ca').value,priorite:document.getElementById('cp').value,activite:parseInt(document.getElementById('cal').value)||null,dateLimite:document.getElementById('cdl').value,notes:document.getElementById('cno').value.trim(),statut:statut,type:'ponctuelle'};
+  var assignee=document.getElementById('ca').value;
+  var statut=assignee?'assignee':'ouverte'; // auto-statut selon assignée
+  var newT={id:nid++,titre:t,desc:document.getElementById('cd').value.trim(),assignee:assignee,priorite:document.getElementById('cp').value,activite:parseInt(document.getElementById('cal').value)||null,dateLimite:document.getElementById('cdl').value,notes:document.getElementById('cno').value.trim(),statut:statut,type:'ponctuelle'};
   if(typeof FriDB !== 'undefined'){
     try{
       var _res = await FriDB.quickSave('taches', newT);
@@ -605,15 +612,23 @@ function renderDet(){
     </div>`;
 }
 async function changeStatut(s){
-  // "Terminée" archive automatiquement la tâche
+  // "Terminée" archive automatiquement
   var statFinal = s==='terminee' ? 'archivee' : s;
-  taches=taches.map(t=>t.id===selId?{...t,statut:statFinal}:t);
+  // "Non assignée" vide aussi l'assignée
+  var clearAssignee = s==='ouverte';
+  taches=taches.map(function(t){
+    if(t.id!==selId) return t;
+    var upd={...t, statut:statFinal};
+    if(clearAssignee) upd.assignee='';
+    return upd;
+  });
   // Sauvegarder en DB
   if(typeof FriDB!=='undefined' && selId){
-    try{ await FriDB.query('taches','PATCH',{statut:statFinal},'?id=eq.'+selId); }catch(e){console.warn('changeStatut DB:',e);}
+    var patch={statut:statFinal};
+    if(clearAssignee) patch.assignee=null;
+    try{ await FriDB.query('taches','PATCH',patch,'?id=eq.'+selId); }catch(e){console.warn('changeStatut DB:',e);}
   }
   if(statFinal==='archivee'){
-    // Retirer de la vue active et fermer le détail
     closeDetail();render();
   } else {
     renderDet();render();
@@ -642,7 +657,12 @@ async function saveEdit(){
   var updated=null;
   taches=taches.map(t=>{
     if(t.id!==selId) return t;
-    updated={...t,titre,desc:document.getElementById('ed').value.trim(),assignee,priorite:document.getElementById('ep').value,activite:parseInt(document.getElementById('eal').value)||null,dateLimite:document.getElementById('edl').value,notes:document.getElementById('eno').value.trim(),statut:t.statut==='ouverte'&&assignee?'assignee':t.statut};
+    // Recalculer statut auto : si on change l'assignée, adapter le statut (sauf si déjà terminée/archivée)
+    var tStatut=t.statut;
+    if(tStatut!=='archivee'){
+      tStatut=assignee?'assignee':'ouverte';
+    }
+    updated={...t,titre,desc:document.getElementById('ed').value.trim(),assignee,priorite:document.getElementById('ep').value,activite:parseInt(document.getElementById('eal').value)||null,dateLimite:document.getElementById('edl').value,notes:document.getElementById('eno').value.trim(),statut:tStatut};
     return updated;
   });
   if(updated && typeof FriDB!=='undefined' && updated.id){
