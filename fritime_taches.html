@@ -474,11 +474,17 @@ function getFiltered(){
   return taches.filter(t=>{
     var mf;
     if(filtre==='toutes'){
-      mf = t.statut!=='archivee'; // vue principale = tout sauf archivées
+      mf = t.statut!=='archivee';
     } else if(filtre==='terminee'){
-      mf = t.statut==='archivee'; // "Terminées" = les archivées automatiquement
+      mf = t.statut==='archivee';
     } else if(filtre==='assignee'){
-      mf = t.statut==='assignee'||t.statut==='encours';
+      // Assignées = a un assignee ET n'est pas archivée
+      mf = !!t.assignee && t.statut!=='archivee';
+    } else if(filtre==='ouverte'){
+      // Non-assignées = pas d'assignee ET pas archivée
+      mf = !t.assignee && t.statut!=='archivee';
+    } else if(filtre==='encours'){
+      mf = t.statut==='encours' && t.statut!=='archivee';
     } else {
       mf = t.statut===filtre;
     }
@@ -506,7 +512,7 @@ function renderTable(){
     var membre=t.assignee||'';
     if(membre!==lastMembre){
       lastMembre=membre;
-      html+=`<tr><td colspan="6" style="background:#f5f3ee;padding:6px 12px;font-size:12px;font-weight:600;color:#555;border-bottom:1px solid #e8e4dc">${membre?`<div style="display:flex;align-items:center;gap:6px"><div class="avatar-sm">${ini(membre)}</div>${membre}</div>`:'<span style="color:#aaa">Non assignées</span>'}</td></tr>`;
+      html+=`<tr><td colspan="6" style="background:#f5f3ee;padding:6px 12px;font-size:12px;font-weight:600;color:#555;border-bottom:1px solid #e8e4dc">${membre?`<div style="display:flex;align-items:center;gap:6px"><div class="avatar-sm">${ini(membre)}</div>${membre}</div>`:'<span style="color:#aaa;font-weight:400">Non assignées</span>'}</td></tr>`;
     }
     html+=`<tr onclick="openDetail(${t.id})">
       <td><div style="font-weight:500">${t.titre}</div>${t.desc?`<div style="font-size:12px;color:#888;margin-top:2px">${t.desc.substring(0,60)}${t.desc.length>60?'…':''}</div>`:''}</td>
