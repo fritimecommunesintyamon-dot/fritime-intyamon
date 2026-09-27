@@ -431,17 +431,30 @@ let nextRespId=9;
 let membres=[{id:1,prenom:"Karine",nom:"Rebelo",role:"Présidente",statut:"actif",email:"karine_rebelo@hotmail.fr",tel:"",commune:"Albeuve",dateEntree:"2026-01-01",finEngagement:"",notes:""}];
 let nid=7,selId=null,filtre='tous',editResps=[];
 var tachesDB=[];
+var modelesDB=[];
 
 function membreName(id){const m=membres.find(x=>x.id===id);return m?m.prenom+' '+m.nom:'—';}
 function respsDe(membreId){return responsabilites.filter(r=>r.titulaireId===membreId);}
 function suppleantPour(membreId){return responsabilites.filter(r=>r.suppleantId===membreId);}
 function ini(m){return((m.prenom||'')[0]+(m.nom||'')[0]).toUpperCase();}
 function fmtDate(d){if(!d)return'';const[y,m,j]=d.split('-');return`${j}.${m}.${y}`;}
-var STATUT_ORDER={'encours':0,'assignee':1,'ouverte':2,'terminee':3,'archivee':4};
+var ROLE_MAP_NORM={'Présidente':'Président/e','Vice-présidente':'Vice-président/e','Trésorière':'Trésorier/ère','Président/e':'Président/e','Vice-président/e':'Vice-président/e','Trésorier/ère':'Trésorier/ère','Secrétaire':'Secrétaire'};
 function tachesOf(m){
   var nom=(m.prenom||'')+' '+(m.nom||'');
-  return tachesDB.filter(function(t){return t.assignee===nom && t.statut!=='archivee';})
-    .sort(function(a,b){ return (STATUT_ORDER[a.statut]||9)-(STATUT_ORDER[b.statut]||9); });
+  var roleNorm=ROLE_MAP_NORM[m.role]||m.role;
+  // Construire l'ordre des titres depuis les modèles : rôle spécifique d'abord, puis Tous
+  var ordreModeles=[];
+  modelesDB.forEach(function(mod){if(mod.role===roleNorm)ordreModeles.push(mod.titre);});
+  modelesDB.forEach(function(mod){if(mod.role==='Tous')ordreModeles.push(mod.titre);});
+  var taches=tachesDB.filter(function(t){return t.assignee===nom && t.statut!=='archivee';});
+  return taches.sort(function(a,b){
+    var ia=ordreModeles.indexOf(a.titre);
+    var ib=ordreModeles.indexOf(b.titre);
+    if(ia===-1)ia=9999;
+    if(ib===-1)ib=9999;
+    if(ia!==ib)return ia-ib;
+    return (a.titre||'').localeCompare(b.titre||'','fr');
+  });
 }
 
 function fillRoleSelect(id,currentVal){
@@ -567,9 +580,13 @@ function openDetail(id){
   selId=id;
   document.getElementById('mDetail').style.display='flex';
   renderDet();
-  // Rafraîchir les tâches depuis Supabase si dispo
+  // Rafraîchir tâches + modèles depuis Supabase
   if(typeof FriDB!=='undefined'){
-    FriDB.getTaches().then(function(t){if(t){tachesDB=t;renderDet();}}).catch(function(){});
+    Promise.all([FriDB.getTaches(),FriDB.getTachesModeles()]).then(function(res){
+      if(res[0])tachesDB=res[0];
+      if(res[1])modelesDB=res[1];
+      renderDet();
+    }).catch(function(){});
   }
 }
 function closeDetail(){document.getElementById('mDetail').style.display='none';}
@@ -937,6 +954,10 @@ async function loadFromDB(){
     var tData = await FriDB.getTaches();
     if(tData) tachesDB = tData;
   } catch(e){ console.warn('Supabase taches non dispo:', e); }
+  try {
+    var mData = await FriDB.getTachesModeles();
+    if(mData) modelesDB = mData;
+  } catch(e){ console.warn('Supabase modeles non dispo:', e); }
   render();
 }
 
