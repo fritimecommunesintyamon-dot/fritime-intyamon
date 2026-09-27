@@ -1006,6 +1006,12 @@ async function envoyerConfirmationsActivite(actId){
   var confirmes = inscriptions.filter(function(i){ return String(i.activiteId)===String(actId)&&i.statut==="confirme"; });
   if(!confirmes.length){ alert("Aucune inscription confirmée pour cette activité."); return; }
   
+  // Vérifier qu'un responsable est assigné
+  if(!act.responsableNom && !act.responsable_nom){
+    alert("⚠️ Impossible d'envoyer les confirmations\n\nAucun responsable du jour n'est assigné à cette activité.\n\nVa dans le module Activités, modifie l'activité et assigne un responsable du jour avant d'envoyer les confirmations.");
+    return;
+  }
+  
   if(!confirm("Envoyer "+confirmes.length+" mail(s) de confirmation pour : "+act.nom+" ?")) return;
   
   var ok=0, erreurs=0;

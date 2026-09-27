@@ -157,6 +157,8 @@ const FriBrevo = {
     var materiel = activite.materiel || 'Rien à apporter';
     var cout = activite.cout ? activite.cout + ' CHF' : 'Gratuit';
     var prestataire = activite.prestContact || '';
+    var responsableNom = activite.responsableNom || activite.responsable_nom || '';
+    var responsableTel = activite.responsableTel || '';
 
     var html = `
 <!DOCTYPE html>
@@ -184,6 +186,7 @@ const FriBrevo = {
         <tr><td style="padding:5px 0">🕐</td><td style="padding:5px 0"><strong>Horaire</strong></td><td style="padding:5px 0">${horaire}</td></tr>
         <tr><td style="padding:5px 0">📍</td><td style="padding:5px 0"><strong>Lieu</strong></td><td style="padding:5px 0">${lieu}</td></tr>
         ${prestataire ? `<tr><td style="padding:5px 0">🤝</td><td style="padding:5px 0"><strong>Animé par</strong></td><td style="padding:5px 0">${prestataire}</td></tr>` : ''}
+        ${responsableNom ? `<tr><td style="padding:5px 0">👤</td><td style="padding:5px 0"><strong>Responsable du jour</strong></td><td style="padding:5px 0;color:#791f1f;font-weight:600">${responsableNom}${responsableTel ? ' — ' + responsableTel : ''}</td></tr>` : ''}
       </table>
     </div>
 
@@ -224,7 +227,7 @@ const FriBrevo = {
         </tr>
         <tr style="vertical-align:top">
           <td style="padding:5px 8px 5px 0">🚑</td>
-          <td style="padding:5px 0"><strong>Urgences :</strong> Les bénévoles sont formés aux premiers secours. En cas d'urgence : 144 ambulance · 117 police · 118 pompiers · 1414 Rega. <strong>Il est impératif d'être joignable par téléphone pendant toute la durée de l'activité.</strong></td>
+          <td style="padding:5px 0"><strong>Urgences :</strong> Les bénévoles sont formés aux premiers secours. En cas d'urgence : 144 ambulance · 117 police · 118 pompiers · 1414 Rega. <span style="color:#791f1f;font-weight:700">⚠️ Il est impératif d'être joignable par téléphone pendant toute la durée de l'activité.</span></td>
         </tr>
         <tr style="vertical-align:top">
           <td style="padding:5px 8px 5px 0">🏥</td>
