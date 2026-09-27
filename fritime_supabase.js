@@ -295,7 +295,7 @@ FriDB.COLUMNS = {
   activites: ['id','nom','description','date','date_limite','heure_debut','heure_fin','lieu',
     'prest_id','prest_contact','prest_email','prest_tel','prest_url','age_min','age_max',
     'places','inscrits','surveillants','cout','cout_type','cout_facture','materiel','tenue',
-    'statut','annee','categorie','t_public','t_parent','t_meteo','t_service','notes','image'],
+    'statut','annee','categorie','sous_categorie','responsable_id','responsable_nom','responsable_tel','t_public','t_parent','t_meteo','t_service','notes','image'],
   membres: ['id','prenom','nom','role','statut','email','tel','commune',
     'date_entree','fin_engagement','notes'],
   enfants: ['id','prenom','nom','ddn','age','commune','pp','pn','pe','pt',
@@ -493,4 +493,3 @@ FriDB.quickSave = async function(table, obj) {
 
 window.FriDB = FriDB;
 console.log('Fri-Time Intyamon — Supabase connecté ✓');
- 
