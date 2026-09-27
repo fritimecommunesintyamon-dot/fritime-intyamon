@@ -450,13 +450,14 @@ function doLogout(){
 </div>
 
 <script>
-const STATUTS=['ouverte','assignee','encours','terminee','archivee'];
-const STATUT_LABELS={ouverte:'Ouverte',assignee:'Assignée',encours:'En cours',terminee:'Terminée',archivee:'Archivée'};
+const STATUTS=['ouverte','assignee','terminee']; // 3 statuts visibles; archivee = état interne auto
+const STATUT_LABELS={ouverte:'Non assignée',assignee:'Assignée',encours:'En cours',terminee:'Terminée',archivee:'Archivée'};
 const STATUT_CLS={ouverte:'badge-ouverte',assignee:'badge-assignee',encours:'badge-encours',terminee:'badge-terminee',archivee:'badge-archivee'};
 var ACTES={};  // chargé dynamiquement
 
 let taches=[];
 let nid=7,selId=null,filtre='toutes',vue='table';
+var _saving=false; // garde anti-doublon
 
 function ini(nom){if(!nom)return'?';const p=nom.split(' ');return((p[0]||'')[0]+(p[1]||'')[0]).toUpperCase();}
 function fmtDate(d){if(!d)return'';const[y,m,j]=d.split('-');return`${j}.${m}.${y}`;}
@@ -465,30 +466,57 @@ function prioLabel(p){return p==='haute'?'Haute':p==='basse'?'Basse':'Moyenne';}
 function prioCls(p){return p==='haute'?'prio-haute':p==='basse'?'prio-basse':'prio-moyenne';}
 
 function renderMetrics(){
-  const counts={};STATUTS.forEach(s=>counts[s]=taches.slice().sort(function(a,b){return (a.titre||a.nom||"").localeCompare(b.titre||b.nom||"","fr");}).filter(t=>t.statut===s).length);
-  document.getElementById('metrics').innerHTML=STATUTS.map(s=>`<div class="metric"><div class="metric-val">${counts[s]}</div><div class="metric-lbl">${STATUT_LABELS[s]}</div></div>`).join('');
+  // Métriques sur les tâches actives uniquement (exclure archivée)
+  var actives=taches.filter(function(t){return t.statut!=='archivee';});
+  var counts={ouverte:0,assignee:0,terminee:0};
+  actives.forEach(function(t){ if(counts[t.statut]!==undefined) counts[t.statut]++; else counts.ouverte++; });
+  document.getElementById('metrics').innerHTML=STATUTS.map(s=>`<div class="metric"><div class="metric-val">${counts[s]||0}</div><div class="metric-lbl">${STATUT_LABELS[s]}</div></div>`).join('');
 }
 
 function getFiltered(){
   const q=(document.getElementById('search')||{value:''}).value.toLowerCase();
   return taches.filter(t=>{
-    const mf=filtre==='toutes'||t.statut===filtre;
+    // Toujours exclure les archivées de la vue principale
+    if(t.statut==='archivee') return false;
+    // Regrouper 'encours' avec 'assignee' pour l'affichage
+    var statut=t.statut==='encours'?'assignee':t.statut;
+    const mf=filtre==='toutes'||statut===filtre;
     const ms=!q||t.titre.toLowerCase().includes(q)||(t.assignee||'').toLowerCase().includes(q);
     return mf&&ms;
   });
 }
 
 function renderTable(){
-  const rows=getFiltered(),tb=document.getElementById('tbody');
+  var rows=getFiltered(),tb=document.getElementById('tbody');
   if(!rows.length){tb.innerHTML=`<tr><td colspan="6" style="text-align:center;padding:2rem;color:#888">Aucune tâche trouvée</td></tr>`;return;}
-  tb.innerHTML=rows.map(t=>`<tr onclick="openDetail(${t.id})">
-    <td><div style="font-weight:500">${t.titre}</div>${t.desc?`<div style="font-size:12px;color:#888;margin-top:2px">${t.desc.substring(0,60)}${t.desc.length>60?'…':''}</div>`:''}</td>
-    <td>${t.assignee?`<div style="display:flex;align-items:center;gap:6px"><div class="avatar-sm">${ini(t.assignee)}</div><span style="font-size:12px">${t.assignee}</span></div>`:'<span style="color:#bbb;font-size:12px">—</span>'}</td>
-    <td>${t.activite?`<span class="act-badge">${ACTES[t.activite]}</span>`:'<span style="color:#bbb;font-size:12px">—</span>'}</td>
-    <td><span class="${prioCls(t.priorite)}">${prioLabel(t.priorite)}</span></td>
-    <td class="${isOverdue(t.dateLimite)&&t.statut!=='terminee'&&t.statut!=='archivee'?'overdue':''}">${t.dateLimite?fmtDate(t.dateLimite):'<span style="color:#bbb">—</span>'}</td>
-    <td><span class="badge ${STATUT_CLS[t.statut]}">${STATUT_LABELS[t.statut]}</span></td>
-  </tr>`).join('');
+  // Trier : terminées en bas, puis par membre, puis par titre
+  var ORDRE_STATUT={ouverte:0,encours:1,assignee:1,terminee:2,archivee:3};
+  rows.sort(function(a,b){
+    var sa=ORDRE_STATUT[a.statut]||0, sb=ORDRE_STATUT[b.statut]||0;
+    if(sa!==sb) return sa-sb;
+    var ma=a.assignee||'zzz', mb=b.assignee||'zzz';
+    if(ma!==mb) return ma.localeCompare(mb,'fr');
+    return (a.titre||'').localeCompare(b.titre||'','fr');
+  });
+  // Grouper par membre
+  var html='';
+  var lastMembre=null;
+  rows.forEach(function(t){
+    var membre=t.assignee||'';
+    if(membre!==lastMembre){
+      lastMembre=membre;
+      html+=`<tr><td colspan="6" style="background:#f5f3ee;padding:6px 12px;font-size:12px;font-weight:600;color:#555;border-bottom:1px solid #e8e4dc">${membre?`<div style="display:flex;align-items:center;gap:6px"><div class="avatar-sm">${ini(membre)}</div>${membre}</div>`:'<span style="color:#aaa">Non assignées</span>'}</td></tr>`;
+    }
+    html+=`<tr onclick="openDetail(${t.id})">
+      <td><div style="font-weight:500">${t.titre}</div>${t.desc?`<div style="font-size:12px;color:#888;margin-top:2px">${t.desc.substring(0,60)}${t.desc.length>60?'…':''}</div>`:''}</td>
+      <td>${t.assignee?`<div style="display:flex;align-items:center;gap:6px"><div class="avatar-sm">${ini(t.assignee)}</div><span style="font-size:12px">${t.assignee}</span></div>`:'<span style="color:#bbb;font-size:12px">—</span>'}</td>
+      <td>${t.activite?`<span class="act-badge">${ACTES[t.activite]}</span>`:'<span style="color:#bbb;font-size:12px">—</span>'}</td>
+      <td><span class="${prioCls(t.priorite)}">${prioLabel(t.priorite)}</span></td>
+      <td class="${isOverdue(t.dateLimite)&&t.statut!=='terminee'&&t.statut!=='archivee'?'overdue':''}">${t.dateLimite?fmtDate(t.dateLimite):'<span style="color:#bbb">—</span>'}</td>
+      <td><span class="badge ${STATUT_CLS[t.statut]}">${STATUT_LABELS[t.statut]}</span></td>
+    </tr>`;
+  });
+  tb.innerHTML=html;
 }
 
 function renderKanban(){
@@ -525,10 +553,14 @@ function closeCreate(){
   document.getElementById('cp').value='moyenne';
 }
 async function saveCreate(){
+  if(_saving) return; // anti-doublon
   const t=document.getElementById('ct').value.trim();
   if(!t){alert('Le titre est obligatoire');return;}
+  _saving=true;
+  var btn=document.querySelector('#mCreate .btn-primary');
+  if(btn){btn.disabled=true;btn.textContent='Enregistrement...';}
   const statut=document.getElementById('ca').value?'assignee':'ouverte';
-  var newT={id:nid++,titre:t,desc:document.getElementById('cd').value.trim(),assignee:document.getElementById('ca').value,priorite:document.getElementById('cp').value,activite:parseInt(document.getElementById('cal').value)||null,dateLimite:document.getElementById('cdl').value,notes:document.getElementById('cno').value.trim(),statut:statut};
+  var newT={id:nid++,titre:t,desc:document.getElementById('cd').value.trim(),assignee:document.getElementById('ca').value,priorite:document.getElementById('cp').value,activite:parseInt(document.getElementById('cal').value)||null,dateLimite:document.getElementById('cdl').value,notes:document.getElementById('cno').value.trim(),statut:statut,type:'ponctuelle'};
   if(typeof FriDB !== 'undefined'){
     try{
       var _res = await FriDB.quickSave('taches', newT);
@@ -536,6 +568,7 @@ async function saveCreate(){
     }catch(e){ console.warn('DB save:', e); }
   }
   taches.push(newT);
+  _saving=false;
   closeCreate();render();
 }
 
@@ -553,8 +586,11 @@ function renderDet(){
     </div>
     <div class="dl">Changer le statut</div>
     <div class="status-select">
-      ${STATUTS.map(s=>`<button class="status-btn${t.statut===s?' sel-'+s:''}" onclick="changeStatut('${s}')">${STATUT_LABELS[s]}</button>`).join('')}
+      <button class="status-btn${!t.assignee||t.statut==='ouverte'?' sel-ouverte':''}" onclick="changeStatut('ouverte')">Non assignée</button>
+      <button class="status-btn${t.assignee&&t.statut!=='terminee'&&t.statut!=='archivee'?' sel-assignee':''}" onclick="changeStatut('assignee')">Assignée</button>
+      <button class="status-btn${t.statut==='terminee'?' sel-terminee':''}" onclick="changeStatut('terminee')" style="color:#275a0a">✓ Terminée</button>
     </div>
+    <div style="font-size:11px;color:#aaa;margin-top:-6px;margin-bottom:10px">Marquer comme terminée archivera la tâche automatiquement.</div>
     ${t.desc?`<div class="dl">Description</div><div style="font-size:13px;color:#555;line-height:1.6;margin-bottom:10px">${t.desc}</div>`:''}
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;margin-bottom:8px">
       <div><div class="dl">Assignée à</div><div class="dv">${t.assignee?`<div style="display:flex;align-items:center;gap:6px"><div class="avatar-sm">${ini(t.assignee)}</div>${t.assignee}</div>`:'—'}</div></div>
@@ -568,7 +604,21 @@ function renderDet(){
       <button class="btn btn-sm btn-primary" onclick="closeDetail()">Fermer</button>
     </div>`;
 }
-function changeStatut(s){taches=taches.map(t=>t.id===selId?{...t,statut:s}:t);renderDet();render();}
+async function changeStatut(s){
+  // "Terminée" archive automatiquement la tâche
+  var statFinal = s==='terminee' ? 'archivee' : s;
+  taches=taches.map(t=>t.id===selId?{...t,statut:statFinal}:t);
+  // Sauvegarder en DB
+  if(typeof FriDB!=='undefined' && selId){
+    try{ await FriDB.query('taches','PATCH',{statut:statFinal},'?id=eq.'+selId); }catch(e){console.warn('changeStatut DB:',e);}
+  }
+  if(statFinal==='archivee'){
+    // Retirer de la vue active et fermer le détail
+    closeDetail();render();
+  } else {
+    renderDet();render();
+  }
+}
 
 function openEdit(id){
   selId=id;
@@ -585,18 +635,23 @@ function openEdit(id){
   document.getElementById('mEdit').style.display='flex';
 }
 function closeEdit(){document.getElementById('mEdit').style.display='none';}
-function saveEdit(){
+async function saveEdit(){
   const titre=document.getElementById('et').value.trim();
   if(!titre){alert('Le titre est obligatoire');return;}
   const assignee=document.getElementById('ea').value;
-  taches=taches.map(t=>t.id===selId?{...t,
-    titre,desc:document.getElementById('ed').value.trim(),
-    assignee,priorite:document.getElementById('ep').value,
-    activite:parseInt(document.getElementById('eal').value)||null,
-    dateLimite:document.getElementById('edl').value,
-    notes:document.getElementById('eno').value.trim(),
-    statut:t.statut==='ouverte'&&assignee?'assignee':t.statut
-  }:t);
+  var updated=null;
+  taches=taches.map(t=>{
+    if(t.id!==selId) return t;
+    updated={...t,titre,desc:document.getElementById('ed').value.trim(),assignee,priorite:document.getElementById('ep').value,activite:parseInt(document.getElementById('eal').value)||null,dateLimite:document.getElementById('edl').value,notes:document.getElementById('eno').value.trim(),statut:t.statut==='ouverte'&&assignee?'assignee':t.statut};
+    return updated;
+  });
+  if(updated && typeof FriDB!=='undefined' && updated.id){
+    try{
+      // PATCH direct par id (fonctionne même sans created_at)
+      var patch={titre:updated.titre,description:updated.desc||null,assignee:updated.assignee||null,priorite:updated.priorite,activite_id:updated.activite||null,date_limite:updated.dateLimite||null,notes:updated.notes||null,statut:updated.statut,type:updated.type||'ponctuelle'};
+      await FriDB.query('taches','PATCH',patch,'?id=eq.'+updated.id);
+    }catch(e){console.warn('saveEdit DB:',e);}
+  }
   closeEdit();render();
 }
 function deleteTask(){
@@ -633,15 +688,21 @@ function loadMembresEtActivites(){
   var ftData = localStorage.getItem("ft_data");
   var membres = [];
   var activites = [];
-  if(ftData){
+  // Priorité : membres chargés depuis DB (membresList)
+  if(typeof membresList !== 'undefined' && membresList.length){
+    membres = membresList;
+  } else if(ftData){
     try{
       var d = JSON.parse(ftData);
       membres = d.membres || [];
       activites = d.activites || [];
     } catch(e){}
   }
-  // Fallback
-  if(!membres.length) membres = [{prenom:"Karine", nom:"Rebelo"}];
+  if(ftData && !activites.length){
+    try{ activites = JSON.parse(ftData).activites || []; } catch(e){}
+  }
+  // Fallback si vraiment rien
+  if(!membres.length) membres = [];
 
   // Fill all assignee selects
   var membreOpts = '<option value="">— Non assignée —</option>' +
@@ -673,7 +734,9 @@ async function loadTachesDB(){
   while(typeof FriDB==='undefined'&&a<30){await new Promise(function(r){setTimeout(r,100);});a++;}
   if(typeof FriDB==='undefined') return;
   try{
-    var db_taches = await FriDB.getTaches();
+    // Charger membres et tâches en parallèle
+    var results = await Promise.all([FriDB.getTaches(), chargerMembresModele()]);
+    var db_taches = results[0];
     if(db_taches && db_taches.length) {
       taches = db_taches.filter(function(item){
         return !item.type || item.type === 'ponctuelle';
@@ -686,6 +749,7 @@ async function loadTachesDB(){
         return item;
       });
     }
+    loadMembresEtActivites(); // peupler les selects assignée avec les membres DB
     render();
   }catch(e){console.warn('DB:',e);}
 }
