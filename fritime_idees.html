@@ -853,14 +853,19 @@ function parseImportLine(line){
   if(!line.trim())return null;
   const parts=line.split("|").map(s=>s.trim());
   if(!parts[0])return null;
+  var catVal=parts[1]||"";
+  var ageMinVal=parseInt(parts[2])||null;
+  var ageMaxVal=parseInt(parts[3])||null;
+  var coutVal=parseFloat(parts[4])||0;
+  var descVal=parts[5]||"";
   return{
     titre:parts[0],
-    cat:parts[1]||"",
-    ageMin:parseInt(parts[2])||null,
-    ageMax:parseInt(parts[3])||null,
-    cout:parseFloat(parts[4])||0,
-    desc:parts[5]||"",
-    souscat:"",source:"Import",statut:"idee",
+    // camelCase aliases for local rendering
+    cat:catVal,souscat:"",ageMin:ageMinVal,ageMax:ageMaxVal,cout:coutVal,desc:descVal,
+    // snake_case DB column names
+    categorie:catVal,sous_categorie:"",age_min:ageMinVal,age_max:ageMaxVal,
+    cout_estime:coutVal,description:descVal,
+    source:"Import",statut:"idee",
     utilise:false,notes:"",votes:[],_voted:false,
     date:new Date().toISOString().split("T")[0],
     image:null
@@ -1042,11 +1047,23 @@ async function loadIdeesDB(){
     var db_idees = await FriDB.getIdees();
     if(db_idees && db_idees.length) {
       idees = db_idees.map(function(item){
+        // Normalize JSON string fields
         Object.keys(item).forEach(function(k){
           if(typeof item[k] === 'string' && (item[k].startsWith('[') || item[k].startsWith('{'))) {
             try{ item[k] = JSON.parse(item[k]); }catch(e){ item[k] = []; }
           }
         });
+        // Map snake_case DB fields → camelCase for local rendering
+        item.cat     = item.cat     || item.categorie       || '';
+        item.souscat = item.souscat || item.sous_categorie  || '';
+        item.ageMin  = item.ageMin  != null ? item.ageMin  : (item.age_min  != null ? item.age_min  : null);
+        item.ageMax  = item.ageMax  != null ? item.ageMax  : (item.age_max  != null ? item.age_max  : null);
+        item.cout    = item.cout    || item.cout_estime     || 0;
+        item.desc    = item.desc    || item.description     || '';
+        // Ensure votes is always an array
+        if(typeof item.votes === 'string'){try{item.votes=JSON.parse(item.votes);}catch(e){item.votes=[];}}
+        if(!Array.isArray(item.votes)) item.votes=[];
+        if(!item._voted) item._voted=false;
         return item;
       });
     }
