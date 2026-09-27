@@ -460,7 +460,7 @@ function render(){
   var actFin=acts.filter(function(a){return a.statut==="terminee";});
   var inscrits=dbActivites.reduce(function(s,a){return s+(a.inscrits||0);},0);
   var prestActifs=dbPrestataires.filter(function(p){return p.statut==="actif";});
-  var tachesOuv=dbTaches.filter(function(t){return t.statut!=="terminee"&&t.statut!=="done"&&t.statut!=="archivee";});
+  var tachesOuv=dbTaches.filter(function(t){return t.statut!=="terminee"&&t.statut!=="done"&&t.statut!=="archivee"&&(!t.type||t.type==="ponctuelle");});
   var entrees=dbBudgetE.reduce(function(s,e){return s+(parseFloat(e.recu)||parseFloat(e.prevu)||0);},0);
   var depenses=dbBudgetD.reduce(function(s,d){return s+(parseFloat(d.realise)||parseFloat(d.reel)||0);},0);
   var solde=entrees-depenses;
@@ -545,14 +545,14 @@ function render(){
   var actsSansDate=actsActives.filter(function(a){return !a.date;});
   if(actsSansDate.length) alertes.push({ico:"📅",titre:actsSansDate.length+" activité(s) sans date",sub:actsSansDate.slice(0,3).map(function(a){return a.nom;}).join(", "),urgent:false,date:""});
   // Tâches non terminées à priorité haute (tous les nommages possibles)
-  var tachHaute=dbTaches.filter(function(t){
+  var tachHaute=dbTaches.filter(function(t){if(t.type&&t.type!=="ponctuelle")return false;
     var p=(t.priorite||t.priority||"").toLowerCase();
     var s=t.statut||"";
     return (p==="haute"||p==="high"||p==="urgent")&&s!=="terminee"&&s!=="archivee"&&s!=="done";
   });
   if(tachHaute.length) alertes.push({ico:"🔴",titre:tachHaute.length+" tâche(s) priorité haute non terminée(s)",sub:tachHaute.slice(0,3).map(function(t){return t.titre||t.nom||"";}).join(", "),urgent:true,date:""});
   // Tâches ouvertes non assignées
-  var tachNonAssignees=dbTaches.filter(function(t){return t.statut==="ouverte"&&!t.assignee;});
+  var tachNonAssignees=dbTaches.filter(function(t){return t.statut==="ouverte"&&!t.assignee&&(!t.type||t.type==="ponctuelle");});
   if(tachNonAssignees.length) alertes.push({ico:"👤",titre:tachNonAssignees.length+" tâche(s) sans responsable",sub:tachNonAssignees.slice(0,3).map(function(t){return t.titre||t.nom||"";}).join(", "),urgent:false,date:""});
   // Inscriptions en attente de validation
   var inscAttente=dbInscriptions.filter(function(i){return i.statut==="attente"||i.statut==="en_attente";});
