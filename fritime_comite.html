@@ -415,27 +415,32 @@ function doLogout(){
 <script>
 let ROLES=['Présidente','Vice-présidente','Trésorière','Secrétaire','Responsable activités','Responsable communication','Responsable inscriptions','Contact prestataires','Membre'];
 
-// Responsabilités permanentes globales : une seule personne par responsabilité + suppléant
-let responsabilites=[
-  {id:1,titre:"Représenter l'association auprès de la commune",titulaireId:1,suppleantId:2},
-  {id:2,titre:"Valider les activités avant envoi au service Fri-Time",titulaireId:1,suppleantId:null},
-  {id:3,titre:"Gérer le budget annuel",titulaireId:2,suppleantId:null},
-  {id:4,titre:"Établir les rapports financiers",titulaireId:2,suppleantId:null},
-  {id:5,titre:"Ouvrir et fermer les inscriptions",titulaireId:3,suppleantId:6},
-  {id:6,titre:"Envoyer les confirmations aux familles",titulaireId:3,suppleantId:6},
-  {id:7,titre:"Gérer les réseaux sociaux",titulaireId:4,suppleantId:null},
-  {id:8,titre:"Rechercher et contacter les prestataires",titulaireId:5,suppleantId:null},
-];
-let nextRespId=9;
+// Responsabilités : stockées sur chaque membre (m.responsabilites = [{id,titre,suppleantId}])
+function respsDe(membreId){
+  var m=membres.find(function(x){return String(x.id)===String(membreId);});
+  return m?(m.responsabilites||[]):[];
+}
+function suppleantPour(membreId){
+  var res=[];
+  membres.forEach(function(m){
+    (m.responsabilites||[]).forEach(function(r){
+      if(String(r.suppleantId)===String(membreId)) res.push({id:r.id,titre:r.titre,titulaireId:m.id});
+    });
+  });
+  return res;
+}
+async function saveRespsDB(membreId){
+  var m=membres.find(function(x){return String(x.id)===String(membreId);});
+  if(!m||typeof FriDB==='undefined') return;
+  try{ await FriDB.saveMembre({id:m.id,responsabilites:m.responsabilites||[]}); }catch(e){console.warn('Save resps échoué:',e);}
+}
 
 let membres=[{id:1,prenom:"Karine",nom:"Rebelo",role:"Présidente",statut:"actif",email:"karine_rebelo@hotmail.fr",tel:"",commune:"Albeuve",dateEntree:"2026-01-01",finEngagement:"",notes:""}];
 let nid=7,selId=null,filtre='tous',editResps=[];
 var tachesDB=[];
 var modelesDB=[];
 
-function membreName(id){const m=membres.find(x=>x.id===id);return m?m.prenom+' '+m.nom:'—';}
-function respsDe(membreId){return responsabilites.filter(r=>r.titulaireId===membreId);}
-function suppleantPour(membreId){return responsabilites.filter(r=>r.suppleantId===membreId);}
+function membreName(id){const m=membres.find(x=>String(x.id)===String(id));return m?m.prenom+' '+m.nom:'—';}
 function ini(m){return((m.prenom||'')[0]+(m.nom||'')[0]).toUpperCase();}
 function fmtDate(d){if(!d)return'';const[y,m,j]=d.split('-');return`${j}.${m}.${y}`;}
 var ROLE_MAP_NORM={'Présidente':'Président/e','Vice-présidente':'Vice-président/e','Trésorière':'Trésorier/ère','Président/e':'Président/e','Vice-président/e':'Vice-président/e','Trésorier/ère':'Trésorier/ère','Secrétaire':'Secrétaire'};
@@ -632,13 +637,29 @@ function renderDet(){
       <div style="font-size:12px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.05em;margin:12px 0 8px">Suppléant pour</div>
       ${suppl.map(r=>`<div class="resp-item"><span style="color:#bbb">↪</span><span style="flex:1">${r.titre}</span><span style="font-size:12px;color:#0c447c">(titulaire : ${membreName(r.titulaireId)})</span></div>`).join('')}
     `:''}
-    ${taches.length?`
-      <div style="font-size:12px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.05em;margin:12px 0 8px">Tâches (${taches.length})</div>
-      ${taches.map(t=>{
+    ${(function(){
+      if(!taches.length) return '<div style="font-size:13px;color:#bbb;margin:10px 0 8px">Aucune tâche assignée</div>';
+      var roleNorm=ROLE_MAP_NORM[m.role]||m.role;
+      // Construire les titres de modèles par groupe
+      var titresRole=modelesDB.filter(function(x){return x.role===roleNorm;}).map(function(x){return x.titre;});
+      var titresTous=modelesDB.filter(function(x){return x.role==='Tous';}).map(function(x){return x.titre;});
+      var tachesRole=taches.filter(function(t){return titresRole.indexOf(t.titre)!==-1;});
+      var tachesTous=taches.filter(function(t){return titresTous.indexOf(t.titre)!==-1;});
+      var tachesAutres=taches.filter(function(t){return titresRole.indexOf(t.titre)===-1&&titresTous.indexOf(t.titre)===-1;});
+      function renderTacheLigne(t){
         var lbl=t.statut==='encours'?'En cours':t.statut==='assignee'?'Assignée':t.statut==='terminee'?'Terminée':'Ouverte';
         return '<div class="tache-det"><span style="flex:1">'+t.titre+'</span><span class="status-pill sp-'+t.statut+'">'+lbl+'</span></div>';
-      }).join('')}
-    `:'<div style="font-size:13px;color:#bbb;margin:10px 0 8px">Aucune tâche assignée</div>'}
+      }
+      function renderGroupe(titre,couleur,liste){
+        if(!liste.length)return'';
+        return '<div style="font-size:11px;font-weight:700;color:'+couleur+';text-transform:uppercase;letter-spacing:.06em;margin:14px 0 6px;padding-top:12px;border-top:1px solid #eee">'+titre+' ('+liste.length+')</div>'+liste.map(renderTacheLigne).join('');
+      }
+      var html='<div style="font-size:12px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.05em;margin:12px 0 4px">Tâches ('+taches.length+')</div>';
+      html+=renderGroupe('Tâches '+roleNorm,'#1a5fa0',tachesRole);
+      html+=renderGroupe('Tâches communes (Tous)','#639922',tachesTous);
+      html+=renderGroupe('Autres tâches','#888',tachesAutres);
+      return html;
+    })()}
     ${m.notes?`<div style="margin-top:10px;padding:10px;background:#fafaf8;border-radius:8px;font-size:13px;color:#555">${m.notes}</div>`:''}
     <div class="mf">
       <button class="btn btn-sm btn-danger" onclick="closeDetail();deleteMemberById(${m.id})">Supprimer</button>
@@ -651,7 +672,12 @@ function renderDet(){
 }
 
 function deleteResp(respId){
-  if(confirm('Supprimer cette responsabilité ?')){responsabilites=responsabilites.filter(r=>r.id!==respId);renderDet();render();}
+  if(!confirm('Supprimer cette responsabilité ?')) return;
+  var m=membres.find(function(x){return String(x.id)===String(selId);});
+  if(!m) return;
+  m.responsabilites=(m.responsabilites||[]).filter(function(r){return String(r.id)!==String(respId);});
+  saveRespsDB(selId);
+  renderDet();render();
 }
 
 function editRespSuppleant(respId){
@@ -702,7 +728,12 @@ function renderEditResps(){
 }
 
 function setRespSuppleant(respId,val){
-  responsabilites=responsabilites.map(r=>r.id===respId?{...r,suppleantId:parseInt(val)||null}:r);
+  var m=membres.find(function(x){return String(x.id)===String(selId);});
+  if(!m) return;
+  m.responsabilites=(m.responsabilites||[]).map(function(r){
+    return String(r.id)===String(respId)?Object.assign({},r,{suppleantId:parseInt(val)||null}):r;
+  });
+  saveRespsDB(selId);
 }
 
 function addResp(){

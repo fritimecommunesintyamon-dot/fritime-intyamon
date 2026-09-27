@@ -38,7 +38,7 @@ const FriDB = {
     return await this.query('membres', 'GET', null, '?order=id');
   },
   async saveMembre(m) {
-    var allowed = ['prenom','nom','role','statut','email','tel','commune','date_entree','fin_engagement','notes'];
+    var allowed = ['prenom','nom','role','statut','email','tel','commune','date_entree','fin_engagement','notes','responsabilites'];
     var clean = {};
     allowed.forEach(function(k){ if(k in m && m[k] !== undefined && m[k] !== null) clean[k] = m[k]; });
     if (m.id) {
