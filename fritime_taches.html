@@ -675,7 +675,9 @@ async function loadTachesDB(){
   try{
     var db_taches = await FriDB.getTaches();
     if(db_taches && db_taches.length) {
-      taches = db_taches.map(function(item){
+      taches = db_taches.filter(function(item){
+        return !item.type || item.type === 'ponctuelle';
+      }).map(function(item){
         Object.keys(item).forEach(function(k){
           if(typeof item[k] === 'string' && (item[k].startsWith('[') || item[k].startsWith('{'))) {
             try{ item[k] = JSON.parse(item[k]); }catch(e){}

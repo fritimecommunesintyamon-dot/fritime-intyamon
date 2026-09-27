@@ -681,9 +681,14 @@ function deleteResp(respId){
 }
 
 function editRespSuppleant(respId){
-  const r=responsabilites.find(x=>x.id===respId);if(!r)return;
-  const opts=membres.filter(m=>m.id!==r.titulaireId).map(m=>`<option value="${m.id}"${r.suppleantId===m.id?" selected":""}>${m.prenom} ${m.nom}</option>`).join("");
-  document.getElementById("supp-select-inner").innerHTML=`<option value="">Aucun</option>${opts}`;
+  var m=membres.find(function(x){return String(x.id)===String(selId);});
+  if(!m)return;
+  var r=(m.responsabilites||[]).find(function(x){return String(x.id)===String(respId);});
+  if(!r)return;
+  var opts=membres.filter(function(mb){return String(mb.id)!==String(selId);}).map(function(mb){
+    return '<option value="'+mb.id+'"'+(String(r.suppleantId)===String(mb.id)?' selected':'')+'>'+mb.prenom+' '+mb.nom+'</option>';
+  }).join('');
+  document.getElementById("supp-select-inner").innerHTML='<option value="">Aucun</option>'+opts;
   document.getElementById("supp-resp-id").value=respId;
   document.getElementById("mSuppleant").style.display="flex";
 }
@@ -710,21 +715,25 @@ function closeEdit(){document.getElementById('mEdit').style.display='none';}
 
 function renderEditResps(){
   const resps=respsDe(selId);
-  document.getElementById('edit-resps').innerHTML=resps.length?resps.map(r=>`
-    <div class="resp-item" style="flex-direction:column;gap:6px">
-      <div style="display:flex;align-items:center;gap:8px;width:100%">
-        <span style="color:#bbb;flex-shrink:0">—</span>
-        <span style="flex:1">${r.titre}</span>
-        <button class="resp-item-del" onclick="deleteResp(${r.id});renderEditResps()">×</button>
-      </div>
-      <div style="padding-left:20px;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-        <label style="font-size:11px;color:#888">Suppléant :</label>
-        <select class="fi" style="width:auto;font-size:12px;padding:3px 6px" onchange="setRespSuppleant(${r.id},this.value)">
-          <option value="">— Aucun —</option>
-          ${membres.filter(m=>m.id!==selId).map(m=>`<option value="${m.id}"${r.suppleantId===m.id?' selected':''}>${m.prenom} ${m.nom}</option>`).join('')}
-        </select>
-      </div>
-    </div>`).join(''):'<div style="font-size:12px;color:#bbb;margin-bottom:8px">Aucune responsabilité permanente</div>';
+  document.getElementById('edit-resps').innerHTML=resps.length?resps.map(function(r){
+    var optsMemb=membres.filter(function(m){return String(m.id)!==String(selId);}).map(function(m){
+      var sel=String(r.suppleantId)===String(m.id)?' selected':'';
+      return '<option value="'+m.id+'"'+sel+'>'+m.prenom+' '+m.nom+'</option>';
+    }).join('');
+    return '<div class="resp-item" style="flex-direction:column;gap:6px">'+
+      '<div style="display:flex;align-items:center;gap:8px;width:100%">'+
+        '<span style="color:#bbb;flex-shrink:0">—</span>'+
+        '<span style="flex:1">'+r.titre+'</span>'+
+        '<button class="resp-item-del" onclick="deleteResp(\''+r.id+'\');renderEditResps()">×</button>'+
+      '</div>'+
+      '<div style="padding-left:20px;display:flex;align-items:center;gap:6px;flex-wrap:wrap">'+
+        '<label style="font-size:11px;color:#888">Suppléant :</label>'+
+        '<select class="fi" style="width:auto;font-size:12px;padding:3px 6px" onchange="setRespSuppleant(\''+r.id+'\',this.value)">'+
+          '<option value="">— Aucun —</option>'+optsMemb+
+        '</select>'+
+      '</div>'+
+    '</div>';
+  }).join(''):'<div style="font-size:12px;color:#bbb;margin-bottom:8px">Aucune responsabilité permanente</div>';
 }
 
 function setRespSuppleant(respId,val){
@@ -738,14 +747,13 @@ function setRespSuppleant(respId,val){
 
 function addResp(){
   const v=document.getElementById('new-resp').value.trim();
-  if(!v)return;
-  // Vérifier unicité
-  const exists=responsabilites.find(r=>r.titre.toLowerCase()===v.toLowerCase());
-  if(exists){
-    alert("Cette responsabilité est déjà attribuée à " + membreName(exists.titulaireId) + ". Une responsabilité ne peut avoir qu\'un seul titulaire.");
-    return;
-  }
-  responsabilites.push({id:nextRespId++,titre:v,titulaireId:selId,suppleantId:null});
+  if(!v) return;
+  var m=membres.find(function(x){return String(x.id)===String(selId);});
+  if(!m) return;
+  if(!m.responsabilites) m.responsabilites=[];
+  var newId=Date.now();
+  m.responsabilites.push({id:newId,titre:v,suppleantId:null});
+  saveRespsDB(selId);
   document.getElementById('new-resp').value='';
   renderEditResps();
 }
@@ -800,10 +808,12 @@ function saveMemberTask(){
   if(!titre){alert('Le titre est obligatoire');return;}
   const type=document.getElementById('mt-type').value;
   if(type==='permanente'){
-    const exists=responsabilites.find(r=>r.titre.toLowerCase()===titre.toLowerCase());
-    if(exists){alert("Cette responsabilité est déjà attribuée à " + membreName(exists.titulaireId) + ". Une responsabilité ne peut avoir qu\'un seul titulaire.");return;}
+    var mMember=membres.find(function(x){return String(x.id)===String(selId);});
+    if(!mMember)return;
+    if(!mMember.responsabilites)mMember.responsabilites=[];
     const suppId=parseInt(document.getElementById('mt-supp').value)||null;
-    responsabilites.push({id:nextRespId++,titre,titulaireId:selId,suppleantId:suppId});
+    mMember.responsabilites.push({id:Date.now(),titre:titre,suppleantId:suppId});
+    saveRespsDB(selId);
   } else {
     alert('Tâche ponctuelle créée et assignée. Elle apparaîtra dans le module Tâches une fois les modules connectés.');
   }
@@ -813,9 +823,15 @@ function saveMemberTask(){
 }
 
 function saveSuppleant(){
-  const respId=parseInt(document.getElementById("supp-resp-id").value);
+  const respId=document.getElementById("supp-resp-id").value;
   const val=parseInt(document.getElementById("supp-select-inner").value)||null;
-  responsabilites=responsabilites.map(r=>r.id===respId?{...r,suppleantId:val}:r);
+  var m=membres.find(function(x){return String(x.id)===String(selId);});
+  if(m){
+    m.responsabilites=(m.responsabilites||[]).map(function(r){
+      return String(r.id)===String(respId)?Object.assign({},r,{suppleantId:val}):r;
+    });
+    saveRespsDB(selId);
+  }
   document.getElementById("mSuppleant").style.display="none";
   if(document.getElementById("mDetail").style.display==="flex")renderDet();
   if(document.getElementById("mEdit").style.display==="flex")renderEditResps();
@@ -1041,7 +1057,8 @@ async function assignerTachesModeles(membre, role) {
           description: mod.description || null,
           assignee: assigneeNom,
           statut: 'assignee',
-          priorite: 'moyenne'
+          priorite: 'moyenne',
+          type: 'modele'
         });
         nb++;
       } catch(e){ console.warn('Erreur création tâche:', e); }
