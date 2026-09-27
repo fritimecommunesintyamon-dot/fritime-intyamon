@@ -79,11 +79,21 @@ textarea.fi{resize:vertical;min-height:60px}
 .act-badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:20px;background:#f1efea;color:#444;margin-top:2px}
 .empty{text-align:center;padding:2rem;color:#888;font-size:13px}
 .overdue{color:#791f1f}
-
-
-}
-
-}
+.tab-btn{padding:8px 18px;border:none;background:transparent;cursor:pointer;font-size:13px;font-family:inherit;color:#666;font-weight:500;transition:all .15s}
+.tab-btn.active{background:#1a1a1a;color:#fff}
+.tab-btn:first-child{border-radius:7px 0 0 7px}
+.tab-btn:last-child{border-radius:0 7px 7px 0}
+/* Modèles */
+.role-section{background:#fff;border:1px solid #eee;border-radius:12px;margin-bottom:1rem;overflow:hidden}
+.role-header{padding:12px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #eee;background:#fafaf8}
+.role-title{font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px}
+.role-count{font-size:11px;color:#888;background:#f1efea;padding:2px 8px;border-radius:20px}
+.modele-row{padding:10px 16px;display:flex;align-items:flex-start;gap:10px;border-bottom:1px solid #f5f5f3}
+.modele-row:last-child{border-bottom:none}
+.modele-text{flex:1;min-width:0}
+.modele-titre{font-size:13px;font-weight:500;margin-bottom:2px}
+.modele-desc{font-size:12px;color:#888;line-height:1.4}
+.modele-actions{display:flex;gap:4px;flex-shrink:0}
 </style>
   <script src="fritime_data.js"></script>
   <script src="fritime_sync.js"></script>
@@ -272,10 +282,19 @@ function doLogout(){
 </div>
 <div class="ft-content">
 <div class="container">
-<div class="header">
-  <div><h1>Tâches</h1><div class="subtitle">Gestion et attribution des tâches — Fri-Time</div></div>
-  <button class="btn btn-primary" onclick="openCreate()">+ Nouvelle tâche</button>
+
+<!-- TABS -->
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
+  <div style="display:flex;gap:0;border:1px solid #ddd;border-radius:8px;overflow:hidden;background:#fff">
+    <button id="tab-btn-taches" class="tab-btn active" onclick="switchTab('taches')">✅ Tâches</button>
+    <button id="tab-btn-modeles" class="tab-btn" onclick="switchTab('modeles')">📋 Modèles par rôle</button>
+  </div>
+  <div id="tab-action-taches"><button class="btn btn-primary" onclick="openCreate()">+ Nouvelle tâche</button></div>
+  <div id="tab-action-modeles" style="display:none"><button class="btn btn-primary" onclick="openCreateModele()">+ Nouveau modèle</button></div>
 </div>
+
+<!-- TAB: TÂCHES -->
+<div id="tab-taches">
 
 <div class="metrics" id="metrics"></div>
 
@@ -304,6 +323,18 @@ function doLogout(){
 <div id="view-kanban" style="display:none">
   <div class="kanban" id="kanban"></div>
 </div>
+
+</div><!-- /tab-taches -->
+
+<!-- TAB: MODÈLES PAR RÔLE -->
+<div id="tab-modeles" style="display:none">
+  <div style="background:#f0f4ff;border:1px solid #c7d8f7;border-radius:10px;padding:12px 16px;margin-bottom:1rem;font-size:13px;color:#1a3a6b">
+    💡 Les tâches modèles sont automatiquement assignées aux membres du comité lorsqu'un rôle leur est attribué. Elles peuvent être ajoutées, modifiées, supprimées ou réattribuées à un autre rôle.
+  </div>
+
+  <div id="modeles-container"></div>
+</div><!-- /tab-modeles -->
+
 </div>
 
 <!-- Modal création -->
@@ -348,7 +379,7 @@ function doLogout(){
 <div class="modal" onclick="event.stopPropagation()"><div id="det"></div></div>
 </div>
 
-<!-- Modal édition -->
+<!-- Modal édition tâche -->
 <div id="mEdit" class="overlay" onclick="if(event.target.id==='mEdit')closeEdit()">
 <div class="modal" onclick="event.stopPropagation()">
   <div class="modal-title">Modifier la tâche</div>
@@ -358,7 +389,6 @@ function doLogout(){
     <div class="fg"><label class="fl">Assignée à</label>
       <select class="fi" id="ea">
         <option value="">— Non assignée —</option>
-        <!-- membres chargés dynamiquement -->
         <option>Lara Blanc</option><option>Paul Morel</option>
       </select>
     </div>
@@ -374,7 +404,6 @@ function doLogout(){
     <div class="fg"><label class="fl">Activité liée</label>
       <select class="fi" id="eal">
         <option value="">— Aucune —</option>
-<!-- activités chargées dynamiquement -->
         <option value="3">Cours de cirque</option>
       </select>
     </div>
@@ -384,6 +413,43 @@ function doLogout(){
   <div class="mf">
     <button class="btn btn-danger btn-sm" onclick="deleteTask()">Supprimer</button>
     <div style="display:flex;gap:8px"><button class="btn" onclick="closeEdit()">Annuler</button><button class="btn btn-primary" onclick="saveEdit()">Enregistrer</button></div>
+  </div>
+</div>
+</div>
+
+<!-- Modal créer/modifier modèle -->
+<div id="mModele" class="overlay" onclick="if(event.target.id==='mModele')closeModele()">
+<div class="modal" onclick="event.stopPropagation()">
+  <div class="modal-title" id="mModele-title">Nouveau modèle de tâche</div>
+  <div class="fg"><label class="fl">Titre *</label><input class="fi" id="mm-titre" placeholder="Ex: Rédiger les procès-verbaux des réunions" /></div>
+  <div class="fr">
+    <div class="fg"><label class="fl">Rôle *</label>
+      <select class="fi" id="mm-role">
+        <option value="Président/e">👑 Président/e</option>
+        <option value="Vice-président/e">🥈 Vice-président/e</option>
+        <option value="Secrétaire">📝 Secrétaire</option>
+        <option value="Trésorier/ère">💰 Trésorier/ère</option>
+        <option value="Tous">🌐 Tous les rôles</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">Suppléant (rôle)</label>
+      <select class="fi" id="mm-suppleant">
+        <option value="">— Aucun —</option>
+        <option value="Président/e">👑 Président/e</option>
+        <option value="Vice-président/e">🥈 Vice-président/e</option>
+        <option value="Secrétaire">📝 Secrétaire</option>
+        <option value="Trésorier/ère">💰 Trésorier/ère</option>
+        <option value="Tous">🌐 Tous les rôles</option>
+      </select>
+    </div>
+  </div>
+  <div class="fg"><label class="fl">Description (optionnel)</label><textarea class="fi" id="mm-desc" rows="3" placeholder="Détails ou précisions sur cette tâche..."></textarea></div>
+  <div class="mf">
+    <button class="btn btn-danger btn-sm" id="mm-del-btn" onclick="deleteModele()" style="display:none">Supprimer</button>
+    <div style="display:flex;gap:8px">
+      <button class="btn" onclick="closeModele()">Annuler</button>
+      <button class="btn btn-primary" onclick="saveModele()">Enregistrer</button>
+    </div>
   </div>
 </div>
 </div>
@@ -404,7 +470,7 @@ function prioLabel(p){return p==='haute'?'Haute':p==='basse'?'Basse':'Moyenne';}
 function prioCls(p){return p==='haute'?'prio-haute':p==='basse'?'prio-basse':'prio-moyenne';}
 
 function renderMetrics(){
-  const counts={};STATUTS.forEach(s=>counts[s]=taches.filter(t=>t.statut===s).length);
+  const counts={};STATUTS.forEach(s=>counts[s]=taches.slice().sort(function(a,b){return (a.titre||a.nom||"").localeCompare(b.titre||b.nom||"","fr");}).filter(t=>t.statut===s).length);
   document.getElementById('metrics').innerHTML=STATUTS.map(s=>`<div class="metric"><div class="metric-val">${counts[s]}</div><div class="metric-lbl">${STATUT_LABELS[s]}</div></div>`).join('');
 }
 
@@ -627,6 +693,140 @@ async function loadTachesDB(){
   }catch(e){console.warn('DB:',e);}
 }
 loadTachesDB();
+
+// ─── ONGLETS ────────────────────────────────────────────────────────────────
+function switchTab(tab){
+  ['taches','modeles'].forEach(function(t){
+    document.getElementById('tab-'+t).style.display = t===tab ? 'block' : 'none';
+    document.getElementById('tab-btn-'+t).classList.toggle('active', t===tab);
+    document.getElementById('tab-action-'+t).style.display = t===tab ? 'block' : 'none';
+  });
+  if(tab==='modeles') loadModeles();
+}
+
+// ─── TÂCHES MODÈLES ─────────────────────────────────────────────────────────
+var modeles = [];
+var modeleSelId = null;
+
+var ROLES = ['Président/e','Vice-président/e','Secrétaire','Trésorier/ère','Tous'];
+var ROLE_ICO = {'Président/e':'👑','Vice-président/e':'🥈','Secrétaire':'📝','Trésorier/ère':'💰','Tous':'🌐'};
+var ROLE_COLOR = {
+  'Président/e':'#fdf3e7',
+  'Vice-président/e':'#f0f4ff',
+  'Secrétaire':'#f3f0ff',
+  'Trésorier/ère':'#eaf3de',
+  'Tous':'#f5f5f3'
+};
+
+async function loadModeles(){
+  var a=0;
+  while(typeof FriDB==='undefined'&&a<30){await new Promise(function(r){setTimeout(r,100);});a++;}
+  try{
+    modeles = await FriDB.getTachesModeles();
+  }catch(e){console.warn('Modèles DB:',e); modeles=[];}
+  renderModeles();
+}
+
+function renderModeles(){
+  var container = document.getElementById('modeles-container');
+  if(!container) return;
+  var html = ROLES.map(function(role){
+    var items = modeles.filter(function(m){ return m.role === role; });
+    return '<div class="role-section">'+
+      '<div class="role-header" style="background:'+ROLE_COLOR[role]+'">'+
+        '<div class="role-title">'+ROLE_ICO[role]+' '+role+
+          '<span class="role-count">'+items.length+' tâche'+(items.length!==1?'s':'')+'</span>'+
+        '</div>'+
+        '<button class="btn btn-sm" onclick="openCreateModele(\''+role+'\')">+ Ajouter</button>'+
+      '</div>'+
+      (items.length ? items.map(function(m){
+        var suppHtml = m.suppleant_role
+          ? '<span style="font-size:11px;color:#0c447c;margin-left:6px;background:#e6f1fb;padding:1px 7px;border-radius:20px">↪ Suppléant : '+(ROLE_ICO[m.suppleant_role]||'')+' '+escHtml(m.suppleant_role)+'</span>'
+          : '';
+        return '<div class="modele-row">'+
+          '<div class="modele-text">'+
+            '<div class="modele-titre">'+escHtml(m.titre)+suppHtml+'</div>'+
+            (m.description ? '<div class="modele-desc">'+escHtml(m.description)+'</div>' : '')+
+          '</div>'+
+          '<div class="modele-actions">'+
+            '<button class="btn btn-sm" onclick="openEditModele('+m.id+')" title="Modifier">✏️</button>'+
+          '</div>'+
+        '</div>';
+      }).join('') : '<div style="padding:14px 16px;font-size:12px;color:#bbb;font-style:italic">Aucune tâche pour ce rôle</div>')+
+    '</div>';
+  }).join('');
+  container.innerHTML = html;
+}
+
+function escHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function openCreateModele(role){
+  modeleSelId = null;
+  document.getElementById('mModele-title').textContent = 'Nouveau modèle de tâche';
+  document.getElementById('mm-titre').value = '';
+  document.getElementById('mm-role').value = role || 'Tous';
+  document.getElementById('mm-suppleant').value = '';
+  document.getElementById('mm-desc').value = '';
+  document.getElementById('mm-del-btn').style.display = 'none';
+  document.getElementById('mModele').style.display = 'flex';
+}
+
+function openEditModele(id){
+  var m = modeles.find(function(x){ return x.id===id; });
+  if(!m) return;
+  modeleSelId = id;
+  document.getElementById('mModele-title').textContent = 'Modifier le modèle';
+  document.getElementById('mm-titre').value = m.titre || '';
+  document.getElementById('mm-role').value = m.role || 'Tous';
+  document.getElementById('mm-suppleant').value = m.suppleant_role || '';
+  document.getElementById('mm-desc').value = m.description || '';
+  document.getElementById('mm-del-btn').style.display = 'inline-block';
+  document.getElementById('mModele').style.display = 'flex';
+}
+
+function closeModele(){
+  document.getElementById('mModele').style.display = 'none';
+}
+
+async function saveModele(){
+  var titre = document.getElementById('mm-titre').value.trim();
+  if(!titre){ alert('Le titre est obligatoire'); return; }
+  var obj = {
+    titre: titre,
+    role: document.getElementById('mm-role').value,
+    suppleant_role: document.getElementById('mm-suppleant').value || null,
+    description: document.getElementById('mm-desc').value.trim() || null
+  };
+  if(modeleSelId) obj.id = modeleSelId;
+
+  try{
+    var res = await FriDB.saveTacheModele(obj);
+    if(modeleSelId){
+      modeles = modeles.map(function(m){ return m.id===modeleSelId ? Object.assign({},m,obj) : m; });
+    } else {
+      var newId = res && res[0] && res[0].id;
+      if(newId) obj.id = newId;
+      modeles.push(obj);
+    }
+    closeModele();
+    renderModeles();
+  }catch(e){
+    alert('Erreur lors de la sauvegarde : '+e.message);
+  }
+}
+
+async function deleteModele(){
+  if(!modeleSelId) return;
+  if(!confirm('Supprimer ce modèle de tâche ?')) return;
+  try{
+    await FriDB.deleteTacheModele(modeleSelId);
+    modeles = modeles.filter(function(m){ return m.id !== modeleSelId; });
+    closeModele();
+    renderModeles();
+  }catch(e){
+    alert('Erreur lors de la suppression : '+e.message);
+  }
+}
 </script>
 </body>
 </html>
