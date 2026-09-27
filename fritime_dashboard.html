@@ -540,7 +540,7 @@ function render(){
   if(actsSansPrest.length) alertes.push({ico:"⚠️",titre:actsSansPrest.length+" activité(s) sans prestataire",sub:actsSansPrest.slice(0,3).map(function(a){return a.nom;}).join(", "),urgent:false,date:""});
   var actsSansDate=actOk.filter(function(a){return !a.date;});
   if(actsSansDate.length) alertes.push({ico:"📅",titre:actsSansDate.length+" activité(s) sans date",sub:actsSansDate.slice(0,3).map(function(a){return a.nom;}).join(", "),urgent:false,date:""});
-  var tachHaute=dbTaches.filter(function(t){return (t.priorite==="haute"||t.priorite==="high")&&t.statut!=="terminee";});
+  var tachHaute=dbTaches.filter(function(t){return (t.priorite==="haute"||t.priorite==="high")&&t.statut!=="terminee"&&t.statut!=="archivee";});
   if(tachHaute.length) alertes.push({ico:"🔴",titre:tachHaute.length+" tâche(s) priorité haute",sub:tachHaute.slice(0,3).map(function(t){return t.titre||t.nom||"";}).join(", "),urgent:true,date:""});
   if(solde<0) alertes.push({ico:"💸",titre:"Budget déficitaire",sub:"Solde : "+chf(solde),urgent:true,date:""});
   var comptes=JSON.parse(localStorage.getItem("ft_comptes")||"[]");
