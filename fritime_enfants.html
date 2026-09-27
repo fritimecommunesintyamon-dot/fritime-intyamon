@@ -347,7 +347,8 @@ const ACTS=[{id:1,nom:'Atelier poterie',places:12,amin:6,amax:12},{id:2,nom:'Sor
 
 function calcPartsFromInscriptions(){
   enfants=enfants.map(function(e){
-    var count=inscriptions.filter(function(i){ return i.enfant_id===e.id && i.presence===true; }).length;
+    // == pour gérer int vs string selon la source (DB ou local)
+    var count=inscriptions.filter(function(i){ return i.enfant_id==e.id && i.presence===true; }).length;
     return Object.assign({},e,{parts:count});
   });
 }
@@ -483,8 +484,8 @@ function openAddPart(id){
   var e=enfants.find(function(x){return x.id===id;});
   if(!e)return;
   // Activités où l'enfant est déjà inscrit
-  var dejainscrit=inscriptions.filter(function(i){return i.enfant_id===id;}).map(function(i){return i.activite_id;});
-  var dispo=activitesList.filter(function(a){return !dejainscrit.includes(a.id);});
+  var dejainscrit=inscriptions.filter(function(i){return i.enfant_id==id;}).map(function(i){return Number(i.activite_id);});
+  var dispo=activitesList.filter(function(a){return !dejainscrit.includes(Number(a.id));});
   var sel=document.getElementById('part-act-sel');
   if(sel){
     sel.innerHTML='<option value="">— Choisir une activité —</option>'+
@@ -500,13 +501,14 @@ async function saveAddPart(){
   var e=enfants.find(function(x){return x.id===selId;});
   if(!e)return;
   // Double vérification doublon
-  var dejainscrit=inscriptions.filter(function(i){return i.enfant_id===selId && i.activite_id===actId;});
+  var dejainscrit=inscriptions.filter(function(i){return i.enfant_id==selId && i.activite_id==actId;});
   if(dejainscrit.length){alert('Cet enfant est déjà inscrit à cette activité.');return;}
   var newInsc={enfant_id:selId, activite_id:actId, statut:'confirme', presence:true};
   if(typeof FriDB!=='undefined'){
     try{
       var res=await FriDB.query('inscriptions','POST',newInsc,'');
-      if(res&&res[0]) newInsc=Object.assign({},newInsc,res[0]);
+      // On garde presence:true explicitement — la DB peut retourner null si pas de valeur par défaut
+      if(res&&res[0]) newInsc=Object.assign({},newInsc,res[0],{presence:true});
     }catch(err){console.warn('saveAddPart:',err);}
   }
   inscriptions.push(newInsc);
