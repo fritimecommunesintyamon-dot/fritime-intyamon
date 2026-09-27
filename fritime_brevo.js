@@ -158,6 +158,8 @@ const FriBrevo = {
     var cout = activite.cout ? activite.cout + ' CHF' : 'Gratuit';
     var prestataire = activite.prestContact || '';
     var responsableNom = activite.responsableNom || activite.responsable_nom || '';
+    // Strip tel number from nom if included (e.g. "Karine Rebelo (0797937642)")
+    responsableNom = responsableNom.replace(/\s*\(\d[\d\s]+\)$/, '').trim();
     var responsableTel = activite.responsableTel || '';
 
     var html = `
