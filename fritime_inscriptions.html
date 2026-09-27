@@ -760,7 +760,7 @@ async function loadInscriptionsDB(){
   if(typeof FriDB==='undefined') return;
   try{
     var db_activites = await FriDB.getActivites();
-    if(db_activites && db_activites.length) activites = db_activites;
+    if(db_activites && db_activites.length){ activites = db_activites; console.log('[Insc] activites chargées:', activites.length, 'responsableNom ex:', activites[0]?activites[0].responsableNom||activites[0].responsable_nom:'N/A'); }
     var db_enfants = await FriDB.getEnfants();
     if(db_enfants && db_enfants.length) enfants = db_enfants;
     var db_inscriptions = await FriDB.getInscriptions();
@@ -1007,7 +1007,17 @@ async function envoyerConfirmationsActivite(actId){
   if(!confirmes.length){ alert("Aucune inscription confirmée pour cette activité."); return; }
   
   // Vérifier qu'un responsable est assigné
-  if(!act.responsableNom && !act.responsable_nom){
+  var respNom = act.responsableNom || act.responsable_nom || "";
+  if(!respNom){
+    // Try to reload from Supabase in case mapping missed it
+    try{
+      var freshAct = await FriDB.query("activites","GET",null,"?id=eq."+actId+"&select=responsable_nom,responsable_id");
+      if(freshAct && freshAct[0] && freshAct[0].responsable_nom){
+        respNom = freshAct[0].responsable_nom;
+      }
+    }catch(e){}
+  }
+  if(!respNom){
     alert("⚠️ Impossible d'envoyer les confirmations\n\nAucun responsable du jour n'est assigné à cette activité.\n\nVa dans le module Activités, modifie l'activité et assigne un responsable du jour avant d'envoyer les confirmations.");
     return;
   }
