@@ -199,6 +199,11 @@ const FriBrevo = {
       <tr><td style="padding:5px 0">💰</td><td style="padding:5px 0"><strong>Coût</strong></td><td style="padding:5px 0">${cout}</td></tr>
     </table>
 
+    <div style="background:#1a1a1a;border-radius:8px;padding:16px;margin-bottom:16px;text-align:center">
+      <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:6px">📌 À lire attentivement avant le jour de l'activité</div>
+      <div style="font-size:13px;color:rgba(255,255,255,.75);line-height:1.6">Ce mail contient toutes les informations importantes pour le bon déroulement de la journée.<br>Merci de le lire en entier et de communiquer ces informations à votre enfant.</div>
+    </div>
+
     <div style="background:#faeeda;border-radius:8px;padding:14px 16px;font-size:13px;color:#633806;margin-bottom:16px">
       ⚠️ <strong>Absence :</strong> Toute absence non justifiée peut entraîner l'exclusion des inscriptions pour le reste de la saison.
       En cas d'empêchement, merci de nous prévenir au plus vite afin de pouvoir pourvoir la place à un autre enfant.
