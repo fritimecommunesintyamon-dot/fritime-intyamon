@@ -94,6 +94,7 @@ textarea.fi{resize:vertical;min-height:70px}
   <script src="fritime_sync.js"></script>
   <script src="fritime_auth.js"></script>
   <script src="fritime_supabase.js"></script>
+  <script src="fritime_brevo.js"></script>
   <script src="fritime_categories.js"></script>
 
 <style id="sidebar-css">
@@ -705,6 +706,7 @@ function renderDet(){
     <div style="display:flex;justify-content:space-between;margin-top:1rem;padding-top:1rem;border-top:1px solid #eee">
       <button class="btn btn-sm btn-danger" onclick="editId=selId;deleteActivite()">Supprimer</button>
       <div style="display:flex;gap:8px">
+        <button class="btn btn-sm" onclick="openModifResponsable(${a.id})" style="background:#eaf3de;color:#275a0a;border-color:#c0dd97">👤 Responsable</button>
         <button class="btn btn-sm" onclick="openEditAct(${a.id})">Modifier</button>
         <button class="btn btn-sm btn-primary" onclick="closeDetail()">Fermer</button>
       </div>
@@ -786,6 +788,121 @@ async function saveActivite_DB(a){
 }
 
 loadActivitesDB();
+</script>
+
+<!-- Modal modifier responsable -->
+<div id="mResponsable" class="overlay" onclick="if(event.target.id==='mResponsable')document.getElementById('mResponsable').style.display='none'">
+<div class="modal" onclick="event.stopPropagation()" style="max-width:480px">
+  <div class="modal-title">👤 Modifier le responsable du jour</div>
+  <div style="background:#e6f1fb;border-radius:8px;padding:12px;font-size:13px;color:#0c447c;margin-bottom:1rem">
+    Un mail sera automatiquement envoyé à tous les participants confirmés pour les informer du changement.
+  </div>
+  <div class="fg">
+    <label class="fl">Nouveau responsable *</label>
+    <select class="fi" id="r-responsable">
+      <option value="">— Choisir un membre du comité —</option>
+    </select>
+  </div>
+  <div class="fg">
+    <label class="fl">Message complémentaire (optionnel)</label>
+    <textarea class="fi" id="r-message" rows="2" placeholder="Ex: Suite à un imprévu, le responsable a changé..."></textarea>
+  </div>
+  <div class="mf">
+    <button class="btn" onclick="document.getElementById('mResponsable').style.display='none'">Annuler</button>
+    <button class="btn btn-primary" onclick="confirmerModifResponsable()">Confirmer et envoyer les mails</button>
+  </div>
+</div>
+</div>
+
+<script>
+var modifRespActId = null;
+
+async function openModifResponsable(actId){
+  modifRespActId = actId;
+  var rSel = document.getElementById("r-responsable");
+  rSel.innerHTML = '<option value="">— Choisir un membre du comité —</option>';
+  document.getElementById("r-message").value = "";
+  
+  try{
+    var dbMembres = await FriDB.getMembres();
+    if(dbMembres && dbMembres.length){
+      dbMembres.filter(function(m){return m.statut==="actif";})
+        .sort(function(a,b){return (a.nom||"").localeCompare(b.nom||"","fr");})
+        .forEach(function(m){
+          var opt = document.createElement("option");
+          opt.value = m.id;
+          opt.setAttribute("data-tel", m.tel||"");
+          opt.setAttribute("data-nom", (m.prenom||"")+" "+(m.nom||""));
+          opt.text = (m.prenom||"")+" "+(m.nom||"")+(m.tel?" ("+m.tel+")":"");
+          rSel.appendChild(opt);
+        });
+    }
+  }catch(e){ console.warn("Membres:", e); }
+  
+  document.getElementById("mResponsable").style.display = "flex";
+}
+
+async function confirmerModifResponsable(){
+  var rSel = document.getElementById("r-responsable");
+  var rId = parseInt(rSel.value)||null;
+  if(!rId){ alert("Veuillez choisir un responsable."); return; }
+  
+  var opt = rSel.options[rSel.selectedIndex];
+  var rNom = opt.getAttribute("data-nom")||opt.text.replace(/\s*\([\d\s]+\)$/,'').trim();
+  var rTel = opt.getAttribute("data-tel")||"";
+  var rMsg = document.getElementById("r-message").value.trim();
+  
+  var act = activites.find(function(a){return String(a.id)===String(modifRespActId);});
+  if(!act){ alert("Activité introuvable."); return; }
+  
+  var btn = document.querySelector("#mResponsable .btn-primary");
+  btn.textContent = "Envoi en cours...";
+  btn.disabled = true;
+  
+  // Update in Supabase
+  try{
+    await FriDB.query("activites","PATCH",{
+      responsable_id: rId,
+      responsable_nom: rNom,
+      responsable_tel: rTel
+    },"?id=eq."+modifRespActId);
+    activites = activites.map(function(a){
+      return String(a.id)===String(modifRespActId)?Object.assign({},a,{responsableId:rId,responsableNom:rNom,responsableTel:rTel}):a;
+    });
+  }catch(e){ console.warn("Update responsable:", e); }
+  
+  // Send mails to all confirmed participants
+  if(typeof FriBrevo !== "undefined"){
+    var inscriptions_act = [];
+    try{
+      var allInsc = await FriDB.getInscriptions(modifRespActId);
+      inscriptions_act = (allInsc||[]).filter(function(i){return i.statut==="confirme";});
+    }catch(e){}
+    
+    var dbEnfants = [];
+    try{ dbEnfants = await FriDB.getEnfants()||[]; }catch(e){}
+    
+    var actMaj = Object.assign({},act,{responsableNom:rNom,responsableTel:rTel});
+    var ok=0, erreurs=0;
+    for(var k=0; k<inscriptions_act.length; k++){
+      var insc = inscriptions_act[k];
+      var enfant = dbEnfants.find(function(e){return String(e.id)===String(insc.enfantId||insc.enfant_id);});
+      if(!enfant){erreurs++;continue;}
+      var parent = {prenom:enfant.pp||"",nom:enfant.pn||"",email:enfant.pe||""};
+      if(!parent.email){erreurs++;continue;}
+      try{
+        await FriBrevo.sendChangementResponsable(enfant, parent, actMaj, rMsg);
+        ok++;
+      }catch(e){ console.warn("Mail changement:", e); erreurs++; }
+    }
+    alert("✓ Responsable mis à jour. "+ok+" mail(s) envoyé(s)"+(erreurs?" — "+erreurs+" échec(s)":"")+".");
+  }
+  
+  document.getElementById("mResponsable").style.display = "none";
+  btn.textContent = "Confirmer et envoyer les mails";
+  btn.disabled = false;
+  render();
+}
 </script>
 </body>
 </html>

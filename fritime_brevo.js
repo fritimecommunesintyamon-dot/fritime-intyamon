@@ -334,6 +334,64 @@ const FriBrevo = {
   },
 
 
+  async sendChangementResponsable(enfant, parent, activite, messageCompl) {
+    var prenom = enfant.prenom || '';
+    var prenomParent = parent.prenom || '';
+    var nomParent = parent.nom || '';
+    var emailParent = parent.email || '';
+    if (!emailParent) throw new Error('Email parent manquant');
+
+    var date = activite.date ? activite.date.split('-').reverse().join('.') : '—';
+    var responsableNom = (activite.responsableNom || '').replace(/\s*\([\d\s]+\)$/, '').trim();
+    var responsableTel = activite.responsableTel || '';
+
+    var html = `
+<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f5f5f3;font-family:system-ui,sans-serif">
+<div style="max-width:600px;margin:0 auto;padding:24px 16px">
+
+  <div style="background:#1a1a1a;border-radius:12px 12px 0 0;padding:24px 28px">
+    <div style="font-size:18px;font-weight:700;color:#fff;letter-spacing:.05em">Fri-Time Intyamon</div>
+    <div style="font-size:13px;color:rgba(255,255,255,.5);margin-top:4px">Programme d'activités intercommunal</div>
+  </div>
+
+  <div style="background:#fff;padding:28px;border:1px solid #eee;border-top:none">
+    <div style="font-size:22px;font-weight:700;color:#0c447c;margin-bottom:6px">ℹ️ Changement de responsable</div>
+    <p style="font-size:14px;color:#555;margin:0 0 20px">Bonjour ${prenomParent} ${nomParent},</p>
+    <p style="font-size:14px;color:#333;margin:0 0 16px">
+      Nous vous informons d'un changement de responsable du jour pour l'activité 
+      <strong>${activite.nom}</strong> du <strong>${date}</strong> à laquelle participe <strong>${prenom}</strong>.
+    </p>
+    
+    <div style="background:#f5f5f3;border-radius:10px;padding:16px;margin-bottom:20px">
+      <div style="font-size:13px;color:#888;margin-bottom:6px">Nouveau responsable du jour</div>
+      <div style="font-size:16px;font-weight:700;color:#791f1f">${responsableNom}</div>
+      ${responsableTel ? '<div style="font-size:14px;color:#555;margin-top:4px">📞 <a href="tel:' + responsableTel + '" style="color:#0c447c">' + responsableTel + '</a></div>' : ''}
+    </div>
+
+    ${messageCompl ? '<div style="background:#e6f1fb;border-radius:8px;padding:14px;font-size:13px;color:#0c447c;margin-bottom:20px">' + messageCompl + '</div>' : ''}
+
+    <p style="font-size:13px;color:#888;margin:0">
+      Des questions ? Contactez-nous à 
+      <a href="mailto:fritimecommunesintyamon@gmail.com" style="color:#0c447c">fritimecommunesintyamon@gmail.com</a>
+    </p>
+  </div>
+
+  <div style="background:#f5f5f3;border-radius:0 0 12px 12px;padding:16px 28px;text-align:center">
+    <div style="font-size:12px;color:#aaa">© Fri-Time Intyamon · Programme intercommunal de l'Intyamon</div>
+  </div>
+
+</div>
+</body>
+</html>`;
+
+    var subject = 'Changement de responsable — ' + activite.nom + ' — ' + date;
+    return await this.sendEmail(emailParent, subject, html);
+  },
+
+
 };
 
 window.FriBrevo = FriBrevo;
