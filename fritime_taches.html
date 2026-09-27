@@ -705,13 +705,13 @@ var modeleSelId = null;
 var membresList = [];  // cache membres pour le select suppléant
 
 async function chargerMembresModele(){
-  if(membresList.length) return;
+  if(typeof FriDB !== 'undefined'){
+    try{ membresList = await FriDB.getMembres(); return; }catch(e){}
+  }
+  // fallback localStorage
   var ftData = localStorage.getItem("ft_data");
   if(ftData){
     try{ membresList = JSON.parse(ftData).membres || []; }catch(e){}
-  }
-  if(!membresList.length && typeof FriDB !== 'undefined'){
-    try{ membresList = await FriDB.getMembres(); }catch(e){}
   }
 }
 
