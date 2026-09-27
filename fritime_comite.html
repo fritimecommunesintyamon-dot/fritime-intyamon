@@ -430,6 +430,7 @@ let nextRespId=9;
 
 let membres=[{id:1,prenom:"Karine",nom:"Rebelo",role:"Présidente",statut:"actif",email:"karine_rebelo@hotmail.fr",tel:"",commune:"Albeuve",dateEntree:"2026-01-01",finEngagement:"",notes:""}];
 let nid=7,selId=null,filtre='tous',editResps=[];
+var tachesDB=[];
 
 function membreName(id){const m=membres.find(x=>x.id===id);return m?m.prenom+' '+m.nom:'—';}
 function respsDe(membreId){return responsabilites.filter(r=>r.titulaireId===membreId);}
@@ -437,11 +438,8 @@ function suppleantPour(membreId){return responsabilites.filter(r=>r.suppleantId=
 function ini(m){return((m.prenom||'')[0]+(m.nom||'')[0]).toUpperCase();}
 function fmtDate(d){if(!d)return'';const[y,m,j]=d.split('-');return`${j}.${m}.${y}`;}
 function tachesOf(m){
-  return[
-    {titre:"Contacter le prestataire poterie",statut:"terminee"},
-    {titre:"Réserver la salle communale",statut:"encours"},
-    {titre:"Préparer la liste participants",statut:"assignee"},
-  ].filter((_,i)=>i<(m.id%3));
+  var nom=(m.prenom||'')+' '+(m.nom||'');
+  return tachesDB.filter(function(t){return t.assignee===nom && t.statut!=='archivee';});
 }
 
 function fillRoleSelect(id,currentVal){
@@ -523,8 +521,9 @@ function render(){
         <div style="font-size:11px;color:#888;margin-bottom:4px">Suppléant pour ${suppl.length} responsabilité(s)</div>
       </div>`:''}
       ${enCours.length?`<div style="margin-top:8px;padding-top:8px;border-top:1px solid #eee">
-        <div style="font-size:11px;color:#888;margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em">Tâches en cours (${enCours.length})</div>
-        ${enCours.map(t=>`<div class="task-mini"><span style="flex:1">${t.titre}</span><span class="status-pill sp-${t.statut}">${t.statut==='encours'?'En cours':t.statut==='assignee'?'Assignée':'Ouverte'}</span></div>`).join('')}
+        <div style="font-size:11px;color:#888;margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em">Tâches (${taches.length})</div>
+        ${enCours.slice(0,3).map(t=>`<div class="task-mini"><span style="flex:1">${t.titre}</span><span class="status-pill sp-${t.statut}">${t.statut==='encours'?'En cours':t.statut==='assignee'?'Assignée':'Ouverte'}</span></div>`).join('')}
+        ${taches.length>3?`<div style="font-size:11px;color:#888;margin-top:2px">+${taches.length-3} autre(s)</div>`:''}
       </div>`:''}
     </div>`;
   }).join('');
@@ -562,7 +561,15 @@ function saveCreate(){
   })();
 }
 
-function openDetail(id){selId=id;renderDet();document.getElementById('mDetail').style.display='flex';}
+function openDetail(id){
+  selId=id;
+  document.getElementById('mDetail').style.display='flex';
+  renderDet();
+  // Rafraîchir les tâches depuis Supabase si dispo
+  if(typeof FriDB!=='undefined'){
+    FriDB.getTaches().then(function(t){if(t){tachesDB=t;renderDet();}}).catch(function(){});
+  }
+}
 function closeDetail(){document.getElementById('mDetail').style.display='none';}
 function renderDet(){
   const m=membres.find(x=>x.id===selId);if(!m)return;
@@ -607,9 +614,12 @@ function renderDet(){
       ${suppl.map(r=>`<div class="resp-item"><span style="color:#bbb">↪</span><span style="flex:1">${r.titre}</span><span style="font-size:12px;color:#0c447c">(titulaire : ${membreName(r.titulaireId)})</span></div>`).join('')}
     `:''}
     ${taches.length?`
-      <div style="font-size:12px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.05em;margin:12px 0 8px">Tâches en cours</div>
-      ${taches.map(t=>`<div class="tache-det"><span style="flex:1">${t.titre}</span><span class="status-pill sp-${t.statut}">${t.statut==='encours'?'En cours':t.statut==='assignee'?'Assignée':t.statut==='terminee'?'Terminée':'Ouverte'}</span></div>`).join('')}
-    `:''}
+      <div style="font-size:12px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.05em;margin:12px 0 8px">Tâches (${taches.length})</div>
+      ${taches.map(t=>{
+        var lbl=t.statut==='encours'?'En cours':t.statut==='assignee'?'Assignée':t.statut==='terminee'?'Terminée':'Ouverte';
+        return '<div class="tache-det"><span style="flex:1">'+t.titre+'</span><span class="status-pill sp-'+t.statut+'">'+lbl+'</span></div>';
+      }).join('')}
+    `:'<div style="font-size:13px;color:#bbb;margin:10px 0 8px">Aucune tâche assignée</div>'}
     ${m.notes?`<div style="margin-top:10px;padding:10px;background:#fafaf8;border-radius:8px;font-size:13px;color:#555">${m.notes}</div>`:''}
     <div class="mf">
       <button class="btn btn-sm btn-danger" onclick="closeDetail();deleteMemberById(${m.id})">Supprimer</button>
@@ -919,9 +929,13 @@ async function loadFromDB(){
     var dbData = await FriDB.getMembres();
     if(dbData && dbData.length) {
       membres = dbData;
-      render();
     }
-  } catch(e){ console.warn('Supabase non dispo:', e); }
+  } catch(e){ console.warn('Supabase membres non dispo:', e); }
+  try {
+    var tData = await FriDB.getTaches();
+    if(tData) tachesDB = tData;
+  } catch(e){ console.warn('Supabase taches non dispo:', e); }
+  render();
 }
 
 async function saveMembre_DB(m){
