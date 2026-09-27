@@ -205,7 +205,7 @@ const FriBrevo = {
     </div>
 
     <div style="background:#faeeda;border-radius:8px;padding:14px 16px;font-size:13px;color:#633806;margin-bottom:16px">
-      ⚠️ <strong>Absence :</strong> Toute absence non justifiée peut entraîner l'exclusion des inscriptions pour le reste de la saison.
+      ⚠️ <strong>Absence :</strong> Les places étant limitées et réservées, toute absence non justifiée peut entraîner l'exclusion des inscriptions pour le reste de la saison.
       En cas d'empêchement, merci de nous prévenir au plus vite afin de pouvoir pourvoir la place à un autre enfant.
     </div>
 
@@ -234,7 +234,7 @@ const FriBrevo = {
         </tr>
         <tr style="vertical-align:top">
           <td style="padding:5px 8px 5px 0">🚑</td>
-          <td style="padding:5px 0"><strong>Urgences :</strong> Les bénévoles sont formés aux premiers secours. En cas d'urgence : 144 ambulance · 117 police · 118 pompiers · 1414 Rega. <span style="color:#791f1f;font-weight:700">⚠️ Il est impératif d'être joignable par téléphone pendant toute la durée de l'activité.</span></td>
+          <td style="padding:5px 0"><strong>Urgences :</strong> Nos bénévoles connaissent les premiers gestes de secours. Toutefois, en cas d'urgence extrême, les services compétents sont contactés immédiatement (144 · 117 · 118 · 1414) et vous aussi au même moment. <span style="color:#791f1f;font-weight:700">⚠️ Il est donc impératif d'être joignable par téléphone pendant toute la durée de l'activité.</span></td>
         </tr>
         <tr style="vertical-align:top">
           <td style="padding:5px 8px 5px 0">🏥</td>
