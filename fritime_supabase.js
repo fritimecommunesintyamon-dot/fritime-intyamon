@@ -58,7 +58,7 @@ const FriDB = {
   async saveActivite(a) {
     var allowed = ['nom','description','date','date_limite','heure_debut','heure_fin','lieu',
       'prest_id','prest_contact','prest_email','prest_tel','prest_url','age_min','age_max','places','inscrits','surveillants','cout','cout_type',
-      'cout_facture','materiel','tenue','statut','annee','categorie','sous_categorie','responsable_id','responsable_nom',
+      'cout_facture','materiel','tenue','statut','annee','categorie','sous_categorie','responsable_id','responsable_nom','responsable_tel',
       't_public','t_parent','t_meteo','t_service','notes','image'];
     // Convert camelCase to snake_case first
     var converted = FriDB.toDb(Object.assign({}, a));
@@ -360,8 +360,10 @@ FriDB.toDb = function(obj) {
   if ('sousCategorie' in mapped) { mapped.sous_categorie = mapped.sousCategorie; delete mapped.sousCategorie; }
   if ('responsableId' in mapped) { mapped.responsable_id = mapped.responsableId; delete mapped.responsableId; }
   if ('responsableNom' in mapped) { mapped.responsable_nom = mapped.responsableNom; delete mapped.responsableNom; }
+  if ('responsableTel' in mapped) { mapped.responsable_tel = mapped.responsableTel; delete mapped.responsableTel; }
   if ('responsableId' in mapped) { mapped.responsable_id = mapped.responsableId; delete mapped.responsableId; }
   if ('responsableNom' in mapped) { mapped.responsable_nom = mapped.responsableNom; delete mapped.responsableNom; }
+  if ('responsableTel' in mapped) { mapped.responsable_tel = mapped.responsableTel; delete mapped.responsableTel; }
   if ('dateActivite' in mapped) { mapped.date_activite = mapped.dateActivite; delete mapped.dateActivite; }
   if ('dateEnvoi' in mapped) { mapped.date_envoi = mapped.dateEnvoi; delete mapped.dateEnvoi; }
   if ('coutEstime' in mapped) { mapped.cout_estime = mapped.coutEstime; delete mapped.coutEstime; }
@@ -396,6 +398,7 @@ FriDB.fromDb = function(obj) {
   if ('sous_categorie' in mapped) { mapped.souscat = mapped.sous_categorie; }
   if ('responsable_id' in mapped) { mapped.responsableId = mapped.responsable_id; }
   if ('responsable_nom' in mapped) { mapped.responsableNom = mapped.responsable_nom; }
+  if ('responsable_tel' in mapped) { mapped.responsableTel = mapped.responsable_tel; }
   if ('ban_motif' in mapped) { mapped.banMotif = mapped.ban_motif; delete mapped.ban_motif; }
   if ('date_entree' in mapped) { mapped.dateEntree = mapped.date_entree; delete mapped.date_entree; }
   if ('fin_engagement' in mapped) { mapped.finEngagement = mapped.fin_engagement; delete mapped.fin_engagement; }
