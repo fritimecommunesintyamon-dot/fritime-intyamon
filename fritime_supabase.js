@@ -493,3 +493,4 @@ FriDB.quickSave = async function(table, obj) {
 
 window.FriDB = FriDB;
 console.log('Fri-Time Intyamon — Supabase connecté ✓');
+ 
