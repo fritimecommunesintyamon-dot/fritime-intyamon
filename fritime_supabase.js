@@ -60,8 +60,10 @@ const FriDB = {
       'prest_id','prest_contact','prest_email','prest_tel','prest_url','age_min','age_max','places','inscrits','surveillants','cout','cout_type',
       'cout_facture','materiel','tenue','statut','annee','categorie','sous_categorie','responsable_id','responsable_nom',
       't_public','t_parent','t_meteo','t_service','notes','image'];
+    // Convert camelCase to snake_case first
+    var converted = FriDB.toDb(Object.assign({}, a));
     var clean = {};
-    allowed.forEach(function(k){ if(k in a && a[k] !== undefined && a[k] !== null) clean[k] = a[k]; });
+    allowed.forEach(function(k){ if(k in converted && converted[k] !== undefined && converted[k] !== null) clean[k] = converted[k]; });
     if (a.id) {
       delete clean.id;
       return await this.query('activites', 'PATCH', clean, '?id=eq.'+a.id);
@@ -356,6 +358,8 @@ FriDB.toDb = function(obj) {
   }
   if ('souscat' in mapped) { mapped.sous_categorie = mapped.souscat; delete mapped.souscat; }
   if ('sousCategorie' in mapped) { mapped.sous_categorie = mapped.sousCategorie; delete mapped.sousCategorie; }
+  if ('responsableId' in mapped) { mapped.responsable_id = mapped.responsableId; delete mapped.responsableId; }
+  if ('responsableNom' in mapped) { mapped.responsable_nom = mapped.responsableNom; delete mapped.responsableNom; }
   if ('responsableId' in mapped) { mapped.responsable_id = mapped.responsableId; delete mapped.responsableId; }
   if ('responsableNom' in mapped) { mapped.responsable_nom = mapped.responsableNom; delete mapped.responsableNom; }
   if ('dateActivite' in mapped) { mapped.date_activite = mapped.dateActivite; delete mapped.dateActivite; }
