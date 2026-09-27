@@ -755,12 +755,17 @@ async function loadActivitesDB(){
       if(dbMembres&&dbMembres.length){
         var rSel=document.getElementById("f-responsable");
         if(rSel){
-          rSel.innerHTML='<option value="">— Choisir un membre du comité —</option>'+
+          rSel.innerHTML="<option value=''>— Choisir un membre du comité —</option>"+
             dbMembres.filter(function(m){return m.statut==="actif";})
             .sort(function(a,b){return (a.nom||"").localeCompare(b.nom||"","fr");})
             .map(function(m){
               var tel=m.tel?" ("+m.tel+")":"";
-              return '<option value="'+m.id+'" data-tel="'+(m.tel||'')+'" data-nom="'+(m.prenom||"")+" "+(m.nom||"")+'">'+(m.prenom||"")+" "+(m.nom||"")+tel+'</option>';
+              var option=document.createElement("option");
+              option.value=m.id;
+              option.setAttribute("data-tel",m.tel||"");
+              option.setAttribute("data-nom",(m.prenom||"")+" "+(m.nom||""));
+              option.text=(m.prenom||"")+" "+(m.nom||"")+tel;
+              return option.outerHTML;
             }).join("");
         }
       }
