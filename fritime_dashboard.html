@@ -304,7 +304,7 @@ function doLogout(){
 
     <div class="page-header">
       <div class="page-title">Tableau de bord</div>
-      <div class="page-sub">Année 2025–2026 · Dernière mise à jour : aujourd'hui</div>
+      <div class="page-sub">Année 2025–2026 · Dernière mise à jour : <span id="last-update">—</span></div>
     </div>
 
     <!-- Sélecteur période -->
@@ -556,7 +556,22 @@ function render(){
   }).join(""):'<div style="text-align:center;padding:1.5rem;color:#bbb;font-size:13px">Aucun point d attention</div>';
 }
 
-loadDashboardDB();
+function updateTimestamp(){
+  var now=new Date();
+  var h=String(now.getHours()).padStart(2,"0");
+  var m=String(now.getMinutes()).padStart(2,"0");
+  var el=document.getElementById("last-update");
+  if(el) el.textContent="aujourd'hui à "+h+":"+m;
+}
+
+async function refreshDashboard(){
+  await loadDashboardDB();
+  updateTimestamp();
+}
+
+refreshDashboard();
+// Auto-refresh toutes les 60 secondes
+setInterval(refreshDashboard, 60000);
 </script>
 </div>
 </div>
