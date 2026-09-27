@@ -186,7 +186,7 @@ const FriBrevo = {
         <tr><td style="padding:5px 0">🕐</td><td style="padding:5px 0"><strong>Horaire</strong></td><td style="padding:5px 0">${horaire}</td></tr>
         <tr><td style="padding:5px 0">📍</td><td style="padding:5px 0"><strong>Lieu</strong></td><td style="padding:5px 0">${lieu}</td></tr>
         ${prestataire ? `<tr><td style="padding:5px 0">🤝</td><td style="padding:5px 0"><strong>Animé par</strong></td><td style="padding:5px 0">${prestataire}</td></tr>` : ''}
-        ${responsableNom ? `<tr><td style="padding:5px 0">👤</td><td style="padding:5px 0"><strong>Responsable du jour</strong></td><td style="padding:5px 0;color:#791f1f;font-weight:600">${responsableNom}${responsableTel ? ' — ' + responsableTel : ''}</td></tr>` : ''}
+        ${responsableNom ? `<tr><td style="padding:5px 0">👤</td><td style="padding:5px 0"><strong>Responsable du jour</strong></td><td style="padding:5px 0;color:#791f1f;font-weight:600">${responsableNom}${responsableTel ? ' — <a href="tel:' + responsableTel + '" style="color:#791f1f">' + responsableTel + '</a>' : ''}</td></tr>` : ''}
       </table>
     </div>
 
