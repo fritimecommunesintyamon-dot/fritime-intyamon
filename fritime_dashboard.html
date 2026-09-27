@@ -460,7 +460,7 @@ function render(){
   var actFin=acts.filter(function(a){return a.statut==="terminee";});
   var inscrits=dbActivites.reduce(function(s,a){return s+(a.inscrits||0);},0);
   var prestActifs=dbPrestataires.filter(function(p){return p.statut==="actif";});
-  var tachesOuv=dbTaches.filter(function(t){return t.statut!=="terminee"&&t.statut!=="done";});
+  var tachesOuv=dbTaches.filter(function(t){return t.statut!=="terminee"&&t.statut!=="done"&&t.statut!=="archivee";});
   var entrees=dbBudgetE.reduce(function(s,e){return s+(parseFloat(e.recu)||parseFloat(e.prevu)||0);},0);
   var depenses=dbBudgetD.reduce(function(s,d){return s+(parseFloat(d.realise)||parseFloat(d.reel)||0);},0);
   var solde=entrees-depenses;
