@@ -560,18 +560,22 @@ async function saveCreate(){
   _saving=true;
   var btn=document.querySelector('#mCreate .btn-primary');
   if(btn){btn.disabled=true;btn.textContent='Enregistrement...';}
-  var assignee=document.getElementById('ca').value;
-  var statut=assignee?'assignee':'ouverte'; // auto-statut selon assignée
-  var newT={id:nid++,titre:t,desc:document.getElementById('cd').value.trim(),assignee:assignee,priorite:document.getElementById('cp').value,activite:parseInt(document.getElementById('cal').value)||null,dateLimite:document.getElementById('cdl').value,notes:document.getElementById('cno').value.trim(),statut:statut,type:'ponctuelle'};
-  if(typeof FriDB !== 'undefined'){
-    try{
-      var _res = await FriDB.quickSave('taches', newT);
-      if(_res && _res[0] && _res[0].id) newT.id = _res[0].id;
-    }catch(e){ console.warn('DB save:', e); }
+  try{
+    var assignee=(document.getElementById('ca').value||'').trim();
+    var statut=assignee?'assignee':'ouverte'; // auto-statut selon assignée
+    var newT={id:nid++,titre:t,desc:document.getElementById('cd').value.trim(),assignee:assignee||null,priorite:document.getElementById('cp').value,activite:parseInt(document.getElementById('cal').value)||null,dateLimite:document.getElementById('cdl').value||null,notes:document.getElementById('cno').value.trim()||null,statut:statut,type:'ponctuelle'};
+    if(typeof FriDB !== 'undefined'){
+      try{
+        var _res = await FriDB.quickSave('taches', newT);
+        if(_res && _res[0] && _res[0].id) newT.id = _res[0].id;
+      }catch(e){ console.warn('DB save:', e); }
+    }
+    taches.push(newT);
+    closeCreate();render();
+  }finally{
+    _saving=false;
+    if(btn){btn.disabled=false;btn.textContent='Créer la tâche';}
   }
-  taches.push(newT);
-  _saving=false;
-  closeCreate();render();
 }
 
 function openDetail(id){selId=id;renderDet();document.getElementById('mDetail').style.display='flex';}
