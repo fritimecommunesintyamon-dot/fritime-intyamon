@@ -345,6 +345,24 @@ function doLogout(){
   <div class="fr">
     <div class="fg"><label class="fl">Année calendaire</label>
       <select class="fi" id="f-annee"><option>2025-2026</option><option>2026-2027</option></select>
+      <script>
+      (function(){
+        try{
+          var raw=localStorage.getItem("ft_periodes");
+          if(raw){
+            var periodes=JSON.parse(raw);
+            var sel=document.getElementById("f-annee");
+            if(periodes&&periodes.length){
+              sel.innerHTML="";
+              periodes.forEach(function(p){
+                var o=document.createElement("option");
+                o.value=p.nom;o.textContent=p.nom;sel.appendChild(o);
+              });
+            }
+          }
+        }catch(e){}
+      })();
+      </script>
     </div>
     <div class="fg"></div>
   </div>

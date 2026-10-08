@@ -120,6 +120,23 @@ tr:hover td{background:#fafaf8}
 .periode-btn{padding:5px 14px;border-radius:20px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:12px;color:#666;transition:all .15s}
 .periode-btn.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
 .periode-info{font-size:12px;color:#888;margin-left:auto}
+.periode-config-btn{padding:4px 8px;border-radius:8px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:14px;color:#888;transition:all .15s;line-height:1}
+.periode-config-btn:hover{background:#f5f5f3;color:#1a1a1a;border-color:#bbb}
+/* Période manager modal */
+.pm-list{display:flex;flex-direction:column;gap:8px;margin-bottom:1rem;max-height:260px;overflow-y:auto}
+.pm-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#f9f9f7;border:1px solid #eee;border-radius:8px}
+.pm-item-name{font-weight:600;font-size:13px;flex:1}
+.pm-item-dates{font-size:11px;color:#888}
+.pm-item-btns{display:flex;gap:6px;margin-left:auto}
+.pm-item-btn{padding:3px 8px;border-radius:6px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:11px;color:#555;transition:all .1s}
+.pm-item-btn:hover{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.pm-item-btn.danger:hover{background:#791f1f;color:#fff;border-color:#791f1f}
+.pm-form{background:#f5f5f3;border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:10px;margin-top:8px}
+.pm-form-title{font-size:13px;font-weight:600;margin-bottom:2px}
+.pm-form .fi{padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit;background:#fff;width:100%}
+.pm-form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pm-form-lbl{font-size:11px;color:#888;margin-bottom:3px}
+.pm-form-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:4px}
 
 /* Quick actions */
 .quick-actions{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-bottom:1.75rem}
@@ -329,11 +346,45 @@ function doLogout(){
     </div>
 
     <!-- Sélecteur période -->
-    <div class="periode-bar">
-      <button class="periode-btn active" onclick="setPeriode('printemps',this)">Printemps 2026</button>
-      <button class="periode-btn" onclick="setPeriode('hiver',this)">Hiver 2025</button>
-      <button class="periode-btn" onclick="setPeriode('annee',this)">Année complète</button>
-      <span class="periode-info">Période sélectionnée : <strong id="periode-label">Printemps 2026</strong></span>
+    <div class="periode-bar" id="periode-bar">
+      <span style="font-size:12px;color:#aaa">Chargement des périodes…</span>
+      <button class="periode-config-btn" onclick="openPeriodeManager()" title="Gérer les périodes">⚙️</button>
+    </div>
+
+    <!-- Modal gestion des périodes -->
+    <div class="overlay" id="mPeriode" style="display:none" onclick="if(event.target===this)closePeriodeManager()">
+      <div class="modal" style="max-width:520px;width:94%">
+        <div class="modal-header">
+          <span class="modal-title">⚙️ Gérer les périodes</span>
+          <button class="modal-close" onclick="closePeriodeManager()">✕</button>
+        </div>
+        <div class="modal-body">
+          <p style="font-size:12px;color:#888;margin-bottom:12px">Les périodes définissent les plages de dates disponibles dans le tableau de bord. Vous pouvez les créer, modifier ou supprimer à tout moment.</p>
+          <div class="pm-list" id="pm-list"></div>
+          <button class="btn" onclick="showAddForm()" id="pm-add-btn" style="font-size:12px;padding:7px 14px">+ Ajouter une période</button>
+          <div class="pm-form" id="pm-form" style="display:none">
+            <div class="pm-form-title" id="pm-form-title">Nouvelle période</div>
+            <div>
+              <div class="pm-form-lbl">Nom de la période</div>
+              <input class="fi" id="pm-nom" placeholder="ex : Printemps 2027, Été 2027…" />
+            </div>
+            <div class="pm-form-row">
+              <div>
+                <div class="pm-form-lbl">Date de début</div>
+                <input class="fi" id="pm-debut" type="date" />
+              </div>
+              <div>
+                <div class="pm-form-lbl">Date de fin</div>
+                <input class="fi" id="pm-fin" type="date" />
+              </div>
+            </div>
+            <div class="pm-form-actions">
+              <button class="btn" style="background:#f5f5f3;color:#555;font-size:12px;padding:7px 14px" onclick="cancelForm()">Annuler</button>
+              <button class="btn" style="font-size:12px;padding:7px 14px" onclick="savePeriodeForm()">Enregistrer</button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Métriques principales -->
@@ -424,9 +475,132 @@ function doLogout(){
 
 <script>
 let dbActivites=[], dbInscriptions=[], dbPrestataires=[], dbBudgetE=[], dbBudgetD=[], dbTaches=[], dbEnfants=[];
-let currentPeriode="printemps";
+let dbPeriodes=[];        // [{id,nom,date_debut,date_fin}]
+let currentPeriodeIdx=0; // index dans dbPeriodes (ou -1 = "annee complète")
+let pmEditIdx=-1;        // index en cours d'édition dans le modal
+
+// ─── Périodes : stockage localStorage ───────────────────────────────────────
+const PERIODES_KEY="ft_periodes";
+function loadPeriodes(){
+  try{
+    var raw=localStorage.getItem(PERIODES_KEY);
+    if(raw){dbPeriodes=JSON.parse(raw);}
+  }catch(e){}
+  if(!dbPeriodes||dbPeriodes.length===0){
+    // Valeurs par défaut modifiables
+    dbPeriodes=[
+      {id:1,nom:"Hiver 2025",date_debut:"2025-10-01",date_fin:"2026-01-31"},
+      {id:2,nom:"Printemps 2026",date_debut:"2026-02-01",date_fin:"2026-07-31"}
+    ];
+    savePeriodesToStorage();
+  }
+  currentPeriodeIdx=0;
+  renderPeriodeBar();
+}
+function savePeriodesToStorage(){
+  try{localStorage.setItem(PERIODES_KEY,JSON.stringify(dbPeriodes));}catch(e){}
+}
+function renderPeriodeBar(){
+  var bar=document.getElementById("periode-bar");
+  if(!bar)return;
+  var html="";
+  dbPeriodes.forEach(function(p,i){
+    var active=(i===currentPeriodeIdx)?" active":"";
+    html+='<button class="periode-btn'+active+'" onclick="setPeriodeIdx('+i+',this)">'+p.nom+'</button>';
+  });
+  var allActive=(currentPeriodeIdx===-1)?" active":"";
+  html+='<button class="periode-btn'+allActive+'" onclick="setPeriodeIdx(-1,this)">Année complète</button>';
+  html+='<span class="periode-info">Période : <strong id="periode-label">'+getPeriodeLabel()+'</strong></span>';
+  html+='<button class="periode-config-btn" onclick="openPeriodeManager()" title="Gérer les périodes">⚙️</button>';
+  bar.innerHTML=html;
+}
+function getPeriodeLabel(){
+  if(currentPeriodeIdx===-1)return "Toutes les périodes";
+  var p=dbPeriodes[currentPeriodeIdx];
+  return p?p.nom:"—";
+}
+function setPeriodeIdx(idx,btn){
+  currentPeriodeIdx=idx;
+  renderPeriodeBar();
+  render();
+}
+
+// ─── Gestion modale périodes ─────────────────────────────────────────────────
+function openPeriodeManager(){
+  renderPmList();
+  document.getElementById("pm-form").style.display="none";
+  document.getElementById("pm-add-btn").style.display="";
+  document.getElementById("mPeriode").style.display="flex";
+}
+function closePeriodeManager(){document.getElementById("mPeriode").style.display="none";}
+function renderPmList(){
+  var el=document.getElementById("pm-list");
+  if(!el)return;
+  if(!dbPeriodes.length){el.innerHTML='<p style="font-size:12px;color:#aaa;text-align:center;padding:12px">Aucune période définie</p>';return;}
+  el.innerHTML=dbPeriodes.map(function(p,i){
+    return '<div class="pm-item">'
+      +'<div><div class="pm-item-name">'+p.nom+'</div>'
+      +'<div class="pm-item-dates">Du '+fd(p.date_debut)+' au '+fd(p.date_fin)+'</div></div>'
+      +'<div class="pm-item-btns">'
+      +'<button class="pm-item-btn" onclick="editPeriode('+i+')">✏️ Modifier</button>'
+      +'<button class="pm-item-btn danger" onclick="deletePeriode('+i+')">🗑 Supprimer</button>'
+      +'</div></div>';
+  }).join("");
+}
+function showAddForm(){
+  pmEditIdx=-1;
+  document.getElementById("pm-form-title").textContent="Nouvelle période";
+  document.getElementById("pm-nom").value="";
+  document.getElementById("pm-debut").value="";
+  document.getElementById("pm-fin").value="";
+  document.getElementById("pm-form").style.display="flex";
+  document.getElementById("pm-add-btn").style.display="none";
+}
+function editPeriode(i){
+  pmEditIdx=i;
+  var p=dbPeriodes[i];
+  document.getElementById("pm-form-title").textContent="Modifier la période";
+  document.getElementById("pm-nom").value=p.nom||"";
+  document.getElementById("pm-debut").value=p.date_debut||"";
+  document.getElementById("pm-fin").value=p.date_fin||"";
+  document.getElementById("pm-form").style.display="flex";
+  document.getElementById("pm-add-btn").style.display="none";
+}
+function cancelForm(){
+  document.getElementById("pm-form").style.display="none";
+  document.getElementById("pm-add-btn").style.display="";
+}
+function savePeriodeForm(){
+  var nom=(document.getElementById("pm-nom").value||"").trim();
+  var debut=document.getElementById("pm-debut").value;
+  var fin=document.getElementById("pm-fin").value;
+  if(!nom){alert("Veuillez saisir un nom pour la période.");return;}
+  if(debut&&fin&&debut>fin){alert("La date de fin doit être après la date de début.");return;}
+  if(pmEditIdx===-1){
+    dbPeriodes.push({id:Date.now(),nom:nom,date_debut:debut,date_fin:fin});
+  }else{
+    dbPeriodes[pmEditIdx]={id:dbPeriodes[pmEditIdx].id,nom:nom,date_debut:debut,date_fin:fin};
+  }
+  savePeriodesToStorage();
+  if(currentPeriodeIdx>=dbPeriodes.length)currentPeriodeIdx=0;
+  renderPmList();
+  cancelForm();
+  renderPeriodeBar();
+  render();
+}
+function deletePeriode(i){
+  if(!confirm('Supprimer la période "'+dbPeriodes[i].nom+'" ?'))return;
+  dbPeriodes.splice(i,1);
+  savePeriodesToStorage();
+  if(currentPeriodeIdx>=dbPeriodes.length)currentPeriodeIdx=Math.max(0,dbPeriodes.length-1);
+  if(dbPeriodes.length===0)currentPeriodeIdx=-1;
+  renderPmList();
+  renderPeriodeBar();
+  render();
+}
 
 async function loadDashboardDB(){
+  loadPeriodes(); // charge depuis localStorage, rend la barre
   // Wait for FriDB
   await new Promise(function(r){setTimeout(r,500);});
   if(typeof FriDB==="undefined"){
@@ -446,12 +620,8 @@ async function loadDashboardDB(){
   render();
 }
 
-function setPeriode(p,btn){
-  currentPeriode=p;
-  document.querySelectorAll(".periode-btn").forEach(function(b){b.classList.remove("active");});
-  btn.classList.add("active");
-  render();
-}
+// setPeriode gardé pour compatibilité — non utilisé si renderPeriodeBar() appelé
+function setPeriode(p,btn){}
 
 function fd(d){if(!d)return"—";var pts=d.split("-");return pts[2]+"."+pts[1]+"."+pts[0];}
 function chf(n){return(n||0).toLocaleString("fr-CH")+" CHF";}
@@ -459,9 +629,18 @@ function pctCls(p){return p>=80?"prog-red":p>=50?"prog-orange":"prog-green";}
 function ini(n){var p=(n||"").split(" ");return((p[0]||"")[0]||"")+((p[1]||"")[0]||"");}
 
 function getRange(){
-  if(currentPeriode==="printemps") return {from:"2026-02-01",to:"2026-07-31",label:"Printemps 2026"};
-  if(currentPeriode==="hiver") return {from:"2025-10-01",to:"2026-01-31",label:"Hiver 2025"};
-  return {from:"2025-09-01",to:"2026-08-31",label:"Année 2025–2026"};
+  if(currentPeriodeIdx===-1||dbPeriodes.length===0){
+    // Année complète : étendue couvrant toutes les périodes
+    if(dbPeriodes.length>0){
+      var froms=dbPeriodes.map(function(p){return p.date_debut||"2000-01-01";}).filter(Boolean).sort();
+      var tos=dbPeriodes.map(function(p){return p.date_fin||"2099-12-31";}).filter(Boolean).sort();
+      return {from:froms[0],to:tos[tos.length-1],label:"Toutes les périodes",all:true};
+    }
+    return {from:"2000-01-01",to:"2099-12-31",label:"Toutes les périodes",all:true};
+  }
+  var p=dbPeriodes[currentPeriodeIdx];
+  if(!p) return {from:"2000-01-01",to:"2099-12-31",label:"—",all:true};
+  return {from:p.date_debut||"2000-01-01",to:p.date_fin||"2099-12-31",label:p.nom,all:false};
 }
 
 function filterPeriode(items, field){
@@ -471,10 +650,10 @@ function filterPeriode(items, field){
 
 function render(){
   var range=getRange();
-  document.getElementById("periode-label").textContent=range.label;
-  console.log("[Render] dbActivites:", dbActivites.length, "dbBudgetE:", dbBudgetE.length, "dbBudgetD:", dbBudgetD.length);
-  var acts=currentPeriode==="annee"?dbActivites:filterPeriode(dbActivites,"date");
-  console.log("[Render] acts filtered:", acts.length, "range:", getRange().from, "to", getRange().to);
+  // mise à jour du label dans la barre (peut être null si barre pas encore rendue)
+  var lbl=document.getElementById("periode-label");
+  if(lbl)lbl.textContent=range.label;
+  var acts=range.all?dbActivites:filterPeriode(dbActivites,"date");
   // Si aucune activité filtrée, afficher toutes les activités
   if(acts.length===0) acts=dbActivites;
   var actOk=acts.filter(function(a){return a.statut==="validee"||a.statut==="planifiee"||a.statut==="approuvee";});
@@ -487,7 +666,7 @@ function render(){
   var solde=entrees-depenses;
 
   // Metrics
-  var metrics=currentPeriode==="annee"?[
+  var metrics=range.all?[
     {val:dbActivites.length,lbl:"Activités au total",sub:actFin.length+" réalisées",cls:"green"},
     {val:inscrits,lbl:"Participations totales",sub:"",cls:"blue"},
     {val:prestActifs.length,lbl:"Prestataires actifs",sub:"",cls:"green"},
