@@ -40,7 +40,7 @@ tr:hover td{background:#fafaf8;cursor:pointer}
 .badge-banni{background:#fcebeb;color:#791f1f}
 .avatar{width:32px;height:32px;border-radius:50%;background:#e6f1fb;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#1a5fa0}
 .part-badge{display:inline-block;background:#f5f5f3;border-radius:8px;padding:3px 10px;font-size:13px;font-weight:600}
-.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;align-items:flex-start;justify-content:center;padding:2rem 1rem;overflow-y:auto}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;align-items:center;justify-content:center;padding:2rem 1rem;overflow-y:auto}
 .modal{background:#fff;border-radius:12px;border:1px solid #eee;padding:1.5rem;width:min(540px,100%)}
 .modal-title{font-size:16px;font-weight:600;margin-bottom:1.25rem;padding-bottom:1rem;border-bottom:1px solid #eee}
 .sec{font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.06em;margin:1rem 0 .75rem;padding-top:1rem;border-top:1px solid #eee}
@@ -500,9 +500,24 @@ async function saveAddPart(){
   if(!actId){alert('Choisis une activité');return;}
   var e=enfants.find(function(x){return x.id===selId;});
   if(!e)return;
-  // Double vérification doublon
-  var dejainscrit=inscriptions.filter(function(i){return i.enfant_id==selId && i.activite_id==actId;});
-  if(dejainscrit.length){alert('Cet enfant est déjà inscrit à cette activité.');return;}
+  // Rechargement des inscriptions depuis la DB pour avoir les données les plus fraîches
+  if(typeof FriDB!=='undefined'){
+    try{
+      var fresh=await FriDB.getInscriptions();
+      if(fresh&&fresh.length) inscriptions=fresh;
+    }catch(err){console.warn('Reload inscriptions:',err);}
+  }
+  // Vérification doublon (snake_case ET camelCase pour couvrir les deux modules)
+  var dejainscrit=inscriptions.filter(function(i){
+    var eId=parseInt(i.enfant_id||i.enfantId||0);
+    var aId=parseInt(i.activite_id||i.activiteId||0);
+    return eId===selId && aId===actId;
+  });
+  if(dejainscrit.length){
+    var act=activitesList.find(function(a){return a.id===actId;});
+    alert(e.prenom+' '+e.nom+' est déjà inscrit(e) à "'+((act&&act.nom)||'cette activité')+'".\nImpossible d\'ajouter une deuxième inscription.');
+    return;
+  }
   var newInsc={enfant_id:selId, activite_id:actId, statut:'confirme', presence:true};
   if(typeof FriDB!=='undefined'){
     try{
