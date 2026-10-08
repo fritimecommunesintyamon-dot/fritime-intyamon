@@ -176,7 +176,7 @@ textarea.fi{resize:vertical;min-height:80px}
   <a class="ft-nav-item" href="fritime_prestataires.html" data-page="prestataires"><span class="ft-nav-ico">🤝</span> Prestataires</a>
 
   <div class="ft-nav-section">Contenu</div>
-  <a class="ft-nav-item" href="fritime_idees.html" data-page="idees"><span class="ft-nav-ico">💡</span> Banque d'idées</a>
+  <a class="ft-nav-item" href="fritime_idees.html" data-page="idees"><span class="ft-nav-ico">🏷️</span> Catégories &amp; Idées</a>
   <a class="ft-nav-item" href="fritime_documents.html" data-page="documents"><span class="ft-nav-ico">📁</span> Documents</a>
 
   <div class="ft-nav-section">Sécurité</div>
@@ -247,7 +247,7 @@ function doLogout(){
   <a href="fritime_budget.html">💰 Budget</a>
   <a href="fritime_prestataires.html">🤝 Prestataires</a>
   <div class="ft-sb-sec">Contenu</div>
-  <a href="fritime_idees.html">💡 Banque d'idées</a>
+  <a href="fritime_idees.html">🏷️ Catégories &amp; Idées</a>
   <a href="fritime_documents.html">📁 Documents</a>
   <div class="ft-sb-sec">Sécurité</div>
   <a href="fritime_incidents.html">⚠️ Incidents</a>
@@ -509,6 +509,10 @@ async function confirmEnvoi(){
     return;
   }
   const destinataires = [{email: emailVal, nom: "École"}];
+  const messageEcole = document.getElementById("envoi-message") ? document.getElementById("envoi-message").value.trim() : "";
+  const inscriptionLink = 'https://fritime-intyamon-1t2w.vercel.app/fritime_inscription_publique.html?id=' + campaign.id;
+  campaign._messageEcole = messageEcole;
+  campaign._inscriptionLink = inscriptionLink;
   
   const btn = document.querySelector("#mEnvoi .btn-primary");
   if(btn){btn.textContent="Envoi en cours...";btn.disabled=true;}

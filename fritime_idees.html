@@ -86,11 +86,26 @@ textarea.fi{resize:vertical;min-height:70px}
 .cat-row{display:flex;gap:6px}
 .new-inline{display:none;gap:6px;margin-top:6px}
 .new-inline.visible{display:flex}
-
-
-}
-
-}
+.cat-section{margin-bottom:1.5rem}
+.cat-section-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#fff;border:1px solid #eee;border-radius:10px;cursor:pointer;transition:background .15s;margin-bottom:0}
+.cat-section-header:hover{background:#fafaf8}
+.cat-section-header.open{border-radius:10px 10px 0 0;border-bottom-color:transparent}
+.cat-section-title{font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px}
+.cat-section-count{font-size:11px;padding:2px 8px;border-radius:20px;background:#f1efea;color:#666;font-weight:500}
+.cat-section-arrow{font-size:13px;color:#aaa;transition:transform .2s}
+.cat-section-header.open .cat-section-arrow{transform:rotate(90deg)}
+.cat-section-body{display:none;border:1px solid #eee;border-top:none;border-radius:0 0 10px 10px;background:#fff}
+.cat-section-body.open{display:block}
+.cat-idea-row{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;border-bottom:1px solid #f0f0ee;cursor:pointer;transition:background .1s}
+.cat-idea-row:last-child{border-bottom:none}
+.cat-idea-row:hover{background:#fafaf8}
+.cat-idea-info{flex:1;min-width:0}
+.cat-idea-title{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cat-idea-meta{font-size:11px;color:#aaa;margin-top:1px;display:flex;gap:8px;flex-wrap:wrap}
+.cat-idea-right{display:flex;align-items:center;gap:8px;flex-shrink:0;margin-left:12px}
+.view-toggle{display:flex;gap:4px;background:#f5f5f3;border-radius:8px;padding:3px}
+.view-btn{padding:4px 10px;border-radius:6px;border:none;background:none;cursor:pointer;font-size:12px;color:#888;font-family:inherit}
+.view-btn.active{background:#fff;color:#1a1a1a;font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.1)}
 </style>
   <script src="fritime_data.js"></script>
   <script src="fritime_sync.js"></script>
@@ -200,8 +215,7 @@ textarea.fi{resize:vertical;min-height:70px}
   <a class="ft-nav-item" href="fritime_prestataires.html" data-page="prestataires"><span class="ft-nav-ico">🤝</span> Prestataires</a>
 
   <div class="ft-nav-section">Contenu</div>
-  <a class="ft-nav-item" href="fritime_idees.html" data-page="idees"><span class="ft-nav-ico">💡</span> Banque d'idées</a>
-  <a class="ft-nav-item" href="fritime_categories.html" data-page="categories"><span class="ft-nav-ico">🏷️</span> Catégories</a>
+  <a class="ft-nav-item" href="fritime_idees.html" data-page="idees"><span class="ft-nav-ico">🏷️</span> Catégories & Idées</a>
   <a class="ft-nav-item" href="fritime_documents.html" data-page="documents"><span class="ft-nav-ico">📁</span> Documents</a>
 
   <div class="ft-nav-section">Sécurité</div>
@@ -272,8 +286,7 @@ function doLogout(){
   <a href="fritime_budget.html">💰 Budget</a>
   <a href="fritime_prestataires.html">🤝 Prestataires</a>
   <div class="ft-sb-sec">Contenu</div>
-  <a href="fritime_idees.html">💡 Banque d'idées</a>
-  <a href="fritime_categories.html">🏷️ Catégories</a>
+  <a href="fritime_idees.html">🏷️ Catégories &amp; Idées</a>
   <a href="fritime_documents.html">📁 Documents</a>
   <div class="ft-sb-sec">Sécurité</div>
   <a href="fritime_incidents.html">⚠️ Incidents</a>
@@ -283,7 +296,7 @@ function doLogout(){
 <div class="ft-content">
 <div class="container">
 <div class="header">
-  <div><h1>Banque d'idées</h1><div class="subtitle">Idées d'activités pour Fri-Time</div></div>
+  <div><h1>Catégories & Idées</h1><div class="subtitle">Idées d'activités classées par catégorie</div></div>
   <button class="btn btn-primary" onclick="openCreate()">+ Nouvelle idée</button>
 </div>
 
@@ -303,20 +316,21 @@ function doLogout(){
   <button class="filter-btn" onclick="setFilter('approuvee',this)">Approuvées</button>
   <button class="filter-btn" onclick="setFilter('activite',this)">Transformées</button>
   <button class="filter-btn" onclick="setFilter('utilise',this)">Déjà utilisées</button>
-  <select class="sort-select" id="filter-cat" data-fricat-filter="cat" onchange="render()">
-    <option value="">Toutes catégories</option>
-  </select>
   <select class="sort-select" id="sort" onchange="render()">
     <option value="nom">Trier par nom</option>
     <option value="votes">Trier par votes</option>
     <option value="date">Trier par date</option>
     <option value="statut">Trier par statut</option>
-    <option value="cat">Trier par catégorie</option>
     <option value="cout">Trier par coût</option>
   </select>
+  <div class="view-toggle">
+    <button class="view-btn" id="btn-vue-cat" onclick="setVue('cat')">🏷️ Par catégorie</button>
+    <button class="view-btn active" id="btn-vue-grille" onclick="setVue('grille')">⊞ Grille</button>
+  </div>
   <button class="btn btn-sm" onclick="openImport()" style="white-space:nowrap">📥 Importer</button>
 </div>
 
+<div id="view-cat" style="display:none"></div>
 <div class="grid" id="grid"></div>
 </div>
 
@@ -435,6 +449,104 @@ let sousCategories=[];
 let editId=null;
 let selId=null;
 let filtre="toutes";
+let vue="cat"; // "cat" ou "grille"
+let openSections={}; // catégorie → true/false
+
+function setVue(v){
+  vue=v;
+  document.getElementById("btn-vue-cat").classList.toggle("active",v==="cat");
+  document.getElementById("btn-vue-grille").classList.toggle("active",v==="grille");
+  render();
+}
+
+function renderByCat(){
+  const q=(document.getElementById("search")||{value:""}).value.toLowerCase();
+  const sort=document.getElementById("sort").value;
+  let list=idees.filter(function(i){
+    const mf=filtre==="toutes"||i.statut===filtre||(filtre==="utilise"&&i.utilise);
+    const ms=!q||i.titre.toLowerCase().includes(q)||(i.cat||"").toLowerCase().includes(q)||(i.desc||"").toLowerCase().includes(q);
+    return mf&&ms;
+  });
+
+  // Regrouper par catégorie
+  const groups={};
+  const SANS_CAT="Sans catégorie";
+  list.forEach(function(i){
+    const key=i.cat||SANS_CAT;
+    if(!groups[key]) groups[key]=[];
+    groups[key].push(i);
+  });
+
+  // Trier les idées dans chaque groupe
+  Object.keys(groups).forEach(function(k){
+    const g=groups[k];
+    if(sort==="votes") g.sort(function(a,b){return b.votes.length-a.votes.length;});
+    else if(sort==="date") g.sort(function(a,b){return (b.date||"").localeCompare(a.date||"");});
+    else if(sort==="statut") g.sort(function(a,b){return ["idee","discussion","approuvee","activite"].indexOf(a.statut)-["idee","discussion","approuvee","activite"].indexOf(b.statut);});
+    else if(sort==="cout") g.sort(function(a,b){return (a.cout||0)-(b.cout||0);});
+    else g.sort(function(a,b){return (a.titre||"").localeCompare(b.titre||"","fr");});
+  });
+
+  // Trier les catégories
+  const catKeys=Object.keys(groups).sort(function(a,b){
+    if(a===SANS_CAT) return 1;
+    if(b===SANS_CAT) return -1;
+    return a.localeCompare(b,"fr");
+  });
+
+  // Si aucune section encore ouverte, tout ouvrir par défaut
+  if(Object.keys(openSections).length===0){
+    catKeys.forEach(function(k){openSections[k]=true;});
+  }
+
+  const container=document.getElementById("view-cat");
+  if(!catKeys.length){
+    container.innerHTML='<div style="color:#888;font-size:13px;padding:2rem">Aucune idée trouvée</div>';
+    return;
+  }
+
+  container.innerHTML=catKeys.map(function(cat){
+    const items=groups[cat];
+    const isOpen=openSections[cat]!==false;
+    const ico=CAT_ICONS[cat]||"💡";
+    return `<div class="cat-section">
+      <div class="cat-section-header${isOpen?" open":""}" onclick="toggleSection('${cat.replace(/'/g,"\\'")}')">
+        <div class="cat-section-title">
+          <span>${ico}</span>
+          <span>${cat}</span>
+          <span class="cat-section-count">${items.length} idée${items.length>1?"s":""}</span>
+        </div>
+        <span class="cat-section-arrow">▶</span>
+      </div>
+      <div class="cat-section-body${isOpen?" open":""}">
+        ${items.map(function(i){
+          const statutColors={idee:"#f1efea",discussion:"#e6f1fb",approuvee:"#eaf3de",activite:"#1a1a1a"};
+          const statutTextColors={idee:"#444",discussion:"#0c447c",approuvee:"#275a0a",activite:"#fff"};
+          return `<div class="cat-idea-row" onclick="openDetail(${i.id})">
+            <div class="cat-idea-info">
+              <div class="cat-idea-title">${i.titre}</div>
+              <div class="cat-idea-meta">
+                ${i.souscat?`<span>📌 ${i.souscat}</span>`:""}
+                ${i.ageMin||i.ageMax?`<span>👧 ${i.ageMin||"?"}–${i.ageMax||"?"} ans</span>`:""}
+                ${i.cout?`<span>💰 ~${i.cout} CHF</span>`:``}
+                ${i.votes&&i.votes.length?`<span>👍 ${i.votes.length} vote${i.votes.length>1?"s":""}</span>`:""}
+              </div>
+            </div>
+            <div class="cat-idea-right">
+              ${i.utilise?`<span style="font-size:10px;padding:2px 6px;border-radius:20px;background:#eaf3de;color:#275a0a;font-weight:600">✓ Utilisée</span>`:""}
+              <span style="font-size:11px;padding:2px 8px;border-radius:20px;background:${statutColors[i.statut]||"#f1efea"};color:${statutTextColors[i.statut]||"#444"};font-weight:500">${STATUT_LABELS[i.statut]||i.statut}</span>
+            </div>
+          </div>`;
+        }).join("")}
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function toggleSection(cat){
+  openSections[cat]=!openSections[cat];
+  render();
+}
 
 let idees=[];
 let nid=5;
@@ -474,6 +586,9 @@ function getFiltered(){
 
 function render(){
   renderMetrics();
+  document.getElementById("view-cat").style.display=vue==="cat"?"block":"none";
+  document.getElementById("grid").style.display=vue==="grille"?"grid":"none";
+  if(vue==="cat"){renderByCat();return;}
   const filtered=getFiltered();
   const g=document.getElementById("grid");
   if(!filtered.length){g.innerHTML=`<div style="color:#888;font-size:13px;padding:2rem">Aucune idée trouvée</div>`;return;}
