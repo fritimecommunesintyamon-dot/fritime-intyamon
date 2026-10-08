@@ -72,7 +72,7 @@ tr:hover td{background:#fafaf8}
 .pres-btn.active-present{background:#275a0a;color:#fff;border-color:#275a0a}
 .pres-btn.active-absent{background:#791f1f;color:#fff;border-color:#791f1f}
 /* Modal */
-.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;align-items:flex-start;justify-content:center;padding:2rem 1rem;overflow-y:auto}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;align-items:center;justify-content:center;padding:2rem 1rem;overflow-y:auto}
 .modal{background:#fff;border-radius:12px;border:1px solid #eee;padding:1.5rem;width:min(520px,100%)}
 .modal-title{font-size:16px;font-weight:600;margin-bottom:1.25rem;padding-bottom:1rem;border-bottom:1px solid #eee}
 .fg{margin-bottom:.75rem}
@@ -632,8 +632,13 @@ function openAddInscription(){
   // Reload enfants and activites selects dynamically
   var enfantSel=document.getElementById("i-enfant");
   var actSel=document.getElementById("i-activite");
+  var enfantsTries=enfants.slice().sort(function(a,b){
+    var na=((a.prenom||"")+" "+(a.nom||"")).trim().toLowerCase();
+    var nb=((b.prenom||"")+" "+(b.nom||"")).trim().toLowerCase();
+    return na.localeCompare(nb,"fr");
+  });
   enfantSel.innerHTML='<option value="">— Choisir —</option>'+
-    enfants.map(function(e){return '<option value="'+e.id+'">'+e.prenom+' '+e.nom+' ('+e.age+' ans)</option>';}).join("");
+    enfantsTries.map(function(e){return '<option value="'+e.id+'">'+e.prenom+' '+e.nom+' ('+e.age+' ans)</option>';}).join("");
   actSel.innerHTML='<option value="">— Choisir —</option>'+
     activites.map(function(a){return '<option value="'+a.id+'">'+a.nom+'</option>';}).join("");
   editInscId=null;
