@@ -693,8 +693,17 @@ async function saveInscription(){
   const enfantId=parseInt(document.getElementById("i-enfant").value);
   const activiteId=parseInt(document.getElementById("i-activite").value);
   if(!enfantId||!activiteId){alert("Enfant et activité obligatoires");return;}
-  const existing=inscriptions.find(function(i){return i.enfantId===enfantId&&i.activiteId===activiteId&&i.id!==editInscId;});
-  if(existing){alert("Cet enfant est déjà inscrit à cette activité.");return;}
+  const existing=inscriptions.find(function(i){
+    var eId=parseInt(i.enfantId||i.enfant_id||0);
+    var aId=parseInt(i.activiteId||i.activite_id||0);
+    return eId===enfantId && aId===activiteId && i.id!==editInscId;
+  });
+  if(existing){
+    var enfantNom=(document.getElementById("i-enfant").options[document.getElementById("i-enfant").selectedIndex]||{}).text||"Cet enfant";
+    var actNom=(document.getElementById("i-activite").options[document.getElementById("i-activite").selectedIndex]||{}).text||"cette activité";
+    alert(enfantNom+" est déjà inscrit(e) à "+actNom+".\nImpossible d'ajouter une deuxième inscription.");
+    return;
+  }
   const data={enfantId:enfantId,activiteId:activiteId,statut:document.getElementById("i-statut").value,pref:parseInt(document.getElementById("i-pref").value)||null,notes:document.getElementById("i-notes").value.trim(),presence:null};
   if(editInscId){
     inscriptions=inscriptions.map(function(i){return i.id===editInscId?Object.assign({},i,data):i;});
