@@ -479,17 +479,30 @@ async function deleteEnfant(id){
     render();
   }
 }
-function openAddPart(id){
+async function openAddPart(id){
   selId=id;
   var e=enfants.find(function(x){return x.id===id;});
   if(!e)return;
-  // Activités où l'enfant est déjà inscrit
-  var dejainscrit=inscriptions.filter(function(i){return i.enfant_id==id;}).map(function(i){return Number(i.activite_id);});
+  // Rechargement des inscriptions depuis la DB avant d'afficher le modal
+  if(typeof FriDB!=='undefined'){
+    try{
+      var fresh=await FriDB.getInscriptions();
+      if(fresh&&fresh.length) inscriptions=fresh;
+    }catch(err){console.warn('Reload inscriptions openAddPart:',err);}
+  }
+  // Activités où l'enfant est déjà inscrit (snake_case ET camelCase)
+  var dejainscrit=inscriptions.filter(function(i){
+    return parseInt(i.enfant_id||i.enfantId||0)===id;
+  }).map(function(i){return Number(i.activite_id||i.activiteId||0);});
   var dispo=activitesList.filter(function(a){return !dejainscrit.includes(Number(a.id));});
   var sel=document.getElementById('part-act-sel');
   if(sel){
-    sel.innerHTML='<option value="">— Choisir une activité —</option>'+
-      dispo.map(function(a){return '<option value="'+a.id+'">'+a.nom+'</option>';}).join('');
+    if(dispo.length===0){
+      sel.innerHTML='<option value="">— Aucune activité disponible —</option>';
+    } else {
+      sel.innerHTML='<option value="">— Choisir une activité —</option>'+
+        dispo.map(function(a){return '<option value="'+a.id+'">'+a.nom+'</option>';}).join('');
+    }
   }
   document.getElementById('part-enfant-nom').textContent=e.prenom+' '+e.nom;
   document.getElementById('mAddPart').style.display='flex';
@@ -500,20 +513,20 @@ async function saveAddPart(){
   if(!actId){alert('Choisis une activité');return;}
   var e=enfants.find(function(x){return x.id===selId;});
   if(!e)return;
-  // Rechargement des inscriptions depuis la DB pour avoir les données les plus fraîches
+  // Vérification doublon directement dans Supabase (source de vérité absolue)
+  var doublon=false;
   if(typeof FriDB!=='undefined'){
     try{
-      var fresh=await FriDB.getInscriptions();
-      if(fresh&&fresh.length) inscriptions=fresh;
-    }catch(err){console.warn('Reload inscriptions:',err);}
+      var check=await FriDB.query('inscriptions','GET',null,'?enfant_id=eq.'+selId+'&activite_id=eq.'+actId);
+      if(check&&check.length) doublon=true;
+    }catch(err){console.warn('Doublon check Supabase:',err);}
   }
-  // Vérification doublon (snake_case ET camelCase pour couvrir les deux modules)
-  var dejainscrit=inscriptions.filter(function(i){
-    var eId=parseInt(i.enfant_id||i.enfantId||0);
-    var aId=parseInt(i.activite_id||i.activiteId||0);
-    return eId===selId && aId===actId;
-  });
-  if(dejainscrit.length){
+  if(!doublon){
+    doublon=inscriptions.some(function(i){
+      return parseInt(i.enfant_id||i.enfantId||0)===selId && parseInt(i.activite_id||i.activiteId||0)===actId;
+    });
+  }
+  if(doublon){
     var act=activitesList.find(function(a){return a.id===actId;});
     alert(e.prenom+' '+e.nom+' est déjà inscrit(e) à "'+((act&&act.nom)||'cette activité')+'".\nImpossible d\'ajouter une deuxième inscription.');
     return;
