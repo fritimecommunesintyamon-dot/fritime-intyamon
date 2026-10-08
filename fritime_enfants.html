@@ -556,7 +556,7 @@ function runSelection(){
   const aid=parseInt(document.getElementById('sel-act').value);
   if(!aid){document.getElementById('sel-result').style.display='none';return;}
   const act=ACTS.find(a=>a.id===aid);
-  const elig=enfants.filter(e=>e.statut==='actif'&&e.age>=act.amin&&e.age<=act.amax);
+  const elig=enfants.filter(e=>{const a=calcAge(e.ddn)??e.age;return e.statut==='actif'&&a>=act.amin&&a<=act.amax;});
   const scored=elig.map(e=>({...e,score:e.parts+Math.random()*.4})).sort((a,b)=>a.score-b.score);
   const sel=scored.slice(0,act.places),wait=scored.slice(act.places);
   document.getElementById('sel-result').style.display='block';
