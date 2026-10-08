@@ -431,9 +431,6 @@ function doLogout(){
   <div class="fg"><label class="fl">Ton prénom / nom</label>
     <select class="fi" id="vote-membre">
       <option value="">— Choisir un membre —</option>
-      <option>Marie Dupont</option><option>Jean Martin</option>
-      <option>Sophie Remy</option><option>Lara Blanc</option>
-      <option>Paul Morel</option><option>Ana Favre</option>
     </select>
   </div>
   <div class="mf">
@@ -849,9 +846,21 @@ function changeStatut(s){
   renderDet();render();
 }
 
-function openVote(id){
+async function openVote(id){
   selId=id;
-  document.getElementById("vote-membre").selectedIndex=0;
+  const sel=document.getElementById("vote-membre");
+  sel.innerHTML='<option value="">— Choisir un membre —</option>';
+  if(typeof FriDB!=="undefined"){
+    try{
+      const membres=await FriDB.getMembres();
+      const actifs=(membres||[]).filter(function(m){return !m.statut||m.statut==="actif";});
+      actifs.sort(function(a,b){return ((a.prenom||"")+" "+(a.nom||"")).localeCompare((b.prenom||"")+" "+(b.nom||""),"fr");});
+      actifs.forEach(function(m){
+        const nom=((m.prenom||"")+" "+(m.nom||"")).trim();
+        if(nom){const o=document.createElement("option");o.value=nom;o.textContent=nom;sel.appendChild(o);}
+      });
+    }catch(e){console.warn("Membres vote:",e);}
+  }
   document.getElementById("mVote").style.display="flex";
 }
 function closeMVote(){document.getElementById("mVote").style.display="none";}
