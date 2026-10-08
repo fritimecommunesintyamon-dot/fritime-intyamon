@@ -345,6 +345,16 @@ let activitesList=[];
 let nid=7,selId=null,banId=null,filtre='tous';
 const ACTS=[{id:1,nom:'Atelier poterie',places:12,amin:6,amax:12},{id:2,nom:'Sortie Lac Noir',places:20,amin:7,amax:14}];
 
+function calcAge(ddn){
+  if(!ddn)return null;
+  var today=new Date();
+  var nais=new Date(ddn);
+  var age=today.getFullYear()-nais.getFullYear();
+  var m=today.getMonth()-nais.getMonth();
+  if(m<0||(m===0&&today.getDate()<nais.getDate()))age--;
+  return age;
+}
+
 function calcPartsFromInscriptions(){
   enfants=enfants.map(function(e){
     // == pour gérer int vs string selon la source (DB ou local)
@@ -376,7 +386,7 @@ function render(){
   if(!rows.length){tb.innerHTML=`<tr><td colspan="5" style="text-align:center;padding:2rem;color:#888">Aucun enfant trouvé</td></tr>`;return;}
   tb.innerHTML=rows.map(e=>`<tr onclick="openDetail(${e.id})" style="${e.statut==='banni'?'opacity:.55':''}">
     <td><div style="display:flex;align-items:center;gap:10px"><div class="avatar">${ini(e)}</div><div><div style="font-weight:500">${e.prenom} ${e.nom}</div><div style="font-size:11px;color:#888">${e.pp} ${e.pn}</div></div></div></td>
-    <td>${e.age} ans</td><td>${e.commune}</td>
+    <td>${calcAge(e.ddn)??e.age} ans</td><td>${e.commune}</td>
     <td><span class="part-badge">${e.parts}</span></td>
     <td>${(e.activitesConfirmees||[]).length?e.activitesConfirmees.map(a=>`<span style="display:inline-block;font-size:11px;padding:2px 7px;border-radius:20px;background:#e6f1fb;color:#0c447c;margin:1px">${a}</span>`).join(' '):'<span style="color:#bbb;font-size:12px">—</span>'}</td>
     <td><span class="badge badge-${e.statut}">${e.statut==='actif'?'Actif':'Banni'}</span></td>
@@ -415,7 +425,7 @@ function renderDet(){
     ${e.statut==='banni'?`<div class="ban-box">Banni : ${e.banMotif}</div>`:''}
     <div class="grid2" style="margin-bottom:12px">
       <div><div class="dl">Naissance</div><div class="dv">${e.ddn?e.ddn.split('-').reverse().join('.'):'—'}</div></div>
-      <div><div class="dl">Âge</div><div class="dv">${e.age} ans</div></div>
+      <div><div class="dl">Âge</div><div class="dv">${calcAge(e.ddn)??e.age} ans</div></div>
       <div><div class="dl">Commune</div><div class="dv">${e.commune||'—'}</div></div>
       <div><div class="dl">Participations</div><div class="dv"><span class="part-badge">${e.parts}</span></div></div>
     </div>
@@ -513,19 +523,16 @@ async function saveAddPart(){
   if(!actId){alert('Choisis une activité');return;}
   var e=enfants.find(function(x){return x.id===selId;});
   if(!e)return;
-  // Vérification doublon directement dans Supabase (source de vérité absolue)
-  var doublon=false;
+  // Recharger toutes les inscriptions depuis Supabase avant de vérifier
   if(typeof FriDB!=='undefined'){
     try{
-      var check=await FriDB.query('inscriptions','GET',null,'?enfant_id=eq.'+selId+'&activite_id=eq.'+actId);
-      if(check&&check.length) doublon=true;
-    }catch(err){console.warn('Doublon check Supabase:',err);}
+      var freshAll=await FriDB.getInscriptions();
+      if(freshAll) inscriptions=freshAll;
+    }catch(err){console.warn('Reload inscriptions saveAddPart:',err);}
   }
-  if(!doublon){
-    doublon=inscriptions.some(function(i){
-      return parseInt(i.enfant_id||i.enfantId||0)===selId && parseInt(i.activite_id||i.activiteId||0)===actId;
-    });
-  }
+  var doublon=inscriptions.some(function(i){
+    return parseInt(i.enfant_id||i.enfantId||0)===selId && parseInt(i.activite_id||i.activiteId||0)===actId;
+  });
   if(doublon){
     var act=activitesList.find(function(a){return a.id===actId;});
     alert(e.prenom+' '+e.nom+' est déjà inscrit(e) à "'+((act&&act.nom)||'cette activité')+'".\nImpossible d\'ajouter une deuxième inscription.');

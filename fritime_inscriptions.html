@@ -693,24 +693,20 @@ async function saveInscription(){
   const enfantId=parseInt(document.getElementById("i-enfant").value);
   const activiteId=parseInt(document.getElementById("i-activite").value);
   if(!enfantId||!activiteId){alert("Enfant et activité obligatoires");return;}
-  // Vérification doublon : d'abord le tableau local, puis Supabase pour confirmer
-  var doublonLocal=inscriptions.find(function(i){
+  // Recharger toutes les inscriptions depuis Supabase avant de vérifier
+  if(typeof FriDB!=="undefined"){
+    try{
+      var freshAll=await FriDB.getInscriptions();
+      if(freshAll) inscriptions=freshAll;
+    }catch(e){console.warn("[Insc] reload:",e);}
+  }
+  var doublon=inscriptions.find(function(i){
     var eId=parseInt(i.enfantId||i.enfant_id||0);
     var aId=parseInt(i.activiteId||i.activite_id||0);
-    return eId===enfantId && aId===activiteId && i.id!==editInscId;
+    var thisId=i.id;
+    return eId===enfantId && aId===activiteId && thisId!=editInscId;
   });
-  if(!doublonLocal && typeof FriDB!=="undefined"){
-    // Vérification directe dans Supabase (source de vérité)
-    try{
-      var fresh=await FriDB.query("inscriptions","GET",null,"?enfant_id=eq."+enfantId+"&activite_id=eq."+activiteId);
-      if(fresh&&fresh.length){
-        if(!editInscId||!fresh.find(function(r){return r.id===editInscId;})){
-          doublonLocal=fresh[0];
-        }
-      }
-    }catch(e){console.warn("[Insc] doublon check:",e);}
-  }
-  if(doublonLocal){
+  if(doublon){
     var enfantNom=(document.getElementById("i-enfant").options[document.getElementById("i-enfant").selectedIndex]||{}).text||"Cet enfant";
     var actNom=(document.getElementById("i-activite").options[document.getElementById("i-activite").selectedIndex]||{}).text||"cette activité";
     alert(enfantNom+" est déjà inscrit(e) à "+actNom+".\nImpossible d'ajouter une deuxième inscription.");
