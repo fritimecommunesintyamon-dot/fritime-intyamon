@@ -61,7 +61,7 @@ h1{font-size:20px;font-weight:600}
 .upload-text{font-size:13px;color:#888}
 .upload-sub{font-size:11px;color:#bbb;margin-top:4px}
 /* Modal */
-.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;align-items:flex-start;justify-content:center;padding:2rem 1rem;overflow-y:auto}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;align-items:center;justify-content:center;padding:2rem 1rem;overflow-y:auto}
 .modal{background:#fff;border-radius:12px;border:1px solid #eee;padding:1.5rem;width:min(500px,100%)}
 .modal-title{font-size:16px;font-weight:600;margin-bottom:1.25rem;padding-bottom:1rem;border-bottom:1px solid #eee}
 .fg{margin-bottom:.75rem}
@@ -300,12 +300,6 @@ function doLogout(){
 
   <!-- Zone principale -->
   <div>
-    <div class="upload-zone" onclick="document.getElementById('file-input-global').click()" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
-      <input type="file" id="file-input-global" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv" style="display:none" onchange="handleFileSelect(this)" />
-      <div class="upload-ico">📂</div>
-      <div class="upload-text">Glisser-déposer des fichiers ici ou cliquer pour parcourir</div>
-      <div class="upload-sub">PDF, Word, Excel, PowerPoint acceptés</div>
-    </div>
     <div class="doc-grid" id="doc-grid"></div>
   </div>
 </div>
@@ -316,14 +310,8 @@ function doLogout(){
 <div id="mDoc" class="overlay" onclick="if(event.target.id==='mDoc')closeMDoc()">
 <div class="modal" onclick="event.stopPropagation()">
   <div class="modal-title" id="doc-modal-title">Ajouter un document</div>
-  <div class="fg">
-    <label class="fl">Fichier</label>
-    <div style="display:flex;gap:8px">
-      <button class="btn btn-sm" onclick="document.getElementById('file-input-modal').click()" style="flex-shrink:0">📎 Choisir un fichier</button>
-      <input type="file" id="file-input-modal" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv" style="display:none" onchange="handleModalFile(this)" />
-      <span id="file-selected-name" style="font-size:12px;color:#888;align-self:center">Aucun fichier choisi</span>
-    </div>
-    <div id="file-selected-info" style="display:none" class="file-selected"></div>
+  <div style="background:#e6f1fb;border-radius:8px;padding:10px 14px;font-size:12px;color:#0c447c;margin-bottom:12px">
+    📁 Les documents sont hébergés sur <strong>Google Drive</strong> (fritimecommunesintyamon@gmail.com). Colle ici le lien de partage Drive.
   </div>
   <div class="fg"><label class="fl">Nom du document *</label><input class="fi" id="d-nom" placeholder="Ex: Règlement intérieur 2025-2026" /></div>
   <div class="fr">
@@ -341,7 +329,7 @@ function doLogout(){
     </div>
   </div>
   <div class="fg"><label class="fl">Description (optionnel)</label><input class="fi" id="d-desc" placeholder="Brève description du document..." /></div>
-  <div class="fg"><label class="fl">URL / lien (si document en ligne)</label><input class="fi" type="url" id="d-url" placeholder="https://drive.google.com/..." /></div>
+  <div class="fg"><label class="fl">Lien Google Drive *</label><input class="fi" type="url" id="d-url" placeholder="https://drive.google.com/file/d/..." /></div>
   <div class="mf">
     <button class="btn btn-danger btn-sm" id="d-del-btn" style="display:none" onclick="deleteDoc()">Supprimer</button>
     <div style="display:flex;gap:8px">
@@ -536,7 +524,9 @@ function formatSize(bytes){
 
 async function saveDoc(){
   const nom=document.getElementById("d-nom").value.trim();
+  const url=document.getElementById("d-url").value.trim();
   if(!nom){alert("Le nom est obligatoire");return;}
+  if(!url){alert("Le lien Google Drive est obligatoire.\n\nSuis la procédure pour obtenir le lien de partage depuis drive.google.com");return;}
   const data={nom:nom,cat:parseInt(document.getElementById("d-cat").value)||null,type:document.getElementById("d-type").value,desc:document.getElementById("d-desc").value.trim(),url:document.getElementById("d-url").value.trim(),date:new Date().toISOString().split("T")[0],taille:""};
   if(editDocId){
     docs=docs.map(function(d){return String(d.id)===String(editDocId)?Object.assign({},d,data):d;});
