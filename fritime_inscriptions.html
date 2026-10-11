@@ -86,6 +86,13 @@ tr:hover td{background:#fafaf8}
 .status-flow{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:10px 14px;background:#f5f5f3;border-radius:8px;margin-bottom:1rem;font-size:12px}
 .flow-step{padding:3px 10px;border-radius:20px;font-weight:500;font-size:11px}
 .empty{text-align:center;padding:2rem;color:#888;font-size:13px}
+/* Offline indicator */
+.offline-bar{position:fixed;bottom:0;left:0;right:0;z-index:2000;background:#1a1a1a;color:#fff;font-size:12px;padding:7px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.offline-bar.hidden{display:none!important}
+.offline-dot{width:8px;height:8px;border-radius:50%;background:#ef4444;flex-shrink:0}
+.offline-dot.online{background:#22c55e}
+.sync-badge{background:#ef4444;color:#fff;border-radius:20px;padding:1px 8px;font-size:11px;font-weight:700;margin-left:6px}
+.sync-badge.zero{display:none}
 
 
 }
@@ -280,6 +287,16 @@ function doLogout(){
 </div>
 <div class="ft-content">
 <div class="container">
+
+<!-- Barre statut connexion -->
+<div class="offline-bar hidden" id="offline-bar">
+  <div style="display:flex;align-items:center;gap:8px">
+    <div class="offline-dot" id="offline-dot"></div>
+    <span id="offline-label">Hors ligne</span>
+    <span class="sync-badge zero" id="sync-badge">0</span>
+  </div>
+  <div id="offline-sync-msg" style="font-size:11px;opacity:.7"></div>
+</div>
 
 <div class="header">
   <div><h1>Inscriptions</h1><div class="subtitle">Suivi des participants par activité — Fri-Time</div></div>
@@ -549,11 +566,22 @@ async function setPresence(inscId,val){
   var oldPres = newPres.presence;
   var newPresVal = oldPres===val ? null : val;
   var newStatut = oldPres===val ? newPres.statut : val;
+  // Mise à jour locale immédiate
   inscriptions=inscriptions.map(function(i){return i.id===inscId?Object.assign({},i,{presence:newPresVal,statut:newStatut}):i;});
-  if(typeof FriDB!=="undefined"){
+
+  if(navigator.onLine && typeof FriDB!=="undefined"){
     try{await FriDB.query("inscriptions","PATCH",{presence:newPresVal,statut:newStatut},"?id=eq."+inscId);}
-    catch(e){console.warn("setPresence:",e);}
+    catch(e){
+      console.warn("setPresence online erreur, mise en file offline:",e);
+      await friOfflineQueueAdd({type:"presence",inscId:inscId,presence:newPresVal,statut:newStatut,ts:Date.now()});
+      updateOfflineBar();
+    }
+  } else {
+    // Hors ligne : mettre en file de synchronisation
+    await friOfflineQueueAdd({type:"presence",inscId:inscId,presence:newPresVal,statut:newStatut,ts:Date.now()});
+    updateOfflineBar();
   }
+
   // Si absent non justifié -> proposer bannissement
   if(newPresVal==="absent"){
     var insc2 = inscriptions.find(function(i){return i.id===inscId;});
@@ -785,29 +813,68 @@ renderAll();
   });
 })();
 
+function mapInscription(item){
+  var mapped = Object.assign({}, item);
+  if(mapped.enfant_id !== undefined) mapped.enfantId = mapped.enfant_id;
+  if(mapped.activite_id !== undefined) mapped.activiteId = mapped.activite_id;
+  return mapped;
+}
+
 async function loadInscriptionsDB(){
+  // Initialiser le module offline d'abord
+  await friOfflineInit();
+  updateOfflineBar();
+
   var a=0;
   while(typeof FriDB==='undefined'&&a<30){await new Promise(function(r){setTimeout(r,100);});a++;}
-  if(typeof FriDB==='undefined') return;
+
+  if(!navigator.onLine || typeof FriDB==='undefined'){
+    // Mode hors ligne : charger depuis le cache IndexedDB
+    console.log('[Insc] Hors ligne — chargement depuis cache');
+    var c_act = await friCacheGet('activites');
+    var c_enf = await friCacheGet('enfants');
+    var c_ins = await friCacheGet('inscriptions');
+    if(c_act) activites = c_act;
+    if(c_enf) enfants = c_enf;
+    if(c_ins) inscriptions = c_ins.map(mapInscription);
+    if(activites.length && !selectedActId) selectedActId = activites[0].id;
+    renderAll();
+    return;
+  }
+
   try{
     var db_activites = await FriDB.getActivites();
-    if(db_activites && db_activites.length){ activites = db_activites; console.log('[Insc] activites chargées:', activites.length, 'responsableNom ex:', activites[0]?activites[0].responsableNom||activites[0].responsable_nom:'N/A'); }
+    if(db_activites && db_activites.length){
+      activites = db_activites;
+      await friCacheSet('activites', activites);
+      console.log('[Insc] activites chargées:', activites.length);
+    }
     var db_enfants = await FriDB.getEnfants();
-    if(db_enfants && db_enfants.length) enfants = db_enfants;
+    if(db_enfants && db_enfants.length){
+      enfants = db_enfants;
+      await friCacheSet('enfants', enfants);
+    }
     var db_inscriptions = await FriDB.getInscriptions();
     console.log("[Insc Load] reçues:", db_inscriptions ? db_inscriptions.length : 0);
-    if(db_inscriptions && db_inscriptions.length) {
-      inscriptions = db_inscriptions.map(function(item){
-        var mapped = Object.assign({}, item);
-        if(mapped.enfant_id !== undefined) mapped.enfantId = mapped.enfant_id;
-        if(mapped.activite_id !== undefined) mapped.activiteId = mapped.activite_id;
-        return mapped;
-      });
+    if(db_inscriptions && db_inscriptions.length){
+      inscriptions = db_inscriptions.map(mapInscription);
+      await friCacheSet('inscriptions', db_inscriptions);
       console.log("[Insc Load] premier:", JSON.stringify(inscriptions[0]));
     }
     if(activites.length && !selectedActId) selectedActId = activites[0].id;
     renderAll();
-  }catch(e){console.warn('[Insc Load] DB erreur:',e);}
+  }catch(e){
+    console.warn('[Insc Load] DB erreur, tentative cache:',e);
+    // Fallback sur le cache si erreur réseau
+    var c_act2 = await friCacheGet('activites');
+    var c_enf2 = await friCacheGet('enfants');
+    var c_ins2 = await friCacheGet('inscriptions');
+    if(c_act2) activites = c_act2;
+    if(c_enf2) enfants = c_enf2;
+    if(c_ins2) inscriptions = c_ins2.map(mapInscription);
+    if(activites.length && !selectedActId) selectedActId = activites[0].id;
+    renderAll();
+  }
 }
 loadInscriptionsDB();
 </script>
@@ -1017,6 +1084,194 @@ async function confirmerSelection(){
   if(errors) msg += " ("+errors+" erreur(s))";
   alert("✓ "+msg + "\nTu peux maintenant envoyer les mails de confirmation depuis le module Inscriptions.");
 }
+</script>
+
+<!-- ============================================================
+     MODULE OFFLINE — IndexedDB cache + sync queue
+     ============================================================ -->
+<script>
+// ---- IndexedDB helpers ----
+var _friDB_offline = null;
+
+function friOfflineInit(){
+  return new Promise(function(resolve){
+    if(_friDB_offline){ resolve(_friDB_offline); return; }
+    var req = indexedDB.open('fritime_offline_v1', 1);
+    req.onupgradeneeded = function(e){
+      var db = e.target.result;
+      if(!db.objectStoreNames.contains('cache'))
+        db.createObjectStore('cache', {keyPath:'key'});
+      if(!db.objectStoreNames.contains('queue'))
+        db.createObjectStore('queue', {keyPath:'id', autoIncrement:true});
+    };
+    req.onsuccess = function(e){ _friDB_offline = e.target.result; resolve(_friDB_offline); };
+    req.onerror = function(){ resolve(null); };
+  });
+}
+
+function friCacheSet(key, data){
+  return new Promise(function(resolve){
+    if(!_friDB_offline){ resolve(); return; }
+    try{
+      var tx = _friDB_offline.transaction('cache','readwrite');
+      tx.objectStore('cache').put({key:key, data:data, ts:Date.now()});
+      tx.oncomplete = function(){ resolve(); };
+      tx.onerror = function(){ resolve(); };
+    }catch(e){ resolve(); }
+  });
+}
+
+function friCacheGet(key){
+  return new Promise(function(resolve){
+    if(!_friDB_offline){ resolve(null); return; }
+    try{
+      var tx = _friDB_offline.transaction('cache','readonly');
+      var req = tx.objectStore('cache').get(key);
+      req.onsuccess = function(e){ resolve(e.target.result ? e.target.result.data : null); };
+      req.onerror = function(){ resolve(null); };
+    }catch(e){ resolve(null); }
+  });
+}
+
+function friOfflineQueueAdd(op){
+  return new Promise(function(resolve){
+    if(!_friDB_offline){ resolve(); return; }
+    try{
+      var tx = _friDB_offline.transaction('queue','readwrite');
+      tx.objectStore('queue').add(op);
+      tx.oncomplete = function(){ resolve(); };
+      tx.onerror = function(){ resolve(); };
+    }catch(e){ resolve(); }
+  });
+}
+
+function friOfflineQueueGetAll(){
+  return new Promise(function(resolve){
+    if(!_friDB_offline){ resolve([]); return; }
+    try{
+      var tx = _friDB_offline.transaction('queue','readonly');
+      var req = tx.objectStore('queue').getAll();
+      req.onsuccess = function(e){ resolve(e.target.result || []); };
+      req.onerror = function(){ resolve([]); };
+    }catch(e){ resolve([]); }
+  });
+}
+
+function friOfflineQueueDelete(id){
+  return new Promise(function(resolve){
+    if(!_friDB_offline){ resolve(); return; }
+    try{
+      var tx = _friDB_offline.transaction('queue','readwrite');
+      tx.objectStore('queue').delete(id);
+      tx.oncomplete = function(){ resolve(); };
+      tx.onerror = function(){ resolve(); };
+    }catch(e){ resolve(); }
+  });
+}
+
+function friOfflineQueueCount(){
+  return new Promise(function(resolve){
+    if(!_friDB_offline){ resolve(0); return; }
+    try{
+      var tx = _friDB_offline.transaction('queue','readonly');
+      var req = tx.objectStore('queue').count();
+      req.onsuccess = function(e){ resolve(e.target.result || 0); };
+      req.onerror = function(){ resolve(0); };
+    }catch(e){ resolve(0); }
+  });
+}
+
+// ---- Barre de statut connexion ----
+async function updateOfflineBar(){
+  var bar = document.getElementById('offline-bar');
+  var dot = document.getElementById('offline-dot');
+  var label = document.getElementById('offline-label');
+  var badge = document.getElementById('sync-badge');
+  var msg = document.getElementById('offline-sync-msg');
+  if(!bar) return;
+
+  var count = await friOfflineQueueCount();
+  bar.classList.remove('hidden');
+
+  if(navigator.onLine){
+    dot.className = 'offline-dot online';
+    label.textContent = 'En ligne';
+    if(count > 0){
+      badge.textContent = count;
+      badge.className = 'sync-badge';
+      msg.textContent = 'Synchronisation en cours...';
+    } else {
+      badge.className = 'sync-badge zero';
+      msg.textContent = '';
+      // Masquer la barre si tout est synchronisé et en ligne
+      setTimeout(function(){ bar.classList.add('hidden'); }, 2000);
+    }
+  } else {
+    dot.className = 'offline-dot';
+    label.textContent = 'Hors ligne';
+    if(count > 0){
+      badge.textContent = count;
+      badge.className = 'sync-badge';
+      msg.textContent = count + ' modification(s) en attente de synchronisation';
+    } else {
+      badge.className = 'sync-badge zero';
+      msg.textContent = 'Les données affichées proviennent du cache local';
+    }
+  }
+}
+
+// ---- Synchronisation ----
+async function friSyncQueue(){
+  if(!navigator.onLine || typeof FriDB === 'undefined') return;
+  var queue = await friOfflineQueueGetAll();
+  if(!queue.length){ updateOfflineBar(); return; }
+
+  console.log('[Offline] Syncing', queue.length, 'opération(s)...');
+  var synced = 0;
+  var errors = 0;
+
+  for(var k=0; k<queue.length; k++){
+    var op = queue[k];
+    try{
+      if(op.type === 'presence'){
+        await FriDB.query('inscriptions','PATCH',
+          {presence: op.presence, statut: op.statut},
+          '?id=eq.'+op.inscId);
+      }
+      await friOfflineQueueDelete(op.id);
+      synced++;
+    }catch(e){
+      console.warn('[Offline] Erreur sync op', op.id, e);
+      errors++;
+    }
+  }
+
+  console.log('[Offline] Sync terminée:', synced, 'ok,', errors, 'erreur(s)');
+
+  // Recharger les données fraîches depuis Supabase
+  try{
+    var fresh = await FriDB.getInscriptions();
+    if(fresh && fresh.length){
+      inscriptions = fresh.map(mapInscription);
+      await friCacheSet('inscriptions', fresh);
+    }
+  }catch(e){ console.warn('[Offline] Rechargement post-sync:', e); }
+
+  updateOfflineBar();
+  renderAll();
+}
+
+// ---- Événements réseau ----
+window.addEventListener('online', function(){
+  console.log('[Offline] Connexion rétablie — sync...');
+  updateOfflineBar();
+  friSyncQueue();
+});
+
+window.addEventListener('offline', function(){
+  console.log('[Offline] Connexion perdue');
+  updateOfflineBar();
+});
 </script>
 
 <script>
