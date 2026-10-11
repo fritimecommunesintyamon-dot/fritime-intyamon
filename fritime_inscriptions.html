@@ -466,7 +466,7 @@ function renderListe(){
       return`<tr>
         <td><div style="display:flex;align-items:center;gap:8px">
           <div class="avatar">${ini((e.prenom||"")+" "+(e.nom||""))}</div>
-          <div><div style="font-weight:500">${e.prenom||""} ${e.nom||""}</div>${i.notes?`<div style="font-size:11px;color:#888">${i.notes}</div>`:""}</div>
+          <div><div style="font-weight:500;display:flex;align-items:center;gap:6px">${e.prenom||""} ${e.nom||""}${e.notes?`<span title="${(e.notes||'').replace(/"/g,'&quot;')}" style="display:inline-flex;align-items:center;justify-content:center;background:#fff3cd;color:#856404;border:1px solid #ffc107;border-radius:50%;width:17px;height:17px;font-size:11px;cursor:help">⚠</span>`:""}</div>${i.notes?`<div style="font-size:11px;color:#888">${i.notes}</div>`:""}</div>
         </div></td>
         <td>${ageE(e)} ans</td>
         <td><div style="font-size:12px">${(e.pp||"")+" "+(e.pn||"")}</div><div style="font-size:11px;color:#888">${e.pt||e.pe||""}</div></td>
@@ -496,7 +496,7 @@ function renderAttente(){
       const e=getEnfant(i.enfantId);if(!e)return"";
       return`<tr>
         <td><span style="font-size:16px;font-weight:700;color:#633806">${idx+1}</span></td>
-        <td><div style="display:flex;align-items:center;gap:8px"><div class="avatar">${ini((e.prenom||"")+" "+(e.nom||""))}</div><div style="font-weight:500">${e.prenom||""} ${e.nom||""}</div></div></td>
+        <td><div style="display:flex;align-items:center;gap:8px"><div class="avatar">${ini((e.prenom||"")+" "+(e.nom||""))}</div><div style="font-weight:500;display:flex;align-items:center;gap:6px">${e.prenom||""} ${e.nom||""}${e.notes?`<span title="${(e.notes||'').replace(/"/g,'&quot;')}" style="display:inline-flex;align-items:center;justify-content:center;background:#fff3cd;color:#856404;border:1px solid #ffc107;border-radius:50%;width:17px;height:17px;font-size:11px;cursor:help">⚠</span>`:""}</div></div></td>
         <td>${ageE(e)} ans</td>
         <td><div style="font-size:12px">${(e.pp||"")+" "+(e.pn||"")}</div><div style="font-size:11px;color:#888">${e.pt||e.pe||""}</div></td>
         <td>#${i.pref||"—"}</td>

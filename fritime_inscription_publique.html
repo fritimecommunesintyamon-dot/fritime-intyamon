@@ -151,13 +151,13 @@ body{font-family:system-ui,sans-serif;background:#f5f5f3;color:#1a1a1a;font-size
   <div class="rules-inner">
     <div class="rules-title">⚠️ Règles importantes à connaître avant l'inscription</div>
     <ul class="rules-list">
-      <li><strong>Assurance du participant :</strong> En cas de dégât matériel ou autre, c'est l'assurance responsabilité civile privée du participant qui prend en charge les frais.</li>
-      <li><strong>Responsabilité :</strong> L'organisateur et le comité d'organisation Fri-Time déclinent toute responsabilité en cas d'accident, de dégâts matériels et/ou de vol.</li>
-      <li><strong>Non-respect des règles :</strong> En cas de non-respect de la charte et du règlement de l'activité, des règles de sécurité et des directives, l'organisateur et le comité d'organisation Fri-Time se réservent le droit de renvoi du participant et le bannissement des futures activités si nécessaire.</li>
-      <li><strong>Droit à l'image :</strong> En participant aux activités FriTime, vous acceptez que des images et photos prises lors de ces activités puissent être utilisées à des fins de promotion. Si vous vous y opposez : <a href="mailto:fritimecommunesintyamon@gmail.com">fritimecommunesintyamon@gmail.com</a></li>
-      <li><strong>Rapport d'incident :</strong> En cas de problème, accident ou incident survenant lors d'une activité, un rapport d'incident officiel sera systématiquement établi par le comité d'organisation Fri-Time. Les parents ou responsables légaux concernés en seront informés dans les meilleurs délais et les mesures nécessaires seront prises en conséquence.</li>
-      <li><strong>Procédures d'urgence :</strong> En cas d'urgence médicale, les bénévoles sont formés aux procédures de premiers secours. Les services d'urgence seront contactés si nécessaire (144 ambulance · 117 police · 118 pompiers · 1414 Rega). Les parents seront prévenus le plus rapidement possible. <strong>Il est impératif d'être joignable par téléphone pendant toute la durée de l'activité.</strong></li>
       <li><strong>Informations importantes à communiquer au comité :</strong> Pour la sécurité de votre enfant, il est indispensable de signaler au moment de l'inscription toute allergie (alimentaire, médicamenteuse, au soleil, aux insectes...), tout traitement médical en cours, toute condition de santé particulière (asthme, épilepsie, diabète, troubles moteurs...) ou toute information que les bénévoles doivent connaître. Ces informations sont confidentielles et uniquement utilisées dans le cadre de la sécurité de votre enfant.</li>
+      <li><strong>Procédures d'urgence :</strong> La sécurité des enfants est notre priorité. En cas de besoin, les responsables d'activité agiront selon leurs compétences et n'hésiteront pas à contacter les services de secours (144 ambulance · 117 police · 118 pompiers · 1414 Rega). Les parents seront prévenus dès que possible. <strong>Merci de rester joignable par téléphone pendant toute la durée de l'activité.</strong></li>
+      <li><strong>Rapport d'incident :</strong> En cas de problème, accident ou incident survenant lors d'une activité, un rapport d'incident officiel sera systématiquement établi par le comité d'organisation Fri-Time. Les parents ou responsables légaux concernés en seront informés dans les meilleurs délais et les mesures nécessaires seront prises en conséquence.</li>
+      <li><strong>Responsabilité :</strong> Avant chaque activité, les règles de sécurité sont expliquées à tous les participants. Si elles ne sont pas respectées, l'organisateur et le comité Fri-Time ne peuvent être tenus responsables d'un accident, de dégâts matériels ou d'un vol.</li>
+      <li><strong>Assurance du participant :</strong> Chaque participant doit être au bénéfice d'une assurance responsabilité civile (RC) privée. En cas de dégât matériel causé à autrui, c'est cette assurance qui prend en charge les frais.</li>
+      <li><strong>Non-respect des règles :</strong> Pour que l'activité se passe bien pour tous, chaque participant est tenu de respecter les règles de sécurité, la charte et les consignes des responsables. En cas de manquement grave ou répété, le comité se réserve le droit d'exclure le participant de l'activité en cours, voire des activités futures.</li>
+      <li><strong>Droit à l'image :</strong> En participant aux activités Fri-Time, vous acceptez que des photos et images puissent être utilisées à des fins de communication (réseaux sociaux, site web, affiches). Nous veillerons à ce qu'aucun visage ne soit identifiable. Si vous refusez ou souhaitez qu'une photo soit retirée, contactez-nous à <a href="mailto:fritimecommunesintyamon@gmail.com">fritimecommunesintyamon@gmail.com</a></li>
     
             </ul>
   </div>
@@ -203,7 +203,25 @@ body{font-family:system-ui,sans-serif;background:#f5f5f3;color:#1a1a1a;font-size
         <div class="fg"><label class="fl">Date de naissance <span class="req">*</span></label><input class="fi" type="date" id="e-ddn" onchange="calcAge()" /><div class="err" id="err-ddn">Obligatoire</div></div>
         <div class="fg"><label class="fl">Âge calculé</label><input class="fi" id="e-age" readonly style="background:#f5f5f3" /></div>
       </div>
-      <div class="fg"><label class="fl">Commune / village <span class="req">*</span></label><input class="fi" id="e-commune" placeholder="Ex: Bulle,s, Broc..." /><div class="err" id="err-commune">Obligatoire</div></div>
+      <div class="fg"><label class="fl">Commune / village <span class="req">*</span></label>
+        <select class="fi" id="e-commune">
+          <option value="">— Choisir —</option>
+          <optgroup label="Commune de Haut-Intyamon">
+            <option value="Albeuve">Albeuve</option>
+            <option value="Lessoc">Lessoc</option>
+            <option value="Montbovon">Montbovon</option>
+            <option value="Neirivue">Neirivue</option>
+            <option value="Sciernes">Sciernes</option>
+          </optgroup>
+          <optgroup label="Commune de Bas-Intyamon">
+            <option value="Enney">Enney</option>
+            <option value="Villars-sous-Mont">Villars-sous-Mont</option>
+          </optgroup>
+          <optgroup label="Commune de Grandvillard">
+            <option value="Grandvillard">Grandvillard</option>
+          </optgroup>
+        </select>
+        <div class="err" id="err-commune">Obligatoire</div></div>
       <div class="fg"><label class="fl">Allergies / besoins particuliers</label><input class="fi" id="e-notes" placeholder="Ex: Allergie arachides, asthme, besoin d'accompagnement..." /></div>
     </div>
   </div>
@@ -542,6 +560,7 @@ function nextStep(){
             pn: document.getElementById("p-nom").value.trim(),
             pe: email,
             pt: document.getElementById("p-tel").value.trim(),
+            notes: document.getElementById("e-notes") ? document.getElementById("e-notes").value.trim() : "",
             statut: "actif",
             parts: 0
           };
