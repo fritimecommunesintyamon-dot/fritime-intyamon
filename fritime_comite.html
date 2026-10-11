@@ -329,7 +329,7 @@ function doLogout(){
   </div>
   <div class="fr">
     <div class="fg"><label class="fl">Commune</label>
-      <select class="fi" id="cc">
+      <select class="fi" id="cc" onchange="toggleAutreCommune('cc','cc-autre')">
         <option value="">— Choisir —</option>
         <optgroup label="Commune de Haut-Intyamon">
           <option value="Albeuve">Albeuve</option>
@@ -345,7 +345,9 @@ function doLogout(){
         <optgroup label="Commune de Grandvillard">
           <option value="Grandvillard">Grandvillard</option>
         </optgroup>
+        <option value="__autre__">Autre...</option>
       </select>
+      <input class="fi" id="cc-autre" placeholder="Préciser la commune" style="display:none;margin-top:6px" />
     </div>
     <div class="fg"><label class="fl">Date d'entrée</label><input class="fi" type="date" id="cde" /></div>
   </div>
@@ -403,7 +405,7 @@ function doLogout(){
   </div>
   <div class="fr">
     <div class="fg"><label class="fl">Commune</label>
-      <select class="fi" id="ec">
+      <select class="fi" id="ec" onchange="toggleAutreCommune('ec','ec-autre')">
         <option value="">— Choisir —</option>
         <optgroup label="Commune de Haut-Intyamon">
           <option value="Albeuve">Albeuve</option>
@@ -419,7 +421,9 @@ function doLogout(){
         <optgroup label="Commune de Grandvillard">
           <option value="Grandvillard">Grandvillard</option>
         </optgroup>
+        <option value="__autre__">Autre...</option>
       </select>
+      <input class="fi" id="ec-autre" placeholder="Préciser la commune" style="display:none;margin-top:6px" />
     </div>
     <div class="fg"><label class="fl">Date d'entrée</label><input class="fi" type="date" id="ede" /></div>
   </div>
@@ -501,6 +505,18 @@ function tachesOf(m){
 function fillRoleSelect(id,currentVal){
   const sel=document.getElementById(id);if(!sel)return;
   sel.innerHTML=ROLES.map(r=>`<option value="${r}"${currentVal===r?' selected':''}>${r}</option>`).join('');
+}
+function toggleAutreCommune(selId, inputId){
+  var sel=document.getElementById(selId), inp=document.getElementById(inputId);
+  if(!sel||!inp) return;
+  inp.style.display=sel.value==='__autre__'?'block':'none';
+  if(sel.value!=='__autre__') inp.value='';
+}
+function getCommuneValue(selId, inputId){
+  var sel=document.getElementById(selId), inp=document.getElementById(inputId);
+  if(!sel) return '';
+  if(sel.value==='__autre__') return inp?inp.value.trim():'';
+  return sel.value.trim();
 }
 function toggleNewRole(blockId){
   const el=document.getElementById(blockId);
@@ -606,7 +622,7 @@ function saveCreate(){
   const p=document.getElementById('cp').value.trim(),n=document.getElementById('cn').value.trim();
   if(!p||!n){alert('Prénom et nom obligatoires');return;}
   (async function(){
-    var newM={prenom:p,nom:n,role:document.getElementById('cr').value,statut:document.getElementById('cs').value,email:document.getElementById('ce').value.trim(),tel:document.getElementById('ct').value.trim(),commune:document.getElementById('cc').value.trim(),dateEntree:document.getElementById('cde').value||null,finEngagement:document.getElementById('cfe').value||null,notes:document.getElementById('cno').value.trim()};
+    var newM={prenom:p,nom:n,role:document.getElementById('cr').value,statut:document.getElementById('cs').value,email:document.getElementById('ce').value.trim(),tel:document.getElementById('ct').value.trim(),commune:getCommuneValue('cc','cc-autre'),dateEntree:document.getElementById('cde').value||null,finEngagement:document.getElementById('cfe').value||null,notes:document.getElementById('cno').value.trim()};
     if(typeof FriDB!=='undefined'){
       try{ var res=await FriDB.saveMembre(newM); if(res&&res[0]&&res[0].id) newM.id=res[0].id; else newM.id=nid++; }
       catch(e){ console.warn('Save DB failed:',e); newM.id=nid++; }
@@ -738,7 +754,14 @@ function openEdit(id){
   document.getElementById('es').value=m.statut;
   document.getElementById('ee').value=m.email||'';
   document.getElementById('ett').value=m.tel||'';
-  document.getElementById('ec').value=m.commune||'';
+  var knownCommunes=['Albeuve','Lessoc','Montbovon','Neirivue','Sciernes','Enney','Villars-sous-Mont','Grandvillard'];
+  var communeVal=m.commune||'';
+  var ecSel=document.getElementById('ec'), ecAutre=document.getElementById('ec-autre');
+  if(communeVal && !knownCommunes.includes(communeVal)){
+    ecSel.value='__autre__'; ecAutre.style.display='block'; ecAutre.value=communeVal;
+  } else {
+    ecSel.value=communeVal; ecAutre.style.display='none'; ecAutre.value='';
+  }
   document.getElementById('ede').value=m.dateEntree||'';
   document.getElementById('efe').value=m.finEngagement||'';
   document.getElementById('eno').value=m.notes||'';
@@ -799,7 +822,7 @@ function saveEdit(){
   if(!p||!n){alert('Prénom et nom obligatoires');return;}
   (async function(){
     var ancienRole = (membres.find(function(m){return m.id===selId;})||{}).role || '';
-    var upd={id:selId,prenom:p,nom:n,role:document.getElementById('er').value,statut:document.getElementById('es').value,email:document.getElementById('ee').value.trim(),tel:document.getElementById('ett').value.trim(),commune:document.getElementById('ec').value.trim(),dateEntree:document.getElementById('ede').value||null,finEngagement:document.getElementById('efe').value||null,notes:document.getElementById('eno').value.trim()};
+    var upd={id:selId,prenom:p,nom:n,role:document.getElementById('er').value,statut:document.getElementById('es').value,email:document.getElementById('ee').value.trim(),tel:document.getElementById('ett').value.trim(),commune:getCommuneValue('ec','ec-autre'),dateEntree:document.getElementById('ede').value||null,finEngagement:document.getElementById('efe').value||null,notes:document.getElementById('eno').value.trim()};
     membres=membres.map(m=>m.id===selId?{...m,...upd}:m);
     if(typeof FriDB!=='undefined') try{ await FriDB.saveMembre(upd); }catch(e){ console.warn(e); }
     closeEdit();render();
