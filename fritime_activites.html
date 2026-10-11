@@ -658,6 +658,24 @@ async function saveActivite(){
       }catch(e){ console.warn('Save DB failed:',e); data.id=nextId++; }
     } else { data.id=nextId++; }
     activites.push({...data,inscrits:0});
+    // Auto-tâche facturation
+    if(data.cout > 0 && data.coutFacture !== 'commune'){
+      var factLabel = data.coutFacture === 'mixte' ? 'familles (part mixte)' : 'familles';
+      var autoTache = {
+        titre: 'Facturation — ' + data.nom,
+        desc: 'Envoyer les demandes de paiement aux ' + factLabel + '. Montant : ' + data.cout + ' CHF ' + (data.coutType === 'enfant' ? '/enfant' : 'total') + (data.date ? ' — activité prévue le ' + data.date : '') + '.',
+        priorite: 'haute',
+        statut: 'ouverte',
+        type: 'ponctuelle',
+        activite: data.id || null,
+        assignee: null,
+        dateLimite: data.date || null,
+        notes: null
+      };
+      if(typeof FriDB !== 'undefined'){
+        try{ await FriDB.quickSave('taches', autoTache); }catch(e){ console.warn('Auto-tâche facturation:', e); }
+      }
+    }
   }
   closeCreate();render();
 }
