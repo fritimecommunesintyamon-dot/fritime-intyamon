@@ -387,9 +387,10 @@ function doLogout(){
   </div>
   <div id="new-prest-block" style="display:none;background:#f5f5f3;border-radius:8px;padding:12px;margin-bottom:.75rem">
     <div style="font-size:12px;font-weight:500;color:#888;margin-bottom:8px">Nouveau prestataire</div>
+    <div class="fg" style="margin-bottom:.5rem"><label class="fl">Nom entreprise / organisation</label><input class="fi" id="np-org" placeholder="Ex: Association sportive..." /></div>
     <div class="fr">
-      <div class="fg" style="margin-bottom:.5rem"><label class="fl">Prénom</label><input class="fi" id="np-prenom" /></div>
-      <div class="fg" style="margin-bottom:.5rem"><label class="fl">Nom</label><input class="fi" id="np-nom" /></div>
+      <div class="fg" style="margin-bottom:.5rem"><label class="fl">Prénom contact</label><input class="fi" id="np-prenom" /></div>
+      <div class="fg" style="margin-bottom:.5rem"><label class="fl">Nom contact</label><input class="fi" id="np-nom" /></div>
     </div>
     <div class="fr">
       <div class="fg" style="margin-bottom:.5rem"><label class="fl">Email</label><input class="fi" type="email" id="np-email" /></div>
@@ -566,14 +567,15 @@ function handlePrestChange(){
   }
 }
 function saveNewPrest(){
+  const org=document.getElementById("np-org").value.trim();
   const prenom=document.getElementById("np-prenom").value.trim();
   const nom=document.getElementById("np-nom").value.trim();
-  if(!prenom&&!nom){alert("Entrez au moins un nom");return;}
-  const p={id:nextPrestId++,prenom,nom,email:document.getElementById("np-email").value.trim(),tel:document.getElementById("np-tel").value.trim(),url:document.getElementById("np-url").value.trim()};
+  if(!org&&!prenom&&!nom){alert("Entrez au moins un nom");return;}
+  const p={id:nextPrestId++,nom:org||(prenom+" "+nom).trim(),prenom,cn:nom,email:document.getElementById("np-email").value.trim(),tel:document.getElementById("np-tel").value.trim(),url:document.getElementById("np-url").value.trim()};
   prestataires.push(p);
   fillPrestSelect();
   document.getElementById("f-prest").value=p.id;
-  ["np-prenom","np-nom","np-email","np-tel","np-url"].forEach(id=>document.getElementById(id).value="");
+  ["np-org","np-prenom","np-nom","np-email","np-tel","np-url"].forEach(id=>document.getElementById(id).value="");
   document.getElementById("new-prest-block").style.display="none";
   handlePrestChange();
 }
