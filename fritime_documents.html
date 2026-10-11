@@ -300,6 +300,37 @@ function doLogout(){
 
   <!-- Zone principale -->
   <div>
+    <!-- Procédure ajout document -->
+    <div style="background:#fff;border:1px solid #eee;border-radius:10px;margin-bottom:1.25rem;overflow:hidden">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;cursor:pointer;user-select:none" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+        <div style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600">
+          <span>📋</span> Comment ajouter un document
+        </div>
+        <span style="font-size:11px;color:#888">Cliquer pour afficher / masquer</span>
+      </div>
+      <div style="display:none;padding:0 16px 16px;border-top:1px solid #eee">
+        <p style="font-size:13px;color:#555;margin:12px 0 10px">Tous les documents Fri-Time sont hébergés sur Google Drive avec le compte <strong>fritimecommunesintyamon@gmail.com</strong>. Demande le mot de passe au comité si tu ne l'as pas encore.</p>
+        <div style="display:grid;gap:8px">
+          <div style="display:flex;gap:12px;align-items:flex-start;padding:10px 12px;background:#f5f5f3;border-radius:8px">
+            <span style="background:#1a1a1a;color:#fff;width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px">1</span>
+            <div><div style="font-size:13px;font-weight:600">Ouvrir Google Drive</div><div style="font-size:12px;color:#666;margin-top:2px">Va sur <strong>drive.google.com</strong> et connecte-toi avec le compte Fri-Time.</div></div>
+          </div>
+          <div style="display:flex;gap:12px;align-items:flex-start;padding:10px 12px;background:#f5f5f3;border-radius:8px">
+            <span style="background:#1a1a1a;color:#fff;width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px">2</span>
+            <div><div style="font-size:13px;font-weight:600">Importer le fichier</div><div style="font-size:12px;color:#666;margin-top:2px">Clique sur <strong>+ Nouveau → Importer un fichier</strong> et sélectionne ton document.</div></div>
+          </div>
+          <div style="display:flex;gap:12px;align-items:flex-start;padding:10px 12px;background:#f5f5f3;border-radius:8px">
+            <span style="background:#1a1a1a;color:#fff;width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px">3</span>
+            <div><div style="font-size:13px;font-weight:600">Obtenir le lien de partage</div><div style="font-size:12px;color:#666;margin-top:2px">Clique droit sur le fichier → <strong>Partager</strong> → passe l'accès à <strong>"Toute personne avec le lien"</strong> → <strong>Copier le lien</strong>.</div></div>
+          </div>
+          <div style="display:flex;gap:12px;align-items:flex-start;padding:10px 12px;background:#eaf3de;border-radius:8px">
+            <span style="background:#275a0a;color:#fff;width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px">4</span>
+            <div><div style="font-size:13px;font-weight:600">Ajouter dans l'app</div><div style="font-size:12px;color:#666;margin-top:2px">Clique sur <strong>+ Ajouter un document</strong>, remplis le nom et la catégorie, colle le lien dans le champ <strong>"Lien Google Drive"</strong>, puis enregistre.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="doc-grid" id="doc-grid"></div>
   </div>
 </div>
@@ -475,8 +506,6 @@ function openAddDoc(){
   document.getElementById("d-desc").value="";
   document.getElementById("d-url").value="";
   document.getElementById("d-type").value="pdf";
-  document.getElementById("file-selected-name").textContent="Aucun fichier choisi";
-  document.getElementById("file-selected-info").style.display="none";
   updateCatSelects();
   if(selectedCat!=="toutes")document.getElementById("d-cat").value=selectedCat;
   document.getElementById("mDoc").style.display="flex";
@@ -491,8 +520,6 @@ function openEditDoc(id){
   document.getElementById("d-desc").value=d.desc||"";
   document.getElementById("d-url").value=d.url||"";
   document.getElementById("d-type").value=d.type;
-  document.getElementById("file-selected-name").textContent="Fichier déjà enregistré";
-  document.getElementById("file-selected-info").style.display="none";
   updateCatSelects();
   document.getElementById("d-cat").value=d.cat||"";
   document.getElementById("mDoc").style.display="flex";
@@ -540,8 +567,6 @@ async function saveDoc(){
   }
   closeMDoc();renderAll();
 }
-  closeMDoc();
-  renderAll();
 
 function deleteDoc(){
   if(confirm("Supprimer ce document ?")){docs=docs.filter(function(x){return String(x.id)!==String(editDocId);});
