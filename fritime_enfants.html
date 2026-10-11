@@ -316,7 +316,25 @@ function doLogout(){
     <div class="fg"><label class="fl">Date de naissance</label><input class="fi" type="date" id="cd" onchange="calcAge()" /></div>
     <div class="fg"><label class="fl">Âge (calculé)</label><input class="fi" id="ca" readonly style="background:#f5f5f3" /></div>
   </div>
-  <div class="fg"><label class="fl">Commune / village</label><input class="fi" id="cc" placeholder="Ex: Bulle" /></div>
+  <div class="fg"><label class="fl">Commune / village</label>
+    <select class="fi" id="cc">
+      <option value="">— Choisir —</option>
+      <optgroup label="Commune de Haut-Intyamon">
+        <option value="Albeuve">Albeuve</option>
+        <option value="Lessoc">Lessoc</option>
+        <option value="Montbovon">Montbovon</option>
+        <option value="Neirivue">Neirivue</option>
+        <option value="Sciernes">Sciernes</option>
+      </optgroup>
+      <optgroup label="Commune de Bas-Intyamon">
+        <option value="Enney">Enney</option>
+        <option value="Villars-sous-Mont">Villars-sous-Mont</option>
+      </optgroup>
+      <optgroup label="Commune de Grandvillard">
+        <option value="Grandvillard">Grandvillard</option>
+      </optgroup>
+    </select>
+  </div>
   <div class="sec" style="border-top:none;padding-top:0;margin-top:.5rem">Parent / responsable</div>
   <div class="fr"><div class="fg"><label class="fl">Prénom</label><input class="fi" id="cpp" /></div><div class="fg"><label class="fl">Nom</label><input class="fi" id="cpn" /></div></div>
   <div class="fr"><div class="fg"><label class="fl">Email</label><input class="fi" type="email" id="cpe" /></div><div class="fg"><label class="fl">Téléphone</label><input class="fi" type="tel" id="cpt" /></div></div>
@@ -585,7 +603,7 @@ async function saveEdit(){
   const p=document.getElementById('ep').value.trim(),n=document.getElementById('en').value.trim();
   if(!p||!n){alert('Prénom et nom obligatoires');return;}
   const ddn=document.getElementById('ed').value;
-  var updE={id:selId,prenom:p,nom:n,ddn:ddn||null,age:calcAgeFrom(ddn)||0,commune:document.getElementById('eco').value.trim(),pp:document.getElementById('epp').value.trim(),pn:document.getElementById('epn').value.trim(),pe:document.getElementById('epe').value.trim(),pt:document.getElementById('ept').value.trim(),notes:document.getElementById('eno').value.trim()};
+  var updE={id:selId,prenom:p,nom:n,ddn:ddn||null,age:calcAgeFrom(ddn)||0,commune:document.getElementById('ec').value.trim(),pp:document.getElementById('epp').value.trim(),pn:document.getElementById('epn').value.trim(),pe:document.getElementById('epe').value.trim(),pt:document.getElementById('ept').value.trim(),notes:document.getElementById('eno').value.trim()};
   enfants=enfants.map(e=>e.id===selId?{...e,...updE}:e);
   if(typeof FriDB!=='undefined') try{ await FriDB.saveEnfant(updE); }catch(e){ console.warn(e); }
   closeEdit();render();
@@ -655,7 +673,25 @@ loadEnfantsDB();
     <div class="fg"><label class="fl">Date de naissance</label><input class="fi" type="date" id="ed" /></div>
     <div class="fg"><label class="fl">Âge</label><input class="fi" id="ea" readonly /></div>
   </div>
-  <div class="fg"><label class="fl">Commune</label><input class="fi" id="ec" /></div>
+  <div class="fg"><label class="fl">Commune</label>
+    <select class="fi" id="ec">
+      <option value="">— Choisir —</option>
+      <optgroup label="Commune de Haut-Intyamon">
+        <option value="Albeuve">Albeuve</option>
+        <option value="Lessoc">Lessoc</option>
+        <option value="Montbovon">Montbovon</option>
+        <option value="Neirivue">Neirivue</option>
+        <option value="Sciernes">Sciernes</option>
+      </optgroup>
+      <optgroup label="Commune de Bas-Intyamon">
+        <option value="Enney">Enney</option>
+        <option value="Villars-sous-Mont">Villars-sous-Mont</option>
+      </optgroup>
+      <optgroup label="Commune de Grandvillard">
+        <option value="Grandvillard">Grandvillard</option>
+      </optgroup>
+    </select>
+  </div>
   <div class="fr">
     <div class="fg"><label class="fl">Prénom parent</label><input class="fi" id="epp" /></div>
     <div class="fg"><label class="fl">Nom parent</label><input class="fi" id="epn" /></div>
