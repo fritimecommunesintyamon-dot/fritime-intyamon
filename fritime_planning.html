@@ -158,13 +158,43 @@ body{font-family:system-ui,sans-serif;background:#f5f5f3;color:#1a1a1a;font-size
 .ft-menu-btn:hover{opacity:1}
 @media(min-width:769px){.ft-sidebar{display:none!important}.ft-sidebar-overlay{display:none!important}.ft-menu-btn{display:none!important}}
 @media(max-width:768px){.ft-user-name{display:none}.plan-content{padding:1rem!important}}
+
+/* Feuille de présence */
+.presence-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px}
+.presence-card{background:#f5f5f3;border-radius:8px;padding:10px 12px;display:flex;align-items:center;gap:12px;margin-bottom:6px}
+.presence-name{font-weight:500;font-size:13px}
+.presence-sub{font-size:11px;color:#888;margin-top:1px}
+.pres-btn{padding:5px 12px;border-radius:6px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:12px;font-weight:500;font-family:inherit}
+.pres-btn.present{background:#eaf3de;color:#275a0a;border-color:#c0dd97}
+.pres-btn.absent{background:#fcebeb;color:#791f1f;border-color:#f7c1c1}
+.pres-btn.active-present{background:#275a0a;color:#fff;border-color:#275a0a}
+.pres-btn.active-absent{background:#791f1f;color:#fff;border-color:#791f1f}
+.avatar{width:30px;height:30px;border-radius:50%;background:#e6f1fb;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#1a5fa0;flex-shrink:0}
+/* Offline bar */
+.offline-bar{position:fixed;bottom:0;left:0;right:0;z-index:2000;background:#1a1a1a;color:#fff;font-size:12px;padding:7px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.offline-bar.hidden{display:none!important}
+.offline-dot{width:8px;height:8px;border-radius:50%;background:#ef4444;flex-shrink:0}
+.offline-dot.online{background:#22c55e}
+.sync-badge{background:#ef4444;color:#fff;border-radius:20px;padding:1px 8px;font-size:11px;font-weight:700;margin-left:6px}
+.sync-badge.zero{display:none}
 </style>
 <script src="fritime_data.js"></script>
 <script src="fritime_sync.js"></script>
 <script src="fritime_auth.js"></script>
 <script src="fritime_supabase.js"></script>
+<script src="fritime_brevo.js"></script>
 </head>
 <body class="ft-body-offset">
+
+<!-- Barre statut connexion -->
+<div class="offline-bar hidden" id="offline-bar">
+  <div style="display:flex;align-items:center;gap:8px">
+    <div class="offline-dot" id="offline-dot"></div>
+    <span id="offline-label">Hors ligne</span>
+    <span class="sync-badge zero" id="sync-badge">0</span>
+  </div>
+  <div id="offline-sync-msg" style="font-size:11px;opacity:.7"></div>
+</div>
 
 <!-- TOPBAR -->
 <div class="ft-topbar">
@@ -556,13 +586,52 @@ function renderFiche(){
   }
   html+='</div>';
 
-  // BLOC 4 — Procédures
+  // BLOC 4 — Feuille de présence
+  var presInscs=inscriptions.filter(function(i){
+    return String(i.activiteId||i.activite_id)===String(a.id)&&["confirme","present","absent"].includes(i.statut);
+  });
+  html+='<div class="sec-block">';
+  html+='<div class="sec-title"><span>👥</span> Feuille de présence</div>';
+  if(presInscs.length===0){
+    html+='<div style="color:#aaa;font-size:13px">Aucun enfant confirmé — la feuille sera disponible une fois des enfants confirmés.</div>';
+  } else {
+    var presCount=presInscs.filter(function(i){return i.presence==="present";}).length;
+    var absCount=presInscs.filter(function(i){return i.presence==="absent";}).length;
+    html+='<div class="presence-header">';
+    html+='<div style="font-size:13px;color:#888">'+presCount+' présent(s) · '+absCount+' absent(s) · '+(presInscs.length-presCount-absCount)+' non coché(s)</div>';
+    html+='<div style="display:flex;gap:8px">';
+    html+='<button class="btn btn-sm" onclick="marquerTousPresents('+a.id+',event)">✓ Tous présents</button>';
+    html+='<button class="btn btn-sm btn-primary" onclick="exportPresence('+a.id+')">📄 Exporter</button>';
+    html+='</div></div>';
+    presInscs.forEach(function(i){
+      var e=enfants.find(function(ef){return String(ef.id)===String(i.enfantId||i.enfant_id);});
+      if(!e)return;
+      var eNom=((e.prenom||"")+" "+(e.nom||"")).trim();
+      var eAge=e.dateNaissance?(new Date().getFullYear()-parseInt((e.dateNaissance||"0000").split("-")[0])):(e.age||"?");
+      var eParent=((e.pp||"")+" "+(e.pn||"")).trim();
+      var eTel=e.pt||e.pe||"";
+      var ini2=(((e.prenom||"")[0]||"")+((e.nom||"")[0]||"")).toUpperCase();
+      html+='<div class="presence-card">';
+      html+='<div class="avatar">'+ini2+'</div>';
+      html+='<div style="flex:1"><div class="presence-name">'+esc(eNom)+'</div>';
+      html+='<div class="presence-sub">'+eAge+' ans · '+eParent+(eTel?' · '+eTel:'')+'</div>';
+      if(e.notes)html+='<div style="font-size:11px;color:#791f1f;margin-top:2px">⚠️ '+esc(e.notes)+'</div>';
+      html+='</div>';
+      html+='<div style="display:flex;gap:6px;flex-shrink:0">';
+      html+='<button class="pres-btn '+(i.presence==="present"?"active-present":"present")+'" onclick="setPresence('+i.id+',\'present\',event)">✓ Présent</button>';
+      html+='<button class="pres-btn '+(i.presence==="absent"?"active-absent":"absent")+'" onclick="setPresence('+i.id+',\'absent\',event)">✗ Absent</button>';
+      html+='</div></div>';
+    });
+  }
+  html+='</div>';
+
+  // BLOC 5 — Procédures
   html+='<div class="sec-block">';
   html+='<div class="sec-title"><span>🚨</span> Procédures d\'urgence</div>';
   html+='<div class="proc-banner"><div class="proc-icon">📖</div><div class="proc-text">Avant chaque activité, prends connaissance des procédures d\'urgence et des incidents pour garantir le bon déroulement et la sécurité des enfants.<div class="proc-links"><a href="fritime_urgences.html" class="proc-link">🚨 Urgences</a><a href="fritime_incidents.html" class="proc-link">⚠️ Incidents</a></div></div></div>';
   html+='</div>';
 
-  // BLOC 5 — Checklist
+  // BLOC 6 — Checklist
   html+='<div class="sec-block">';
   html+='<div class="sec-title"><span>✅</span> Checklist préparation</div>';
 
@@ -632,8 +701,176 @@ async function toggleArchive(actId, archive){
   renderFiche();
 }
 
+// ---- PRÉSENCE ----
+async function setPresence(inscId, val, evt){
+  if(evt){evt.preventDefault();evt.stopPropagation();}
+  var insc=inscriptions.find(function(i){return i.id===inscId;});
+  if(!insc)return;
+  var oldPres=insc.presence;
+  var newPresVal=oldPres===val?null:val;
+  var newStatut=oldPres===val?insc.statut:val;
+  inscriptions=inscriptions.map(function(i){return i.id===inscId?Object.assign({},i,{presence:newPresVal,statut:newStatut}):i;});
+  if(navigator.onLine&&typeof FriDB!=='undefined'){
+    try{await FriDB.query("inscriptions","PATCH",{presence:newPresVal,statut:newStatut},"?id=eq."+inscId);}
+    catch(e){
+      console.warn("setPresence online erreur:",e);
+      await friOfflineQueueAdd({type:"presence",inscId:inscId,presence:newPresVal,statut:newStatut,ts:Date.now()});
+      updateOfflineBar();
+    }
+  } else {
+    await friOfflineQueueAdd({type:"presence",inscId:inscId,presence:newPresVal,statut:newStatut,ts:Date.now()});
+    updateOfflineBar();
+  }
+  if(newPresVal==="absent"){
+    var insc2=inscriptions.find(function(i){return i.id===inscId;});
+    var enfant=enfants.find(function(e){return insc2&&String(e.id)===String(insc2.enfantId||insc2.enfant_id);});
+    if(enfant&&enfant.statut!=="banni"){
+      if(confirm("Marquer "+enfant.prenom+" "+enfant.nom+" comme absent non justifié et le bannir ?")){
+        bannerEnfant(enfant.id,"Absence non justifiée à une activité confirmée");
+      }
+    }
+  }
+  renderFiche();
+}
+
+async function marquerTousPresents(actId, evt){
+  if(evt){evt.preventDefault();evt.stopPropagation();}
+  var ids=inscriptions.filter(function(i){
+    return String(i.activiteId||i.activite_id)===String(actId)&&["confirme","present","absent"].includes(i.statut);
+  }).map(function(i){return i.id;});
+  inscriptions=inscriptions.map(function(i){return ids.includes(i.id)?Object.assign({},i,{presence:"present",statut:"present"}):i;});
+  renderFiche();
+}
+
+function exportPresence(actId){
+  var a=activites.find(function(x){return x.id===actId;});
+  var inscs=inscriptions.filter(function(i){
+    return String(i.activiteId||i.activite_id)===String(actId)&&["confirme","present","absent"].includes(i.statut);
+  });
+  var txt='FEUILLE DE PRÉSENCE — '+(a?a.nom:"")+' — '+fd(a?a.date:"")+'\n';
+  txt+='='.repeat(60)+'\n\n';
+  inscs.forEach(function(i,idx){
+    var e=enfants.find(function(ef){return String(ef.id)===String(i.enfantId||i.enfant_id);});
+    if(!e)return;
+    var pres=i.presence==="present"?"✓":i.presence==="absent"?"✗":"□";
+    var eAge=e.dateNaissance?(new Date().getFullYear()-parseInt((e.dateNaissance||"0000").split("-")[0])):(e.age||"?");
+    txt+=(idx+1)+'. '+pres+' '+((e.prenom||"")+" "+(e.nom||"")).trim()+' ('+eAge+' ans) — '+((e.pp||"")+" "+(e.pn||"")).trim()+' — '+(e.pt||e.pe||"")+'\n';
+  });
+  txt+='\n'+'-'.repeat(60)+'\n';
+  txt+='Présents: '+inscs.filter(function(i){return i.presence==="present";}).length+' / '+inscs.length+'\n';
+  var blob=new Blob([txt],{type:"text/plain"});
+  var link=document.createElement("a");
+  link.href=URL.createObjectURL(blob);
+  link.download='presence_'+(a?a.nom.replace(/\s+/g,"_"):"")+'.txt';
+  link.click();
+}
+
+async function bannerEnfant(enfantId, motif){
+  var enfant=enfants.find(function(e){return String(e.id)===String(enfantId);});
+  enfants=enfants.map(function(e){return String(e.id)===String(enfantId)?Object.assign({},e,{statut:"banni",banMotif:motif}):e;});
+  if(typeof FriDB!=='undefined'){
+    try{await FriDB.query("enfants","PATCH",{statut:"banni",ban_motif:motif},"?id=eq."+enfantId);}
+    catch(e){console.warn("Ban erreur:",e);}
+  }
+  if(enfant&&typeof FriBrevo!=='undefined'){
+    var parent={prenom:enfant.pp||"",nom:enfant.pn||"",email:enfant.pe||""};
+    if(parent.email){
+      try{await FriBrevo.sendNotificationBannissement(enfant,parent,motif,motif.toLowerCase().includes("absence"));}
+      catch(e){console.warn("Mail bannissement:",e);}
+    }
+  }
+}
+
+// ---- OFFLINE (IndexedDB cache + sync queue) ----
+var _friDB_offline=null;
+function friOfflineInit(){
+  return new Promise(function(resolve){
+    if(_friDB_offline){resolve(_friDB_offline);return;}
+    var req=indexedDB.open('fritime_offline_v1',1);
+    req.onupgradeneeded=function(e){
+      var db=e.target.result;
+      if(!db.objectStoreNames.contains('cache'))db.createObjectStore('cache',{keyPath:'key'});
+      if(!db.objectStoreNames.contains('queue'))db.createObjectStore('queue',{keyPath:'id',autoIncrement:true});
+    };
+    req.onsuccess=function(e){_friDB_offline=e.target.result;resolve(_friDB_offline);};
+    req.onerror=function(){resolve(null);};
+  });
+}
+function friCacheSet(key,data){
+  return new Promise(function(resolve){
+    if(!_friDB_offline){resolve();return;}
+    try{var tx=_friDB_offline.transaction('cache','readwrite');tx.objectStore('cache').put({key:key,data:data,ts:Date.now()});tx.oncomplete=function(){resolve();};tx.onerror=function(){resolve();};}catch(e){resolve();}
+  });
+}
+function friCacheGet(key){
+  return new Promise(function(resolve){
+    if(!_friDB_offline){resolve(null);return;}
+    try{var tx=_friDB_offline.transaction('cache','readonly');var req=tx.objectStore('cache').get(key);req.onsuccess=function(e){resolve(e.target.result?e.target.result.data:null);};req.onerror=function(){resolve(null);};}catch(e){resolve(null);}
+  });
+}
+function friOfflineQueueAdd(op){
+  return new Promise(function(resolve){
+    if(!_friDB_offline){resolve();return;}
+    try{var tx=_friDB_offline.transaction('queue','readwrite');tx.objectStore('queue').add(op);tx.oncomplete=function(){resolve();};tx.onerror=function(){resolve();};}catch(e){resolve();}
+  });
+}
+function friOfflineQueueGetAll(){
+  return new Promise(function(resolve){
+    if(!_friDB_offline){resolve([]);return;}
+    try{var tx=_friDB_offline.transaction('queue','readonly');var req=tx.objectStore('queue').getAll();req.onsuccess=function(e){resolve(e.target.result||[]);};req.onerror=function(){resolve([]);};}catch(e){resolve([]);}
+  });
+}
+function friOfflineQueueDelete(id){
+  return new Promise(function(resolve){
+    if(!_friDB_offline){resolve();return;}
+    try{var tx=_friDB_offline.transaction('queue','readwrite');tx.objectStore('queue').delete(id);tx.oncomplete=function(){resolve();};tx.onerror=function(){resolve();};}catch(e){resolve();}
+  });
+}
+function friOfflineQueueCount(){
+  return new Promise(function(resolve){
+    if(!_friDB_offline){resolve(0);return;}
+    try{var tx=_friDB_offline.transaction('queue','readonly');var req=tx.objectStore('queue').count();req.onsuccess=function(e){resolve(e.target.result||0);};req.onerror=function(){resolve(0);};}catch(e){resolve(0);}
+  });
+}
+async function updateOfflineBar(){
+  var bar=document.getElementById('offline-bar');var dot=document.getElementById('offline-dot');
+  var label=document.getElementById('offline-label');var badge=document.getElementById('sync-badge');
+  var msg=document.getElementById('offline-sync-msg');
+  if(!bar)return;
+  var count=await friOfflineQueueCount();
+  bar.classList.remove('hidden');
+  if(navigator.onLine){
+    dot.className='offline-dot online';label.textContent='En ligne';
+    if(count>0){badge.textContent=count;badge.className='sync-badge';msg.textContent='Synchronisation en cours...';}
+    else{badge.className='sync-badge zero';msg.textContent='';setTimeout(function(){bar.classList.add('hidden');},2000);}
+  } else {
+    dot.className='offline-dot';label.textContent='Hors ligne';
+    if(count>0){badge.textContent=count;badge.className='sync-badge';msg.textContent=count+' modification(s) en attente';}
+    else{badge.className='sync-badge zero';msg.textContent='Données depuis le cache local';}
+  }
+}
+async function friSyncQueue(){
+  if(!navigator.onLine||typeof FriDB==='undefined')return;
+  var queue=await friOfflineQueueGetAll();
+  if(!queue.length){updateOfflineBar();return;}
+  for(var k=0;k<queue.length;k++){
+    var op=queue[k];
+    try{
+      if(op.type==='presence'){await FriDB.query('inscriptions','PATCH',{presence:op.presence,statut:op.statut},'?id=eq.'+op.inscId);}
+      await friOfflineQueueDelete(op.id);
+    }catch(e){console.warn('[Offline] Erreur sync:',e);}
+  }
+  try{var fresh=await FriDB.getInscriptions();if(fresh&&fresh.length)inscriptions=fresh;}catch(e){}
+  updateOfflineBar();
+  renderFiche();
+}
+window.addEventListener('online',function(){updateOfflineBar();friSyncQueue();});
+window.addEventListener('offline',function(){updateOfflineBar();});
+
 // ---- LOAD ----
 async function loadAll(){
+  await friOfflineInit();
+  updateOfflineBar();
   var attempts=0;
   while(typeof FriDB==='undefined'&&attempts<30){await new Promise(function(r){setTimeout(r,100);});attempts++;}
   if(typeof FriDB==='undefined'){console.warn('FriDB non disponible');return;}
