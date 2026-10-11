@@ -306,6 +306,12 @@ function doLogout(){
 </div>
 </div>
 
+<!-- Lien feuille de présence -->
+<div style="background:#e6f1fb;border-radius:10px;padding:10px 14px;margin-bottom:1rem;display:flex;align-items:center;gap:10px;font-size:13px;color:#0c447c">
+  <span style="font-size:16px">👥</span>
+  <span>La <strong>feuille de présence</strong> se trouve maintenant dans <a href="fritime_planning.html" style="color:#0c447c;font-weight:600;text-decoration:underline">Planning / Fiches</a> — ouvre la fiche de l'activité pour y accéder.</span>
+</div>
+
 <!-- Flux de statut -->
 <div class="status-flow">
   <span class="flow-step badge-inscrit">Inscrit</span> →
@@ -353,12 +359,10 @@ function doLogout(){
 <div class="tabs">
   <button class="tab active" onclick="switchTab('liste',this)">Liste <span class="tab-count" id="count-liste">0</span></button>
   <button class="tab" onclick="switchTab('attente',this)">En attente <span class="tab-count" id="count-attente">0</span></button>
-  <button class="tab" onclick="switchTab('presence',this)">Feuille de présence <span class="tab-count" id="count-presence">0</span></button>
 </div>
 
 <div id="panel-liste"></div>
 <div id="panel-attente" style="display:none"></div>
-<div id="panel-presence" style="display:none"></div>
 
 </div>
 
@@ -468,7 +472,6 @@ function renderTabs(){
   const confirms=inscs.filter(i=>["confirme","present","absent"].includes(i.statut));
   document.getElementById("count-liste").textContent=inscs.length;
   document.getElementById("count-attente").textContent=inscs.filter(i=>i.statut==="attente").length;
-  document.getElementById("count-presence").textContent=confirms.length;
 }
 
 function renderListe(){
@@ -660,7 +663,7 @@ function switchTab(name,btn){
   currentTab=name;
   document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
   btn.classList.add("active");
-  ["liste","attente","presence"].forEach(n=>{
+  ["liste","attente"].forEach(n=>{
     document.getElementById("panel-"+n).style.display=n===name?"block":"none";
   });
 }
@@ -785,7 +788,6 @@ function renderAll(){
   renderTabs();
   renderListe();
   renderAttente();
-  renderPresence();
 }
 
 renderAll();
