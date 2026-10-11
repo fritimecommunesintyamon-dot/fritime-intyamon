@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Activités & Planning – FriTime</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f5;color:#1a1a1a}
+/* ── topbar ── */
+.ft-top{position:fixed;top:0;left:0;right:0;height:52px;background:#fff;border-bottom:1px solid #e5e5e5;display:flex;align-items:center;padding:0 1rem;gap:12px;z-index:200}
+.ft-hamburger{background:none;border:none;font-size:22px;cursor:pointer;padding:4px 8px;border-radius:6px}
+.ft-hamburger:hover{background:#f0f0f0}
+.ft-logo{font-size:16px;font-weight:700;color:#1a1a1a;text-decoration:none}
+/* ── mobile sidebar ── */
+.ft-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:300}
+.ft-overlay.open{display:block}
+.ft-sidebar{position:fixed;top:0;left:-280px;width:280px;height:100%;background:#fff;z-index:400;transition:left .25s;overflow-y:auto;padding-bottom:2rem}
+.ft-sidebar.open{left:0}
+.ft-sidebar-head{padding:1rem 1rem .5rem;display:flex;align-items:center;justify-content:space-between}
+.ft-sidebar-title{font-size:15px;font-weight:700}
+.ft-close{background:none;border:none;font-size:22px;cursor:pointer;padding:4px 8px}
+.ft-nav-section{padding:.5rem 1rem .25rem;font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.5px}
+.ft-nav-item{display:flex;align-items:center;gap:10px;padding:10px 1rem;font-size:14px;color:#1a1a1a;text-decoration:none;border-radius:8px;margin:1px 8px;transition:background .15s}
+.ft-nav-item:hover,.ft-nav-item.active{background:#f0f0f0}
+.ft-nav-ico{font-size:18px;width:24px;text-align:center}
+/* ── desktop sidebar ── */
+.ft-sb{display:none}
+@media(min-width:900px){
+  .ft-sb{display:block;position:fixed;top:52px;left:0;width:220px;height:calc(100vh - 52px);background:#fff;border-right:1px solid #e5e5e5;overflow-y:auto;padding:1rem 0;z-index:100}
+  .ft-sb a{display:block;padding:8px 1rem;font-size:13px;color:#444;text-decoration:none;border-radius:6px;margin:1px 8px}
+  .ft-sb a:hover{background:#f0f0f0;color:#1a1a1a}
+  .ft-sb .sb-section{padding:1rem 1rem .25rem;font-size:11px;font-weight:600;color:#aaa;text-transform:uppercase;letter-spacing:.5px}
+  .main-wrap{margin-left:220px}
+}
+.main-wrap{margin-top:52px}
+/* ── offline bar ── */
+.offline-bar{display:flex;align-items:center;justify-content:space-between;padding:6px 1rem;background:#fff3cd;border-bottom:1px solid #ffc107;font-size:12px;color:#856404}
+.offline-bar.hidden{display:none}
+.offline-dot{width:8px;height:8px;border-radius:50%;background:#28a745}
+.offline-dot.offline{background:#dc3545}
+.sync-badge{background:#dc3545;color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;font-weight:700;min-width:18px;text-align:center}
+.sync-badge.zero{background:#6c757d}
+/* ── module tabs ── */
+.mod-tabs{display:flex;gap:0;border-bottom:2px solid #eee;background:#fff;position:sticky;top:52px;z-index:100;padding:0 1rem}
+.mod-tab{padding:12px 20px;font-size:13px;font-weight:500;border:none;background:none;cursor:pointer;color:#888;border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .15s}
+.mod-tab.active{color:#1a1a1a;border-bottom-color:#1a1a1a}
+/* ── planning CSS ── */
+.plan-wrap{display:flex;height:calc(100vh - 108px);overflow:hidden}
+.plan-list{width:340px;min-width:260px;border-right:1px solid #e5e5e5;overflow-y:auto;background:#fff;flex-shrink:0}
+.plan-list-head{padding:1rem;border-bottom:1px solid #eee;position:sticky;top:0;background:#fff;z-index:10}
+.plan-list-head h2{font-size:15px;font-weight:700;margin-bottom:.5rem}
+.plan-search{width:100%;padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;outline:none}
+.plan-search:focus{border-color:#1a1a1a}
+.plan-tabs{display:flex;gap:4px;margin-top:.5rem}
+.plan-tab{flex:1;padding:6px;font-size:12px;font-weight:500;border:1px solid #ddd;border-radius:6px;background:#f5f5f5;cursor:pointer;color:#666;text-align:center}
+.plan-tab.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.plan-item{padding:.875rem 1rem;border-bottom:1px solid #f0f0f0;cursor:pointer;transition:background .15s}
+.plan-item:hover{background:#fafafa}
+.plan-item.active{background:#f0f4ff;border-left:3px solid #3a7bd5}
+.pi-top{display:flex;align-items:flex-start;justify-content:space-between;gap:.5rem}
+.pi-title{font-size:13px;font-weight:600;line-height:1.3}
+.pi-date{font-size:11px;color:#888;white-space:nowrap}
+.pi-sub{font-size:12px;color:#666;margin-top:3px}
+.pi-badges{display:flex;gap:4px;flex-wrap:wrap;margin-top:5px}
+.pi-badge{font-size:10px;padding:2px 7px;border-radius:10px;background:#f0f0f0;color:#666}
+.pi-badge.enc{background:#fff3cd;color:#856404}
+.pi-badge.arch{background:#d4edda;color:#155724}
+.plan-content{flex:1;overflow-y:auto;background:#f8f9fa;padding:1.5rem}
+.plan-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#aaa;gap:1rem;font-size:15px}
+.plan-detail{max-width:760px}
+.pd-header{background:#fff;border-radius:12px;padding:1.5rem;margin-bottom:1rem;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.pd-title{font-size:20px;font-weight:700;margin-bottom:.5rem}
+.pd-meta{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center}
+.pd-badge{font-size:12px;padding:3px 10px;border-radius:12px;font-weight:500}
+.pd-badge.enc{background:#fff3cd;color:#856404}
+.pd-badge.arch{background:#d4edda;color:#155724}
+.pd-badge.cat{background:#e8eaf6;color:#3949ab}
+.pd-section{background:#fff;border-radius:12px;padding:1.25rem;margin-bottom:1rem;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.pd-section h3{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#888;margin-bottom:.875rem}
+.pd-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+@media(max-width:600px){.pd-grid{grid-template-columns:1fr}}
+.pd-field{display:flex;flex-direction:column;gap:2px}
+.pd-label{font-size:11px;color:#aaa;font-weight:500}
+.pd-val{font-size:13px;color:#1a1a1a;font-weight:500}
+.pd-val a{color:#3a7bd5;text-decoration:none}
+.insc-table{width:100%;border-collapse:collapse;font-size:13px}
+.insc-table th{text-align:left;padding:6px 8px;border-bottom:2px solid #eee;font-size:11px;color:#888;font-weight:600;text-transform:uppercase}
+.insc-table td{padding:8px 8px;border-bottom:1px solid #f5f5f5}
+.insc-table tr:last-child td{border-bottom:none}
+.badge-present{background:#d4edda;color:#155724;font-size:11px;padding:2px 8px;border-radius:8px}
+.badge-absent{background:#f8d7da;color:#721c24;font-size:11px;padding:2px 8px;border-radius:8px}
+.badge-inscrit{background:#cce5ff;color:#004085;font-size:11px;padding:2px 8px;border-radius:8px}
+.checklist-group{margin-bottom:1rem}
+.checklist-group h4{font-size:12px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.5px;margin-bottom:.5rem}
+.checklist-item{display:flex;align-items:flex-start;gap:.5rem;padding:.375rem 0;border-bottom:1px solid #f5f5f5;font-size:13px}
+.checklist-item:last-child{border-bottom:none}
+.checklist-item input[type=checkbox]{margin-top:2px;flex-shrink:0;width:15px;height:15px;cursor:pointer}
+.checklist-item label{cursor:pointer;line-height:1.4}
+.checklist-item input:checked+label{text-decoration:line-through;color:#aaa}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all .15s;text-decoration:none}
+.btn-primary{background:#1a1a1a;color:#fff}
+.btn-primary:hover{background:#333}
+.btn-outline{background:#fff;color:#1a1a1a;border:1px solid #ddd}
+.btn-outline:hover{background:#f5f5f5}
+.btn-sm{padding:5px 12px;font-size:12px}
+.btn-danger{background:#dc3545;color:#fff}
+.btn-danger:hover{background:#c82333}
+.btn-success{background:#28a745;color:#fff}
+/* ── activites CSS ── */
+.container{padding:1.5rem;max-width:1200px;margin:0 auto}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1rem;margin-bottom:1.5rem}
+.metric{background:#fff;border-radius:12px;padding:1rem 1.25rem;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.metric-val{font-size:24px;font-weight:700;margin-bottom:2px}
+.metric-lbl{font-size:12px;color:#888}
+.status-flow{display:flex;align-items:center;gap:.5rem;margin-bottom:1.5rem;flex-wrap:wrap}
+.flow-step{background:#fff;border:2px solid #e5e5e5;border-radius:8px;padding:.5rem 1rem;font-size:12px;font-weight:500;color:#888;cursor:pointer;transition:all .15s}
+.flow-step.active,.flow-step:hover{border-color:#1a1a1a;color:#1a1a1a}
+.flow-arrow{color:#ccc;font-size:18px}
+.filters{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem}
+.filter-btn{padding:6px 14px;border-radius:20px;border:1px solid #ddd;background:#fff;font-size:12px;cursor:pointer;transition:all .15s;font-weight:500}
+.filter-btn.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1rem}
+.card{background:#fff;border-radius:12px;padding:1.25rem;box-shadow:0 1px 3px rgba(0,0,0,.06);cursor:pointer;transition:box-shadow .15s;border:1px solid transparent}
+.card:hover{box-shadow:0 4px 12px rgba(0,0,0,.1);border-color:#e0e0e0}
+.card-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.75rem}
+.card-title{font-size:14px;font-weight:600;line-height:1.3}
+.card-status{font-size:10px;padding:3px 8px;border-radius:10px;font-weight:500;white-space:nowrap}
+.card-meta{font-size:12px;color:#666;margin-bottom:.5rem;display:flex;flex-direction:column;gap:3px}
+.card-footer{display:flex;justify-content:space-between;align-items:center;margin-top:.75rem;padding-top:.75rem;border-top:1px solid #f5f5f5}
+.card-cat{font-size:11px;color:#888;background:#f5f5f5;padding:2px 8px;border-radius:8px}
+.card-insc{font-size:12px;color:#3a7bd5;font-weight:500}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;align-items:center;justify-content:center;padding:1rem}
+.overlay.open{display:flex}
+.modal{background:#fff;border-radius:16px;width:100%;max-width:600px;max-height:90vh;overflow-y:auto}
+.modal-title{padding:1.25rem 1.5rem;border-bottom:1px solid #eee;font-size:16px;font-weight:700;display:flex;justify-content:space-between;align-items:center}
+.modal-body{padding:1.5rem}
+.modal-footer{padding:1rem 1.5rem;border-top:1px solid #eee;display:flex;justify-content:flex-end;gap:.5rem}
+.sec{margin-bottom:1.25rem}
+.sec label,.sec .sec-label{display:block;font-size:12px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.5px;margin-bottom:.375rem}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.fl{display:flex;gap:.5rem;flex-wrap:wrap}
+input,.fi,select,textarea{width:100%;padding:9px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px;outline:none;font-family:inherit}
+input:focus,.fi:focus,select:focus,textarea:focus{border-color:#1a1a1a}
+textarea{resize:vertical;min-height:80px}
+.fr{display:flex;gap:.5rem;align-items:center}
+.fr3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem}
+.mf{background:#f8f9fa;border-radius:8px;padding:1rem;margin-top:.5rem}
+.dl{font-size:12px;color:#888;margin-bottom:.25rem}
+.dv{font-size:14px;font-weight:500}
+.toggle-row{display:flex;justify-content:space-between;align-items:center;padding:.75rem 0;border-bottom:1px solid #f5f5f5}
+.toggle-row:last-child{border-bottom:none}
+.toggle{position:relative;width:40px;height:22px;background:#ddd;border-radius:11px;cursor:pointer;transition:background .2s}
+.toggle.on{background:#1a1a1a}
+.toggle::after{content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;background:#fff;border-radius:50%;transition:left .2s}
+.toggle.on::after{left:21px}
+.img-upload{border:2px dashed #ddd;border-radius:8px;padding:1.5rem;text-align:center;cursor:pointer;font-size:13px;color:#888;transition:border-color .15s}
+.img-upload:hover{border-color:#1a1a1a}
+.img-preview{max-width:100%;border-radius:8px;margin-top:.5rem}
+.status-select{display:flex;gap:.5rem;flex-wrap:wrap}
+.status-btn{padding:6px 14px;border-radius:8px;border:2px solid #ddd;background:#fff;font-size:12px;font-weight:500;cursor:pointer;transition:all .15s}
+.status-btn.selected{border-color:#1a1a1a;background:#1a1a1a;color:#fff}
+.select-with-add{display:flex;gap:.5rem;align-items:flex-start}
+.select-with-add select{flex:1}
+.new-inline{display:none;margin-top:.5rem;gap:.5rem}
+.new-inline.open{display:flex}
+.empty{text-align:center;padding:3rem;color:#aaa;font-size:15px}
+.badge-brouillon{background:#f0f0f0;color:#666}
+.badge-publie{background:#cce5ff;color:#004085}
+.badge-complet{background:#fff3cd;color:#856404}
+.badge-realise{background:#d4edda;color:#155724}
+.badge-annule{background:#f8d7da;color:#721c24}
+#det .dl{color:#aaa;font-size:11px;margin-bottom:2px}
+#det .dv{font-size:14px;font-weight:500;margin-bottom:.75rem}
+</style>
+<script src="fritime_categories.js"></script>
+</head>
+<body>
+
+<!-- offline bar -->
+<div class="offline-bar hidden" id="offline-bar">
+  <div style="display:flex;align-items:center;gap:8px">
+    <div class="offline-dot" id="offline-dot"></div>
+    <span id="offline-label">Hors ligne</span>
+    <span class="sync-badge zero" id="sync-badge">0</span>
+  </div>
+  <div id="offline-sync-msg" style="font-size:11px;opacity:.7"></div>
+</div>
+
+<!-- topbar -->
+<div class="ft-top">
+  <button class="ft-hamburger" onclick="openSidebar()">☰</button>
+  <a class="ft-logo" href="index.html">🏔 FriTime</a>
+</div>
+
+<!-- mobile overlay + sidebar -->
+<div class="ft-overlay" id="ft-overlay" onclick="closeSidebar()"></div>
+<div class="ft-sidebar" id="ft-sidebar">
+  <div class="ft-sidebar-head">
+    <span class="ft-sidebar-title">🏔 FriTime</span>
+    <button class="ft-close" onclick="closeSidebar()">✕</button>
+  </div>
+  <div class="ft-nav-section">Navigation</div>
+  <a class="ft-nav-item" href="index.html" data-page="index"><span class="ft-nav-ico">🏠</span> Accueil</a>
+  <a class="ft-nav-item" href="fritime_membres.html" data-page="membres"><span class="ft-nav-ico">👥</span> Membres</a>
+  <a class="ft-nav-item active" href="fritime_activites_planning.html" data-page="activites_planning"><span class="ft-nav-ico">🎯</span> Activités &amp; Planning</a>
+  <a class="ft-nav-item" href="fritime_finance.html" data-page="finance"><span class="ft-nav-ico">💰</span> Finance</a>
+  <a class="ft-nav-item" href="fritime_dons.html" data-page="dons"><span class="ft-nav-ico">🎁</span> Dons</a>
+  <a class="ft-nav-item" href="fritime_benevoles.html" data-page="benevoles"><span class="ft-nav-ico">🤝</span> Bénévoles</a>
+  <a class="ft-nav-item" href="fritime_partenaires.html" data-page="partenaires"><span class="ft-nav-ico">🏢</span> Partenaires</a>
+  <a class="ft-nav-item" href="fritime_documents.html" data-page="documents"><span class="ft-nav-ico">📄</span> Documents</a>
+  <a class="ft-nav-item" href="fritime_parametres.html" data-page="parametres"><span class="ft-nav-ico">⚙️</span> Paramètres</a>
+</div>
+
+<!-- desktop sidebar -->
+<div class="ft-sb">
+  <div class="sb-section">Navigation</div>
+  <a href="index.html">🏠 Accueil</a>
+  <a href="fritime_membres.html">👥 Membres</a>
+  <a href="fritime_activites_planning.html" style="font-weight:600;color:#3a7bd5">🎯 Activités &amp; Planning</a>
+  <a href="fritime_finance.html">💰 Finance</a>
+  <a href="fritime_dons.html">🎁 Dons</a>
+  <a href="fritime_benevoles.html">🤝 Bénévoles</a>
+  <a href="fritime_partenaires.html">🏢 Partenaires</a>
+  <a href="fritime_documents.html">📄 Documents</a>
+  <a href="fritime_parametres.html">⚙️ Paramètres</a>
+</div>
+
+<div class="main-wrap">
+  <!-- module tabs -->
+  <div class="mod-tabs">
+    <button class="mod-tab active" id="mtab-activites" onclick="switchModuleTab('activites')">🎯 Activités</button>
+    <button class="mod-tab" id="mtab-planning" onclick="switchModuleTab('planning')">📅 Planning / Fiches</button>
+  </div>
+
+  <!-- ═══════════════ MODULE ACTIVITÉS ═══════════════ -->
+  <div id="mod-activites">
+    <div class="container">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+        <h1 style="font-size:22px;font-weight:700">🎯 Activités</h1>
+        <button class="btn btn-primary" onclick="openCreate()">+ Nouvelle activité</button>
+      </div>
+      <div class="metrics" id="act-metrics"></div>
+      <div class="filters" id="act-filters"></div>
+      <div class="grid" id="act-grid"></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ MODULE PLANNING ═══════════════ -->
+  <div id="mod-planning" style="display:none">
+    <div class="plan-wrap">
+      <div class="plan-list">
+        <div class="plan-list-head">
+          <h2>📅 Planning</h2>
+          <input class="plan-search" type="text" placeholder="Rechercher…" id="plan-search" oninput="searchVal=this.value;renderPlanList()">
+          <div class="plan-tabs">
+            <button class="plan-tab active" id="ptab-encours" onclick="switchPlanTab('encours')">En cours</button>
+            <button class="plan-tab" id="ptab-archives" onclick="switchPlanTab('archives')">Archives</button>
+          </div>
+        </div>
+        <div id="plan-list-items"></div>
+      </div>
+      <div class="plan-content" id="plan-content">
+        <div class="plan-empty">
+          <div style="font-size:48px">📅</div>
+          <div>Sélectionne une activité</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ MODAL CRÉER/MODIFIER ACTIVITÉ ═══════════ -->
+<div class="overlay" id="mCreate">
+  <div class="modal">
+    <div class="modal-title">
+      <span id="mCreateTitle">Nouvelle activité</span>
+      <button class="btn btn-outline btn-sm" onclick="closeCreate()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="fg">
+        <div class="sec"><label>Titre *</label><input id="f-titre" placeholder="Nom de l'activité"></div>
+        <div class="sec"><label>Date *</label><input type="date" id="f-date"></div>
+      </div>
+      <div class="fg">
+        <div class="sec"><label>Heure début</label><input type="time" id="f-hdeb"></div>
+        <div class="sec"><label>Heure fin</label><input type="time" id="f-hfin"></div>
+      </div>
+      <div class="sec"><label>Lieu</label><input id="f-lieu" placeholder="Adresse ou lieu"></div>
+      <div class="sec">
+        <label>Catégorie</label>
+        <div class="select-with-add">
+          <select id="f-cat" onchange="FriCats.onCatChange('f-cat','f-souscat')"></select>
+          <button class="btn btn-outline btn-sm" onclick="document.getElementById('f-new-cat').classList.toggle('open')">+ Cat</button>
+        </div>
+        <div class="new-inline" id="f-new-cat">
+          <input id="f-new-cat-val" placeholder="Nouvelle catégorie">
+          <button class="btn btn-primary btn-sm" onclick="addCat()">OK</button>
+        </div>
+      </div>
+      <div class="sec"><label>Sous-catégorie</label><select id="f-souscat"></select></div>
+      <div class="sec"><label>Statut</label>
+        <div class="status-select" id="f-statut">
+          <button class="status-btn" onclick="selectStatut('brouillon')">Brouillon</button>
+          <button class="status-btn" onclick="selectStatut('publie')">Publié</button>
+          <button class="status-btn" onclick="selectStatut('complet')">Complet</button>
+          <button class="status-btn" onclick="selectStatut('realise')">Réalisé</button>
+          <button class="status-btn" onclick="selectStatut('annule')">Annulé</button>
+        </div>
+      </div>
+      <div class="fg">
+        <div class="sec"><label>Nb places max</label><input type="number" id="f-places" placeholder="0 = illimité"></div>
+        <div class="sec"><label>Coût (CHF)</label><input type="number" id="f-cout" placeholder="0"></div>
+      </div>
+      <div class="sec"><label>Facturation coût</label>
+        <select id="f-cout-facture">
+          <option value="commune">Commune</option>
+          <option value="participant">Participant</option>
+          <option value="prestataire">Prestataire</option>
+        </select>
+      </div>
+      <div class="sec"><label>Prestataire</label><select id="f-prest"><option value="">Aucun</option></select></div>
+      <div class="sec"><label>Responsable</label><input id="f-resp" placeholder="Nom du responsable"></div>
+      <div class="sec"><label>Description</label><textarea id="f-desc" rows="3" placeholder="Description de l'activité…"></textarea></div>
+      <div class="sec"><label>Lien inscription</label><input id="f-lien" placeholder="https://…"></div>
+      <div class="sec"><label>Photo (URL)</label><input id="f-photo" placeholder="https://…" oninput="previewPhoto(this.value)">
+        <img id="f-photo-prev" class="img-preview" style="display:none;max-height:120px">
+      </div>
+      <div class="sec" id="f-publique-sec">
+        <div class="toggle-row">
+          <span style="font-size:13px">Activité publique</span>
+          <div class="toggle" id="f-publique-toggle" onclick="togglePublique()"></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeCreate()">Annuler</button>
+      <button class="btn btn-primary" onclick="saveActivite()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ MODAL DÉTAIL ACTIVITÉ ═══════════ -->
+<div class="overlay" id="mDetail">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-title">
+      <span>Détail activité</span>
+      <div style="display:flex;gap:.5rem">
+        <button class="btn btn-outline btn-sm" onclick="actEditId=actSelId;openCreate(true)">✏️ Modifier</button>
+        <button class="btn btn-danger btn-sm" onclick="actEditId=actSelId;deleteActivite()">🗑</button>
+        <button class="btn btn-outline btn-sm" onclick="closeDetail()">✕</button>
+      </div>
+    </div>
+    <div class="modal-body" id="det"></div>
+  </div>
+</div>
+
+<!-- ═══════════ MODAL MODIFIER RESPONSABLE ═══════════ -->
+<div class="overlay" id="mResponsable">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-title">
+      <span>Modifier le responsable</span>
+      <button class="btn btn-outline btn-sm" onclick="closeOverlay('mResponsable')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="sec"><label>Nouveau responsable</label><input id="resp-input" placeholder="Nom du responsable"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeOverlay('mResponsable')">Annuler</button>
+      <button class="btn btn-primary" onclick="confirmerModifResponsable()">Confirmer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ MODAL CHECKLIST ═══════════ -->
+<div class="overlay" id="mChecklist">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-title">
+      <span id="mChecklistTitle">Checklist</span>
+      <button class="btn btn-outline btn-sm" onclick="closeOverlay('mChecklist')">✕</button>
+    </div>
+    <div class="modal-body" id="mChecklistBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeOverlay('mChecklist')">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<script src="fritime_data.js"></script>
+<script src="fritime_sync.js"></script>
+<script src="fritime_auth.js"></script>
+<script src="fritime_supabase.js"></script>
+<script src="fritime_brevo.js"></script>
+<script>
+// ═══ SHARED VARIABLES ═══
+var activites=[], inscriptions=[], enfants=[], prestataires=[];
+var nextId=4, nextPrestId=100, categories=[], sousCategories=[];
+var actSelId=null, actEditId=null, actFilter='tous';
+var currentActId=null, currentTab='encours', searchVal='';
+var modifRespActId=null;
+var _publique=false, _currentStatut='brouillon';
+
+// ═══ UTILS ═══
+function fd(d){if(!d)return"—";var p=d.split("-");return p[2]+"."+p[1]+"."+p[0];}
+function fh(h){return h||""}
+function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
+
+// ═══ SIDEBAR ═══
+function openSidebar(){document.getElementById('ft-sidebar').classList.add('open');document.getElementById('ft-overlay').classList.add('open')}
+function closeSidebar(){document.getElementById('ft-sidebar').classList.remove('open');document.getElementById('ft-overlay').classList.remove('open')}
+
+// ═══ MODULE TABS ═══
+function switchModuleTab(name){
+  document.getElementById('mod-activites').style.display=name==='activites'?'block':'none';
+  document.getElementById('mod-planning').style.display=name==='planning'?'block':'none';
+  document.getElementById('mtab-activites').className='mod-tab'+(name==='activites'?' active':'');
+  document.getElementById('mtab-planning').className='mod-tab'+(name==='planning'?' active':'');
+  location.hash=name;
+}
+
+// ═══ ACTIVITÉS — RENDER ═══
+function renderMetrics(){
+  var tot=activites.length,pub=activites.filter(a=>a.statut==='publie').length,comp=activites.filter(a=>a.statut==='complet').length,real=activites.filter(a=>a.statut==='realise').length;
+  document.getElementById('act-metrics').innerHTML=`
+    <div class="metric"><div class="metric-val">${tot}</div><div class="metric-lbl">Total</div></div>
+    <div class="metric"><div class="metric-val">${pub}</div><div class="metric-lbl">Publiées</div></div>
+    <div class="metric"><div class="metric-val">${comp}</div><div class="metric-lbl">Complètes</div></div>
+    <div class="metric"><div class="metric-val">${real}</div><div class="metric-lbl">Réalisées</div></div>`;
+}
+
+function setFilter(f){actFilter=f;renderFilters();renderGrid();}
+
+function renderFilters(){
+  var cats=['tous',...new Set(activites.map(a=>a.categorie).filter(Boolean))];
+  document.getElementById('act-filters').innerHTML=cats.map(c=>`<button class="filter-btn${actFilter===c?' active':''}" onclick="setFilter('${c}')">${c==='tous'?'Toutes':c}</button>`).join('');
+}
+
+function renderGrid(){
+  var list=actFilter==='tous'?activites:activites.filter(a=>a.categorie===actFilter);
+  if(!list.length){document.getElementById('act-grid').innerHTML='<div class="empty">Aucune activité</div>';return;}
+  document.getElementById('act-grid').innerHTML=list.map(a=>{
+    var insc=inscriptions.filter(i=>i.activite_id===a.id).length;
+    return `<div class="card" onclick="openDetail(${a.id})">
+      <div class="card-head">
+        <div class="card-title">${esc(a.titre)}</div>
+        <span class="card-status badge-${a.statut}">${a.statut}</span>
+      </div>
+      <div class="card-meta">
+        <span>📅 ${fd(a.date)}${a.heure_debut?' · '+fh(a.heure_debut)+(a.heure_fin?' → '+fh(a.heure_fin):''):''}</span>
+        ${a.lieu?`<span>📍 ${esc(a.lieu)}</span>`:''}
+        ${a.responsable?`<span>👤 ${esc(a.responsable)}</span>`:''}
+      </div>
+      <div class="card-footer">
+        <span class="card-cat">${esc(a.categorie||'—')}</span>
+        <span class="card-insc">👥 ${insc}${a.places_max?' / '+a.places_max:''}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderAct(){renderMetrics();renderFilters();renderGrid();}
+
+// ═══ ACTIVITÉS — MODALS ═══
+function openOverlay(id){document.getElementById(id).classList.add('open')}
+function closeOverlay(id){document.getElementById(id).classList.remove('open')}
+
+function openCreate(editing){
+  actEditId=editing?actEditId:null;
+  document.getElementById('mCreateTitle').textContent=actEditId?'Modifier l\'activité':'Nouvelle activité';
+  if(actEditId){
+    var a=activites.find(x=>x.id===actEditId);
+    if(a){
+      document.getElementById('f-titre').value=a.titre||'';
+      document.getElementById('f-date').value=a.date||'';
+      document.getElementById('f-hdeb').value=a.heure_debut||'';
+      document.getElementById('f-hfin').value=a.heure_fin||'';
+      document.getElementById('f-lieu').value=a.lieu||'';
+      document.getElementById('f-resp').value=a.responsable||'';
+      document.getElementById('f-desc').value=a.description||'';
+      document.getElementById('f-lien').value=a.lien_inscription||'';
+      document.getElementById('f-photo').value=a.photo||'';
+      document.getElementById('f-places').value=a.places_max||'';
+      document.getElementById('f-cout').value=a.cout||'';
+      document.getElementById('f-cout-facture').value=a.cout_facture||'commune';
+      _publique=a.publique||false;
+      _currentStatut=a.statut||'brouillon';
+      previewPhoto(a.photo||'');
+      fillCatSelect();
+      setTimeout(()=>{
+        document.getElementById('f-cat').value=a.categorie||'';
+        FriCats.onCatChange('f-cat','f-souscat');
+        setTimeout(()=>{document.getElementById('f-souscat').value=a.sous_categorie||''},100);
+      },100);
+    }
+  } else {
+    document.getElementById('f-titre').value='';
+    document.getElementById('f-date').value='';
+    document.getElementById('f-hdeb').value='';
+    document.getElementById('f-hfin').value='';
+    document.getElementById('f-lieu').value='';
+    document.getElementById('f-resp').value='';
+    document.getElementById('f-desc').value='';
+    document.getElementById('f-lien').value='';
+    document.getElementById('f-photo').value='';
+    document.getElementById('f-places').value='';
+    document.getElementById('f-cout').value='';
+    document.getElementById('f-cout-facture').value='commune';
+    _publique=false;
+    _currentStatut='brouillon';
+    previewPhoto('');
+    fillCatSelect();
+  }
+  updateToggleUI();
+  updateStatutBtns();
+  fillPrestSelect();
+  closeOverlay('mDetail');
+  openOverlay('mCreate');
+}
+
+function closeCreate(){closeOverlay('mCreate');renderAct();}
+
+function fillCatSelect(){ FriCats.fillCatSelect("f-cat"); }
+async function addCat(){ await FriCats.addCategorie("f-new-cat-val","f-cat","f-souscat","f-new-cat"); }
+
+function fillPrestSelect(){
+  var s=document.getElementById('f-prest');
+  s.innerHTML='<option value="">Aucun</option>'+prestataires.map(p=>`<option value="${p.id}">${esc(p.nom)}</option>`).join('');
+}
+
+function selectStatut(s){_currentStatut=s;updateStatutBtns();}
+function updateStatutBtns(){
+  document.querySelectorAll('#f-statut .status-btn').forEach(b=>{
+    b.classList.toggle('selected',b.textContent.toLowerCase()===_currentStatut||
+      (b.textContent==='Publié'&&_currentStatut==='publie')||
+      (b.textContent==='Réalisé'&&_currentStatut==='realise')||
+      (b.textContent==='Annulé'&&_currentStatut==='annule')||
+      (b.textContent==='Complet'&&_currentStatut==='complet')||
+      (b.textContent==='Brouillon'&&_currentStatut==='brouillon'));
+  });
+}
+
+function togglePublique(){_publique=!_publique;updateToggleUI();}
+function updateToggleUI(){document.getElementById('f-publique-toggle').className='toggle'+(_publique?' on':'');}
+
+function previewPhoto(url){
+  var img=document.getElementById('f-photo-prev');
+  img.src=url;img.style.display=url?'block':'none';
+}
+
+async function saveActivite(){
+  var titre=document.getElementById('f-titre').value.trim();
+  var date=document.getElementById('f-date').value;
+  if(!titre||!date){alert('Titre et date requis');return;}
+  var data={
+    titre,date,
+    heure_debut:document.getElementById('f-hdeb').value||null,
+    heure_fin:document.getElementById('f-hfin').value||null,
+    lieu:document.getElementById('f-lieu').value.trim()||null,
+    categorie:document.getElementById('f-cat').value||null,
+    sous_categorie:document.getElementById('f-souscat').value||null,
+    statut:_currentStatut,
+    places_max:parseInt(document.getElementById('f-places').value)||0,
+    cout:parseFloat(document.getElementById('f-cout').value)||0,
+    cout_facture:document.getElementById('f-cout-facture').value,
+    prestataire_id:document.getElementById('f-prest').value||null,
+    responsable:document.getElementById('f-resp').value.trim()||null,
+    description:document.getElementById('f-desc').value.trim()||null,
+    lien_inscription:document.getElementById('f-lien').value.trim()||null,
+    photo:document.getElementById('f-photo').value.trim()||null,
+    publique:_publique
+  };
+  try {
+    if(actEditId){
+      await FriDB.update('activites',actEditId,data);
+      var idx=activites.findIndex(a=>a.id===actEditId);
+      if(idx>=0)activites[idx]={...activites[idx],...data};
+    } else {
+      var res=await FriDB.insert('activites',data);
+      if(res&&res[0])activites.push(res[0]);
+    }
+    // Auto-billing
+    if(data.cout>0&&data.cout_facture!=='commune'){
+      try{await FriDB.insert('factures',{activite_id:actEditId||data.id,montant:data.cout,type:data.cout_facture,date_creation:new Date().toISOString().split('T')[0]});}catch(e){}
+    }
+  } catch(e){
+    console.error(e);
+    friOfflineQueueAdd('activites',actEditId?'update':'insert',data,actEditId);
+    if(!actEditId){data.id=nextId++;activites.push(data);}
+    else{var idx=activites.findIndex(a=>a.id===actEditId);if(idx>=0)activites[idx]={...activites[idx],...data};}
+  }
+  closeCreate();
+}
+
+function openDetail(id){
+  actSelId=id;
+  var a=activites.find(x=>x.id===id);
+  if(!a)return;
+  var insc=inscriptions.filter(i=>i.activite_id===id);
+  document.getElementById('det').innerHTML=`
+    <div class="mf">
+      <div class="dl">Titre</div><div class="dv">${esc(a.titre)}</div>
+      <div class="dl">Date</div><div class="dv">${fd(a.date)}${a.heure_debut?' · '+fh(a.heure_debut)+(a.heure_fin?' → '+fh(a.heure_fin):''):''}</div>
+      ${a.lieu?`<div class="dl">Lieu</div><div class="dv">${esc(a.lieu)}</div>`:''}
+      <div class="dl">Statut</div><div class="dv"><span class="card-status badge-${a.statut}">${a.statut}</span></div>
+      ${a.categorie?`<div class="dl">Catégorie</div><div class="dv">${esc(a.categorie)}${a.sous_categorie?' › '+esc(a.sous_categorie):''}</div>`:''}
+      ${a.responsable?`<div class="dl">Responsable</div><div class="dv">${esc(a.responsable)} <button class="btn btn-outline btn-sm" style="margin-left:.5rem" onclick="openModifResponsable(${id})">Modifier</button></div>`:''}
+      ${a.cout?`<div class="dl">Coût</div><div class="dv">${a.cout} CHF (${a.cout_facture||'commune'})</div>`:''}
+      <div class="dl">Inscriptions</div><div class="dv">${insc.length}${a.places_max?' / '+a.places_max:''}</div>
+      ${a.description?`<div class="dl">Description</div><div class="dv">${esc(a.description)}</div>`:''}
+      ${a.lien_inscription?`<div class="dl">Lien</div><div class="dv"><a href="${esc(a.lien_inscription)}" target="_blank">Ouvrir ↗</a></div>`:''}
+    </div>
+    <div style="margin-top:1rem;display:flex;gap:.5rem;flex-wrap:wrap">
+      <button class="btn btn-outline btn-sm" onclick="changeStatut(${id},'publie')">📢 Publier</button>
+      <button class="btn btn-outline btn-sm" onclick="changeStatut(${id},'realise')">✅ Réalisé</button>
+      <button class="btn btn-outline btn-sm" onclick="openChecklist(${id})">📋 Checklist</button>
+    </div>`;
+  openOverlay('mDetail');
+}
+
+function closeDetail(){closeOverlay('mDetail');}
+
+async function deleteActivite(){
+  if(!actEditId)return;
+  if(!confirm('Supprimer cette activité ?'))return;
+  try{await FriDB.delete('activites',actEditId);}catch(e){console.error(e);}
+  activites=activites.filter(a=>a.id!==actEditId);
+  actEditId=null;actSelId=null;
+  closeOverlay('mDetail');closeOverlay('mCreate');
+  renderAct();
+}
+
+async function changeStatut(id,statut){
+  try{await FriDB.update('activites',id,{statut});}catch(e){console.error(e);}
+  var idx=activites.findIndex(a=>a.id===id);
+  if(idx>=0)activites[idx].statut=statut;
+  closeDetail();renderAct();
+}
+
+function openModifResponsable(id){
+  modifRespActId=id;
+  var a=activites.find(x=>x.id===id);
+  document.getElementById('resp-input').value=a?a.responsable||'':'';
+  openOverlay('mResponsable');
+}
+
+async function confirmerModifResponsable(){
+  var val=document.getElementById('resp-input').value.trim();
+  if(!modifRespActId)return;
+  try{await FriDB.update('activites',modifRespActId,{responsable:val});}catch(e){console.error(e);}
+  var idx=activites.findIndex(a=>a.id===modifRespActId);
+  if(idx>=0)activites[idx].responsable=val;
+  closeOverlay('mResponsable');closeDetail();
+  renderAct();
+}
+
+const CHECKLIST=[
+  {group:"Avant le jour J",items:["Confirmer le lieu et l'horaire","Contacter le prestataire","Envoyer les infos aux participants","Préparer le matériel","Vérifier les inscriptions","Préparer la feuille de présence","Communiquer sur les réseaux","Prévenir en cas d'annulation"]},
+  {group:"Le jour J",items:["Accueillir les participants","Faire la feuille de présence","Animer / superviser l'activité","Gérer les imprévus","Prendre des photos","Remercier les participants"]},
+  {group:"Après l'activité",items:["Saisir les présences","Envoyer le bilan","Archiver les documents","Mettre à jour le statut"]}
+];
+
+function openChecklist(id){
+  var a=activites.find(x=>x.id===id);
+  document.getElementById('mChecklistTitle').textContent='Checklist – '+(a?a.titre:'');
+  var html='';
+  CHECKLIST.forEach(g=>{
+    html+=`<div class="checklist-group"><h4>${g.group}</h4>`;
+    g.items.forEach((item,i)=>{
+      var cid=`ck-${id}-${g.group.replace(/\s/g,'')}-${i}`;
+      html+=`<div class="checklist-item"><input type="checkbox" id="${cid}"><label for="${cid}">${item}</label></div>`;
+    });
+    html+='</div>';
+  });
+  document.getElementById('mChecklistBody').innerHTML=html;
+  closeOverlay('mDetail');
+  openOverlay('mChecklist');
+}
+
+// ═══ PLANNING — RENDER ═══
+function switchPlanTab(tab){
+  currentTab=tab;
+  document.getElementById('ptab-encours').className='plan-tab'+(tab==='encours'?' active':'');
+  document.getElementById('ptab-archives').className='plan-tab'+(tab==='archives'?' active':'');
+  currentActId=null;
+  renderPlanList();
+  document.getElementById('plan-content').innerHTML='<div class="plan-empty"><div style="font-size:48px">📅</div><div>Sélectionne une activité</div></div>';
+}
+
+function getPlanList(){
+  var archiveStatuts=['realise','annule'];
+  var list=activites.filter(a=>currentTab==='archives'?archiveStatuts.includes(a.statut):!archiveStatuts.includes(a.statut));
+  if(searchVal){var sv=searchVal.toLowerCase();list=list.filter(a=>(a.titre||'').toLowerCase().includes(sv)||(a.lieu||'').toLowerCase().includes(sv));}
+  return list.sort((a,b)=>a.date>b.date?1:-1);
+}
+
+function renderPlanList(){
+  var list=getPlanList();
+  var archiveStatuts=['realise','annule'];
+  if(!list.length){document.getElementById('plan-list-items').innerHTML='<div style="padding:2rem;text-align:center;color:#aaa;font-size:13px">Aucune activité</div>';return;}
+  document.getElementById('plan-list-items').innerHTML=list.map(a=>{
+    var isArch=archiveStatuts.includes(a.statut);
+    var insc=inscriptions.filter(i=>i.activite_id===a.id).length;
+    return `<div class="plan-item${currentActId===a.id?' active':''}" onclick="openPlanDetail(${a.id})">
+      <div class="pi-top">
+        <div class="pi-title">${esc(a.titre)}</div>
+        <div class="pi-date">${fd(a.date)}</div>
+      </div>
+      <div class="pi-sub">${a.lieu?esc(a.lieu):'—'}</div>
+      <div class="pi-badges">
+        <span class="pi-badge ${isArch?'arch':'enc'}">${a.statut}</span>
+        ${a.categorie?`<span class="pi-badge">${esc(a.categorie)}</span>`:''}
+        <span class="pi-badge">👥 ${insc}${a.places_max?' / '+a.places_max:''}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openPlanDetail(id){
+  currentActId=id;
+  renderPlanList();
+  var a=activites.find(x=>x.id===id);
+  if(!a)return;
+  var insc=inscriptions.filter(i=>i.activite_id===id);
+  var archiveStatuts=['realise','annule'];
+  var isArch=archiveStatuts.includes(a.statut);
+  var html=`<div class="plan-detail">
+    <div class="pd-header">
+      <div class="pd-title">${esc(a.titre)}</div>
+      <div class="pd-meta">
+        <span class="pd-badge ${isArch?'arch':'enc'}">${a.statut}</span>
+        ${a.categorie?`<span class="pd-badge cat">${esc(a.categorie)}</span>`:''}
+      </div>
+    </div>
+    <div class="pd-section">
+      <h3>Informations</h3>
+      <div class="pd-grid">
+        <div class="pd-field"><div class="pd-label">Date</div><div class="pd-val">${fd(a.date)}</div></div>
+        ${a.heure_debut?`<div class="pd-field"><div class="pd-label">Horaire</div><div class="pd-val">${fh(a.heure_debut)}${a.heure_fin?' → '+fh(a.heure_fin):''}</div></div>`:''}
+        ${a.lieu?`<div class="pd-field"><div class="pd-label">Lieu</div><div class="pd-val">${esc(a.lieu)}</div></div>`:''}
+        ${a.responsable?`<div class="pd-field"><div class="pd-label">Responsable</div><div class="pd-val">${esc(a.responsable)}</div></div>`:''}
+        ${a.cout?`<div class="pd-field"><div class="pd-label">Coût</div><div class="pd-val">${a.cout} CHF</div></div>`:''}
+        ${a.places_max?`<div class="pd-field"><div class="pd-label">Places</div><div class="pd-val">${insc.length} / ${a.places_max}</div></div>`:''}
+      </div>
+      ${a.description?`<div class="pd-field" style="margin-top:.75rem"><div class="pd-label">Description</div><div class="pd-val">${esc(a.description)}</div></div>`:''}
+      ${a.lien_inscription?`<div style="margin-top:.75rem"><a href="${esc(a.lien_inscription)}" class="btn btn-outline btn-sm" target="_blank">🔗 Lien inscription</a></div>`:''}
+    </div>`;
+  if(insc.length){
+    html+=`<div class="pd-section"><h3>Inscriptions (${insc.length})</h3><table class="insc-table"><thead><tr><th>Enfant</th><th>Statut</th></tr></thead><tbody>`;
+    insc.forEach(i=>{
+      var enf=enfants.find(e=>e.id===i.enfant_id);
+      html+=`<tr><td>${esc(enf?enf.prenom+' '+enf.nom:'ID '+i.enfant_id)}</td><td><span class="badge-${i.presence||'inscrit'}">${i.presence||'inscrit'}</span></td></tr>`;
+    });
+    html+=`</tbody></table></div>`;
+  }
+  html+=`<div class="pd-section"><h3>Checklist</h3>`;
+  CHECKLIST.forEach(g=>{
+    html+=`<div class="checklist-group"><h4>${g.group}</h4>`;
+    g.items.forEach((item,i)=>{
+      var cid=`pck-${id}-${g.group.replace(/\s/g,'')}-${i}`;
+      html+=`<div class="checklist-item"><input type="checkbox" id="${cid}"><label for="${cid}">${item}</label></div>`;
+    });
+    html+='</div>';
+  });
+  html+=`</div>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+      <a href="fritime_activites_planning.html#activites" class="btn btn-outline btn-sm" onclick="switchModuleTab('activites')">✏️ Modifier l'activité</a>
+      <button class="btn btn-outline btn-sm" onclick="changeStatut(${id},'realise')">✅ Réalisé</button>
+      <button class="btn btn-outline btn-sm" onclick="changeStatut(${id},'annule')">❌ Annuler</button>
+    </div>
+  </div>`;
+  document.getElementById('plan-content').innerHTML=html;
+}
+
+// ═══ OFFLINE INFRASTRUCTURE ═══
+var _offlineDB=null;
+function friOfflineInit(){
+  return new Promise((resolve)=>{
+    if(!window.indexedDB){resolve(null);return;}
+    var req=indexedDB.open('fritime_offline',1);
+    req.onupgradeneeded=e=>{var db=e.target.result;if(!db.objectStoreNames.contains('queue'))db.createObjectStore('queue',{keyPath:'id',autoIncrement:true});if(!db.objectStoreNames.contains('cache'))db.createObjectStore('cache',{keyPath:'key'});};
+    req.onsuccess=e=>{_offlineDB=e.target.result;resolve(_offlineDB);};
+    req.onerror=()=>resolve(null);
+  });
+}
+function friCacheSet(key,data){if(!_offlineDB)return;var tx=_offlineDB.transaction('cache','readwrite');tx.objectStore('cache').put({key,data,ts:Date.now()});}
+function friCacheGet(key){return new Promise(resolve=>{if(!_offlineDB){resolve(null);return;}var tx=_offlineDB.transaction('cache','readonly');var req=tx.objectStore('cache').get(key);req.onsuccess=e=>resolve(e.target.result?.data||null);req.onerror=()=>resolve(null);});}
+function friOfflineQueueAdd(table,op,data,id){if(!_offlineDB)return;var tx=_offlineDB.transaction('queue','readwrite');tx.objectStore('queue').add({table,op,data,record_id:id,ts:Date.now()});updateOfflineBar();}
+function friOfflineQueueGetAll(){return new Promise(resolve=>{if(!_offlineDB){resolve([]);return;}var tx=_offlineDB.transaction('queue','readonly');var req=tx.objectStore('queue').getAll();req.onsuccess=e=>resolve(e.target.result||[]);req.onerror=()=>resolve([]);});}
+function friOfflineQueueDelete(id){if(!_offlineDB)return;var tx=_offlineDB.transaction('queue','readwrite');tx.objectStore('queue').delete(id);}
+function friOfflineQueueCount(){return new Promise(resolve=>{if(!_offlineDB){resolve(0);return;}var tx=_offlineDB.transaction('queue','readonly');var req=tx.objectStore('queue').count();req.onsuccess=e=>resolve(e.target.result||0);req.onerror=()=>resolve(0);});}
+
+function updateOfflineBar(){
+  friOfflineQueueCount().then(n=>{
+    var bar=document.getElementById('offline-bar');
+    var dot=document.getElementById('offline-dot');
+    var badge=document.getElementById('sync-badge');
+    var label=document.getElementById('offline-label');
+    var isOnline=navigator.onLine;
+    if(!isOnline||n>0){bar.classList.remove('hidden');}else{bar.classList.add('hidden');}
+    dot.className='offline-dot'+(isOnline?'':' offline');
+    label.textContent=isOnline?'En ligne':'Hors ligne';
+    badge.textContent=n;
+    badge.className='sync-badge'+(n===0?' zero':'');
+  });
+}
+
+async function friSyncQueue(){
+  var items=await friOfflineQueueGetAll();
+  for(var item of items){
+    try{
+      if(item.op==='insert')await FriDB.insert(item.table,item.data);
+      else if(item.op==='update')await FriDB.update(item.table,item.record_id,item.data);
+      else if(item.op==='delete')await FriDB.delete(item.table,item.record_id);
+      friOfflineQueueDelete(item.id);
+    }catch(e){console.warn('Sync failed',e);break;}
+  }
+  updateOfflineBar();
+}
+
+window.addEventListener('online',()=>{updateOfflineBar();friSyncQueue();});
+window.addEventListener('offline',()=>updateOfflineBar());
+
+// ═══ LOAD ALL DATA ═══
+async function loadAllData(){
+  await friOfflineInit();
+  updateOfflineBar();
+  try {
+    var [actRes,inscRes,enfRes,prestRes,membRes]=await Promise.all([
+      FriDB.select('activites','*').catch(()=>[]),
+      FriDB.select('inscriptions','*').catch(()=>[]),
+      FriDB.select('enfants','*').catch(()=>[]),
+      FriDB.select('prestataires','*').catch(()=>[]),
+      FriDB.select('membres','*').catch(()=>[])
+    ]);
+    activites=actRes||[];
+    inscriptions=inscRes||[];
+    enfants=enfRes||[];
+    prestataires=prestRes||[];
+    friCacheSet('activites',activites);
+    friCacheSet('inscriptions',inscriptions);
+    friCacheSet('enfants',enfants);
+    friCacheSet('prestataires',prestataires);
+  } catch(e) {
+    console.warn('Load from cache',e);
+    activites=await friCacheGet('activites')||[];
+    inscriptions=await friCacheGet('inscriptions')||[];
+    enfants=await friCacheGet('enfants')||[];
+    prestataires=await friCacheGet('prestataires')||[];
+  }
+  if(typeof FriCats!=='undefined')await FriCats.load();
+  renderAct();
+  renderPlanList();
+}
+
+// ═══ HASH NAV + INIT ═══
+(function(){var h=location.hash.replace('#','');switchModuleTab(h==='planning'?'planning':'activites');})();
+loadAllData();
+</script>
+</body>
+</html>
