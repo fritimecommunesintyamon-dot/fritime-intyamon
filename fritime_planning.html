@@ -571,10 +571,12 @@ function renderFiche(){
       html+='<div><div class="part-name">'+esc((e.prenom||"")+" "+(e.nom||""))+'</div>';
       var details=[];
       if(e.dateNaissance){var age=new Date().getFullYear()-parseInt((e.dateNaissance||"").split("-")[0]);details.push(age+' ans');}
-      if(e.pp||e.pn)details.push('Parent : '+esc(((e.pp||"")+" "+(e.pn||"")).trim()));
-      if(e.pe)details.push('<a href="mailto:'+esc(e.pe)+'" style="color:#0c447c">'+esc(e.pe)+'</a>');
-      if(e.tel)details.push('📞 '+esc(e.tel));
+      if(e.pp||e.pn)details.push('👤 Parent : '+esc(((e.pp||"")+" "+(e.pn||"")).trim()));
+      if(e.pt)details.push('📞 <a href="tel:'+esc(e.pt)+'" style="color:#0c447c">'+esc(e.pt)+'</a>');
+      if(e.pe)details.push('✉️ <a href="mailto:'+esc(e.pe)+'" style="color:#0c447c">'+esc(e.pe)+'</a>');
       if(details.length)html+='<div class="part-detail">'+details.join(' · ')+'</div>';
+      if(e.allergie)html+='<div class="part-detail" style="color:#c0392b;font-weight:600">⚠️ Allergie : '+esc(e.allergie)+'</div>';
+      if(e.notes)html+='<div class="part-detail" style="color:#555;font-style:italic">📝 '+esc(e.notes)+'</div>';
       html+='</div>';
       var tags='';
       if(e.allergie)tags+='<span class="part-tag">⚠️ '+esc(e.allergie)+'</span>';
