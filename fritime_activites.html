@@ -183,8 +183,7 @@ textarea.fi{resize:vertical;min-height:70px}
   <div class="ft-nav-section">Principal</div>
   <a class="ft-nav-item" href="fritime_dashboard.html" data-page="dashboard"><span class="ft-nav-ico">🏠</span> Tableau de bord</a>
   <a class="ft-nav-item" href="fritime_activites.html" data-page="activites"><span class="ft-nav-ico">🎯</span> Activités</a>
-  <a class="ft-nav-item" href="fritime_inscriptions.html" data-page="inscriptions"><span class="ft-nav-ico">📋</span> Inscriptions</a>
-  <a class="ft-nav-item" href="fritime_enfants.html" data-page="enfants"><span class="ft-nav-ico">👦</span> Enfants</a>
+  <a class="ft-nav-item" href="fritime_enfants_inscriptions.html" data-page="enfants"><span class="ft-nav-ico">👦</span> Enfants &amp; Inscriptions</a>
 
   <div class="ft-nav-section">Organisation</div>
   <a class="ft-nav-item" href="fritime_planning.html" data-page="planning"><span class="ft-nav-ico">📅</span> Planning / Fiches</a>
@@ -258,8 +257,7 @@ function doLogout(){
   <div class="ft-sb-sec">Principal</div>
   <a href="fritime_dashboard.html">🏠 Tableau de bord</a>
   <a href="fritime_activites.html">🎯 Activités</a>
-  <a href="fritime_inscriptions.html">📋 Inscriptions</a>
-  <a href="fritime_enfants.html">👦 Enfants</a>
+  <a href="fritime_enfants_inscriptions.html">👦 Enfants &amp; Inscriptions</a>
   <div class="ft-sb-sec">Organisation</div>
   <a href="fritime_planning.html">📅 Planning / Fiches</a>
   <a href="fritime_taches.html">✅ Tâches</a>
@@ -743,6 +741,7 @@ function renderDet(){
       <button class="btn btn-sm btn-danger" onclick="editId=selId;deleteActivite()">Supprimer</button>
       <div style="display:flex;gap:8px">
         <button class="btn btn-sm" onclick="openModifResponsable(${a.id})" style="background:#eaf3de;color:#275a0a;border-color:#c0dd97">👤 Responsable</button>
+        <button class="btn btn-sm" onclick="openChecklist(${a.id})" style="background:#e6f1fb;color:#0c447c;border-color:#a8caed">📋 Checklist</button>
         <button class="btn btn-sm" onclick="openEditAct(${a.id})">Modifier</button>
         <button class="btn btn-sm btn-primary" onclick="closeDetail()">Fermer</button>
       </div>
@@ -940,5 +939,118 @@ async function confirmerModifResponsable(){
   render();
 }
 </script>
+
+<!-- Modal checklist bénévole -->
+<div id="mChecklist" class="overlay" onclick="if(event.target.id==='mChecklist')closeChecklist()" style="align-items:flex-start;padding:1rem">
+<div class="modal" onclick="event.stopPropagation()" style="max-width:640px;width:100%;max-height:90vh;overflow-y:auto" id="mChecklistInner">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+    <div style="font-weight:700;font-size:15px">📋 Checklist bénévole</div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-sm" onclick="printChecklist()">🖨️ Imprimer</button>
+      <button class="btn btn-sm" onclick="closeChecklist()">✕</button>
+    </div>
+  </div>
+  <div id="checklist-content"></div>
+</div>
+</div>
+
+<script>
+function openChecklist(id){
+  const a=activites.find(x=>x.id===id);if(!a)return;
+  const fd=function(d){if(!d)return'';const[y,m,j]=d.split('-');return j+'.'+m+'.'+y;};
+  document.getElementById('checklist-content').innerHTML=`
+    <div style="text-align:center;margin-bottom:1rem">
+      <div style="font-size:18px;font-weight:700">CHECK-LIST BÉNÉVOLE</div>
+      <div style="font-size:13px;color:#666;margin-top:2px">Déroulement d'une activité FriTime</div>
+      <div style="font-size:11px;color:#999;margin-top:2px">À compléter au fil de l'activité, case par case</div>
+    </div>
+    <div style="background:#f5f5f3;border-radius:8px;padding:12px;margin-bottom:1rem;font-size:13px;display:grid;grid-template-columns:1fr 1fr;gap:6px">
+      <div><b>Date :</b> ${fd(a.date)||'________________'}</div>
+      <div><b>Activité :</b> ${a.nom}</div>
+      <div><b>Bénévole(s) :</b> ${a.responsableNom||'________________'}</div>
+      <div><b>Nb enfants attendus :</b> ${a.places||'____'} &nbsp;/&nbsp; Présents : ____</div>
+    </div>
+    ${clSection('👋','ÉTAPE 1 — ACCUEIL',[
+      'Accueillir chaque enfant à l'entrée avec un mot de bienvenue<br><small style="color:#888">→ Sourire, contact visuel, nom si possible.</small>',
+      'Vérifier l'identité de chaque enfant à l'arrivée',
+      'Cocher la présence sur la liste d'inscription',
+      '<span style="color:#c0392b;font-size:12px">⚠️ Ne laisser entrer personne d'absent·e de la liste sans validation préalable.</span>',
+      'Compter les enfants présents et noter le total en haut de cette fiche',
+      'Indiquer aux enfants où s'installer et demander de patienter quelques minutes'
+    ])}
+    ${clSection('🎤','ÉTAPE 2 — PRÉSENTATION',[
+      'Remercier chaleureusement les enfants d'être là<br><small style="color:#888">→ "On est vraiment contents de vous voir aujourd'hui !"</small>',
+      'Rappeler brièvement le contexte : c'est quoi FriTime, pourquoi ces activités',
+      'Se présenter : prénom, rôle, pourquoi on est bénévole ici',
+      'Présenter les autres bénévoles présent·e·s si applicable',
+      'Expliquer le déroulement de la session : ce qu'on va faire, dans quel ordre, combien de temps',
+      'Lire les règles de l'activité à voix haute (voir fiche règles enfants)<br><small style="color:#888">→ Demander un signe d'accord collectif avant de continuer.</small>',
+      'Rappeler les règles de sécurité essentielles<br><small style="color:#888">→ Sorties, toilettes, urgences — où s'adresser si ça ne va pas.</small>'
+    ])}
+    ${clSection('🎯','ÉTAPE 3 — DÉROULEMENT DE L'ACTIVITÉ',[
+      'Lancer l'activité selon le programme prévu',
+      'S'assurer que chaque enfant est inclus et participe à son niveau<br><small style="color:#888">→ Aucun enfant ne doit rester seul dans son coin sans qu'on le remarque.</small>',
+      'Surveiller l'ambiance du groupe — intervenir si tension ou exclusion',
+      'Adapter le rythme si nécessaire : accélérer, ralentir, faire une pause',
+      'Gérer les comportements difficiles selon la procédure (calme, en privé, sans humiliation)',
+      'Signaler tout incident ou blessure dans le cahier de suivi immédiatement',
+      'Respecter le timing — prévoir la transition 10 minutes avant la fin'
+    ])}
+    ${clSection('💬','ÉTAPE 4 — CLÔTURE & RETOUR DU GROUPE',[
+      'Annoncer la fin de l'activité et rassembler le groupe',
+      'Faire un court bilan à voix haute : ce qu'on a fait, ce qui s'est bien passé',
+      'Demander aux enfants leur avis sur l'activité<br><small style="color:#888">→ "C'était comment pour vous ? Vous avez aimé ? Quelque chose n'a pas marché ?"</small>',
+      'Demander si ça leur donne envie de participer à une prochaine activité FriTime',
+      'Recueillir des idées d'activités qu'ils aimeraient voir organisées<br><small style="color:#888">→ Noter les suggestions sur la fiche de retour en bas de page.</small>'
+    ])}
+    ${clSection('🌟','ÉTAPE 5 — REMERCIEMENTS & AU REVOIR',[
+      'Remercier sincèrement chaque enfant pour sa participation et son attitude',
+      'Rappeler les prochaines activités FriTime prévues et comment s'inscrire',
+      'Inviter les enfants à parler de FriTime autour d'eux si ça leur a plu',
+      'Souhaiter un bon retour à chacun·e'
+    ])}
+    ${clSection('🔐','ÉTAPE 6 — REMISE AUX RESPONSABLES',[
+      'Regrouper les enfants dans l'espace d'attente et leur demander de ne pas partir seuls',
+      'Remettre chaque enfant uniquement à la personne autorisée à le récupérer',
+      'En cas de doute sur l'identité de la personne : demander une pièce d'identité<br><small style="color:#c0392b">⚠️ Ne jamais remettre un enfant à une personne inconnue sans vérification. Contacter les parents si besoin.</small>',
+      'En cas de non-récupération à l'heure : contacter les parents immédiatement, puis le responsable FriTime',
+      'Recompter et s'assurer qu'aucun enfant n'est resté sans être récupéré avant de quitter les lieux',
+      'Ranger et nettoyer l'espace',
+      'Compléter le cahier de suivi : présences, incidents, observations'
+    ])}
+    <div style="background:#f5f5f3;border-radius:8px;padding:14px;margin-top:1rem;font-size:13px">
+      <div style="font-weight:600;margin-bottom:10px">📝 Retours & idées des enfants</div>
+      <div style="margin-bottom:8px"><b>Ce qu'ils ont aimé :</b><div style="border-bottom:1px solid #ccc;margin-top:18px"></div></div>
+      <div style="margin-bottom:8px"><b>Ce qui n'a pas bien marché :</b><div style="border-bottom:1px solid #ccc;margin-top:18px"></div></div>
+      <div style="margin-bottom:6px"><b>Idées d'activités proposées :</b></div>
+      <div style="border-bottom:1px solid #ccc;margin-top:18px"></div>
+      <div style="border-bottom:1px solid #ccc;margin-top:18px"></div>
+      <div style="border-bottom:1px solid #ccc;margin-top:18px"></div>
+      <div style="margin-top:14px"><b>Observations bénévole :</b><div style="border-bottom:1px solid #ccc;margin-top:18px"></div></div>
+    </div>
+  `;
+  document.getElementById('mChecklist').style.display='flex';
+}
+function closeChecklist(){document.getElementById('mChecklist').style.display='none';}
+function clSection(ico,titre,items){
+  return `<div style="margin-bottom:1rem">
+    <div style="font-weight:700;font-size:13px;color:#1a1a1a;background:#f0f0ee;padding:6px 10px;border-radius:6px;margin-bottom:6px">${ico} ${titre}</div>
+    ${items.map(function(it,i){
+      var isWarning=it.startsWith('<span style="color:#c0392b');
+      if(isWarning) return '<div style="padding:4px 10px;font-size:12px">'+it+'</div>';
+      return '<label style="display:flex;align-items:flex-start;gap:8px;padding:5px 10px;cursor:pointer;border-radius:4px" onmouseover="this.style.background='#f9f9f7'" onmouseout="this.style.background=''"><input type="checkbox" style="margin-top:2px;flex-shrink:0;accent-color:#275a0a"><span style="font-size:13px;line-height:1.5">'+it+'</span></label>';
+    }).join('')}
+  </div>`;
+}
+function printChecklist(){
+  var w=window.open('','_blank');
+  w.document.write('<html><head><title>Checklist FriTime</title><style>body{font-family:sans-serif;font-size:13px;padding:20px;max-width:640px;margin:0 auto}h2{font-size:16px}label{display:flex;align-items:flex-start;gap:8px;padding:4px 0}input{flex-shrink:0;margin-top:2px}small{color:#666}@media print{button{display:none}}</style></head><body>');
+  w.document.write(document.getElementById('checklist-content').innerHTML);
+  w.document.write('</body></html>');
+  w.document.close();
+  w.print();
+}
+</script>
+
 </body>
 </html>

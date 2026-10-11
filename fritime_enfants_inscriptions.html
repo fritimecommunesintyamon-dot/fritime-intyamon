@@ -1,0 +1,1250 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fri-Time Intyamon — Enfants & Inscriptions</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#f5f5f3;color:#1a1a1a;font-size:14px}
+.container{max-width:980px;margin:0 auto;padding:1.5rem}
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:8px}
+h1{font-size:20px;font-weight:600}
+.subtitle{font-size:13px;color:#666;margin-top:2px}
+.btn{padding:7px 14px;border-radius:8px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:13px;font-family:inherit;transition:background .15s}
+.btn:hover{background:#f5f5f3}
+.btn-primary{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.btn-primary:hover{background:#333}
+.btn-sm{padding:4px 10px;font-size:12px}
+.btn-danger{color:#7a1f1f;border-color:#f4c0c0}
+/* Top-level module tabs */
+.module-tabs{display:flex;border-bottom:2px solid #eee;margin-bottom:1.5rem}
+.module-tab{padding:10px 20px;font-size:14px;font-weight:500;cursor:pointer;color:#888;border:none;border-bottom:3px solid transparent;margin-bottom:-2px;background:transparent;font-family:inherit;display:flex;align-items:center;gap:8px;transition:all .15s}
+.module-tab.active{color:#1a1a1a;border-bottom-color:#1a1a1a}
+.module-section{display:none}
+.module-section.active{display:block}
+/* Inner tabs */
+.tabs{display:flex;border-bottom:1px solid #eee;margin-bottom:1.25rem}
+.tab{padding:8px 16px;font-size:13px;cursor:pointer;color:#888;border:none;border-bottom:2px solid transparent;margin-bottom:-1px;background:transparent;font-family:inherit;display:flex;align-items:center;gap:6px}
+.tab.active{color:#1a1a1a;border-bottom-color:#1a1a1a;font-weight:500}
+.tab-count{font-size:11px;background:#f5f5f3;color:#888;padding:1px 7px;border-radius:20px}
+.tab.active .tab-count{background:#1a1a1a;color:#fff}
+.panel{display:none}.panel.active{display:block}
+/* Metrics */
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.25rem}
+.metrics-5{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:1.25rem}
+.metric{background:#fff;border-radius:10px;padding:10px 12px;border:1px solid #eee;text-align:center}
+.metric-val{font-size:20px;font-weight:600}
+.metric-lbl{font-size:11px;color:#888;margin-top:2px}
+/* Table */
+.table-wrap{background:#fff;border:1px solid #eee;border-radius:12px;overflow:hidden}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{padding:10px 14px;text-align:left;font-size:11px;font-weight:600;color:#888;border-bottom:1px solid #eee;background:#fafaf8;text-transform:uppercase;letter-spacing:.05em}
+td{padding:10px 14px;border-bottom:1px solid #eee;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafaf8;cursor:pointer}
+.badge{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500;white-space:nowrap}
+.badge-actif{background:#eaf3de;color:#275a0a}
+.badge-banni{background:#fcebeb;color:#791f1f}
+.badge-inscrit{background:#f1efea;color:#444}
+.badge-attente{background:#faeeda;color:#633806}
+.badge-selectionne{background:#e6f1fb;color:#0c447c}
+.badge-confirme{background:#eaf3de;color:#275a0a}
+.badge-present{background:#1a1a1a;color:#fff}
+.badge-absent{background:#fcebeb;color:#791f1f}
+.avatar{width:32px;height:32px;border-radius:50%;background:#e6f1fb;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#1a5fa0;flex-shrink:0}
+.part-badge{display:inline-block;background:#f5f5f3;border-radius:8px;padding:3px 10px;font-size:13px;font-weight:600}
+/* Activity selector */
+.act-selector{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-bottom:1.5rem}
+.act-card{background:#fff;border:1.5px solid #eee;border-radius:10px;padding:1rem;cursor:pointer;transition:all .15s}
+.act-card:hover{border-color:#ccc}
+.act-card.selected{border-color:#1a1a1a;background:#1a1a1a;color:#fff}
+.act-card.selected .act-sub{color:rgba(255,255,255,.65)}
+.act-title{font-size:13px;font-weight:600;margin-bottom:4px}
+.act-sub{font-size:11px;color:#888;margin-bottom:8px}
+.prog-wrap{height:4px;background:#f5f5f3;border-radius:20px;overflow:hidden}
+.prog-bar{height:4px;border-radius:20px;background:#1a1a1a;transition:width .3s}
+.act-card.selected .prog-bar{background:#fff}
+.prog-label{font-size:11px;color:#888;margin-top:4px}
+.act-card.selected .prog-label{color:rgba(255,255,255,.65)}
+/* Modals */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;align-items:center;justify-content:center;padding:2rem 1rem;overflow-y:auto}
+.modal{background:#fff;border-radius:12px;border:1px solid #eee;padding:1.5rem;width:min(540px,100%)}
+.modal-title{font-size:16px;font-weight:600;margin-bottom:1.25rem;padding-bottom:1rem;border-bottom:1px solid #eee}
+.sec{font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.06em;margin:1rem 0 .75rem;padding-top:1rem;border-top:1px solid #eee}
+.fg{margin-bottom:.75rem}
+.fl{font-size:12px;color:#666;margin-bottom:4px;display:block}
+.fi{width:100%;padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit}
+.fi:focus{outline:none;border-color:#aaa}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mf{display:flex;justify-content:space-between;align-items:center;margin-top:1.25rem;padding-top:1rem;border-top:1px solid #eee}
+.dl{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px}
+.dv{font-size:13px;margin-bottom:10px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ban-box{background:#fcebeb;color:#791f1f;border-radius:8px;padding:10px 12px;font-size:13px;margin-bottom:10px}
+.note-box{background:#faeeda;color:#633806;padding:8px 10px;border-radius:8px;font-size:13px;margin-bottom:12px}
+.algo-box{background:#f5f5f3;border-radius:10px;padding:1rem;margin-bottom:1rem}
+.toolbar{display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap}
+.search{flex:1;min-width:160px;padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit}
+.filter-btn{padding:4px 12px;border-radius:20px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:12px;color:#666}
+.filter-btn.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.sel-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid #eee;font-size:13px}
+.sel-row:last-child{border-bottom:none}
+.rk{width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:600}
+.rk-sel{background:#1a1a1a;color:#fff}
+.rk-wait{background:#faeeda;color:#633806}
+.info-box{border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:12px}
+.info-box.bleu{background:#e6f1fb;color:#0c447c}
+.status-flow{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:10px 14px;background:#f5f5f3;border-radius:8px;margin-bottom:1rem;font-size:12px}
+.flow-step{padding:3px 10px;border-radius:20px;font-weight:500;font-size:11px}
+.empty{text-align:center;padding:2rem;color:#888;font-size:13px}
+/* Offline */
+.offline-bar{position:fixed;bottom:0;left:0;right:0;z-index:2000;background:#1a1a1a;color:#fff;font-size:12px;padding:7px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.offline-bar.hidden{display:none!important}
+.offline-dot{width:8px;height:8px;border-radius:50%;background:#ef4444;flex-shrink:0}
+.offline-dot.online{background:#22c55e}
+.sync-badge{background:#ef4444;color:#fff;border-radius:20px;padding:1px 8px;font-size:11px;font-weight:700;margin-left:6px}
+.sync-badge.zero{display:none}
+</style>
+<script src="fritime_data.js"></script>
+<script src="fritime_sync.js"></script>
+<script src="fritime_auth.js"></script>
+<script src="fritime_supabase.js"></script>
+<script src="fritime_brevo.js"></script>
+
+<style id="sidebar-css">
+.ft-wrap{display:flex;min-height:calc(100vh - 52px)}
+.ft-sb{display:none;width:180px;flex-shrink:0;background:#fff;border-right:1px solid #eee;padding:12px 0;overflow-y:auto;position:sticky;top:52px;height:calc(100vh - 52px);align-self:flex-start}
+.ft-sb a{display:block;padding:6px 16px;font-size:13px;color:#444;text-decoration:none;border-radius:6px;margin:1px 6px}
+.ft-sb a:hover{background:#f5f5f3}
+.ft-sb a.on{background:#f5f5f3;color:#1a1a1a;font-weight:600}
+.ft-sb-sec{padding:6px 16px 2px;font-size:10px;font-weight:700;color:#bbb;text-transform:uppercase;letter-spacing:.08em;margin-top:8px}
+@media(min-width:769px){.ft-sb{display:block}}
+.ft-content{flex:1;min-width:0;overflow-x:hidden}
+</style>
+</head>
+<body class="ft-body-offset">
+<!-- SHARED NAV -->
+<style>
+.ft-topbar{background:#1a1a1a;color:#fff;padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:52px;position:fixed;top:0;left:0;right:0;z-index:1000}
+.ft-logo{font-size:15px;font-weight:700;letter-spacing:.05em;color:#fff;text-decoration:none;white-space:nowrap}
+.ft-topbar-right{display:flex;align-items:center;gap:12px}
+.ft-user-name{font-size:12px;opacity:.6;display:none}
+.ft-avatar{width:30px;height:30px;border-radius:50%;background:#333;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;cursor:pointer;position:relative}
+.ft-avatar-menu{display:none;position:absolute;top:36px;right:0;background:#fff;border:1px solid #eee;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.1);min-width:180px;z-index:100;overflow:hidden}
+.ft-avatar-menu.open{display:block}
+.ft-avatar-menu-item{padding:10px 14px;font-size:13px;color:#1a1a1a;cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .1s}
+.ft-avatar-menu-item:hover{background:#f5f5f3}
+.ft-avatar-divider{height:1px;background:#eee;margin:4px 0}
+.ft-sidebar{position:fixed;top:52px;left:0;width:210px;height:calc(100vh - 52px);background:#fff;border-right:1px solid #eee;overflow-y:auto;z-index:999;transform:translateX(-100%);transition:transform .2s}
+.ft-sidebar.open{transform:translateX(0)}
+.ft-sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:998;top:52px}
+.ft-sidebar-overlay.open{display:block}
+.ft-nav-section{padding:6px 14px;font-size:10px;font-weight:700;color:#bbb;text-transform:uppercase;letter-spacing:.08em;margin-top:8px}
+.ft-nav-item{display:flex;align-items:center;gap:9px;padding:5px 14px;font-size:12px;color:#555;cursor:pointer;transition:all .1s;text-decoration:none;border-left:3px solid transparent;white-space:nowrap}
+.ft-nav-item:hover{background:#fafaf8;color:#1a1a1a}
+.ft-nav-item.active{background:#f5f5f3;color:#1a1a1a;font-weight:600;border-left-color:#1a1a1a}
+.ft-nav-ico{font-size:15px;flex-shrink:0;opacity:.7}
+.ft-menu-btn{background:none;border:none;color:#fff;cursor:pointer;font-size:20px;padding:4px 8px;display:flex;align-items:center;justify-content:center;opacity:.8}
+.ft-menu-btn:hover{opacity:1}
+.ft-body-offset{padding-top:52px}
+@media(max-width:768px){
+  .ft-user-name{display:none}
+}
+@media(min-width:769px){
+  .ft-sidebar{display:none!important}
+  .ft-sidebar-overlay{display:none!important}
+  .ft-menu-btn{display:none!important}
+}
+</style>
+
+<div class="ft-topbar">
+  <div style="display:flex;align-items:center;gap:10px">
+    <button class="ft-menu-btn" onclick="toggleSidebar()">☰</button>
+    <a href="fritime_dashboard.html" class="ft-logo">Fri-Time Intyamon</a>
+  </div>
+  <div class="ft-topbar-right">
+    <span class="ft-user-name" id="ft-user-name">—</span>
+    <div class="ft-avatar" id="ft-avatar" onclick="toggleAvatarMenu()">
+      <span id="ft-avatar-initials">?</span>
+      <div class="ft-avatar-menu" id="ft-avatar-menu">
+        <div class="ft-avatar-menu-item" style="background:#f5f5f3;cursor:default">
+          <div>
+            <div style="font-weight:600;font-size:13px" id="ft-menu-name">—</div>
+            <div style="font-size:11px;color:#888" id="ft-menu-role">—</div>
+          </div>
+        </div>
+        <div class="ft-avatar-divider"></div>
+        <a href="fritime_dashboard.html" class="ft-avatar-menu-item">🏠 Tableau de bord</a>
+        <div class="ft-avatar-menu-item" onclick="doLogout()">🔒 Se déconnecter</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="ft-sidebar-overlay" id="ft-sidebar-overlay" onclick="toggleSidebar()"></div>
+
+<div class="ft-sidebar" id="ft-sidebar">
+  <div class="ft-nav-section">Principal</div>
+  <a class="ft-nav-item" href="fritime_dashboard.html" data-page="dashboard"><span class="ft-nav-ico">🏠</span> Tableau de bord</a>
+  <a class="ft-nav-item" href="fritime_activites.html" data-page="activites"><span class="ft-nav-ico">🎯</span> Activités</a>
+  <a class="ft-nav-item" href="fritime_enfants_inscriptions.html" data-page="enfants_inscriptions"><span class="ft-nav-ico">👦</span> Enfants & Inscriptions</a>
+  <div class="ft-nav-section">Organisation</div>
+  <a class="ft-nav-item" href="fritime_planning.html" data-page="planning"><span class="ft-nav-ico">📅</span> Planning / Fiches</a>
+  <a class="ft-nav-item" href="fritime_taches.html" data-page="taches"><span class="ft-nav-ico">✅</span> Tâches</a>
+  <a class="ft-nav-item" href="fritime_comite.html" data-page="comite"><span class="ft-nav-ico">👥</span> Comité</a>
+  <a class="ft-nav-item" href="fritime_campagnes.html" data-page="campagnes"><span class="ft-nav-ico">📧</span> Campagnes</a>
+  <a class="ft-nav-item" href="fritime_sondages.html" data-page="sondages"><span class="ft-nav-ico">⭐</span> Sondages</a>
+  <div class="ft-nav-section">Finances & Partenaires</div>
+  <a class="ft-nav-item" href="fritime_budget.html" data-page="budget"><span class="ft-nav-ico">💰</span> Budget</a>
+  <a class="ft-nav-item" href="fritime_prestataires.html" data-page="prestataires"><span class="ft-nav-ico">🤝</span> Prestataires</a>
+  <div class="ft-nav-section">Contenu</div>
+  <a class="ft-nav-item" href="fritime_idees.html" data-page="idees"><span class="ft-nav-ico">🏷️</span> Catégories &amp; Idées</a>
+  <a class="ft-nav-item" href="fritime_documents.html" data-page="documents"><span class="ft-nav-ico">📁</span> Documents</a>
+  <div class="ft-nav-section">Sécurité</div>
+  <a class="ft-nav-item" href="fritime_incidents.html" data-page="incidents"><span class="ft-nav-ico">⚠️</span> Incidents</a>
+  <a class="ft-nav-item" href="fritime_urgences.html" data-page="urgences"><span class="ft-nav-ico">🚨</span> Urgences</a>
+  <a class="ft-nav-item" href="fritime_modifications.html" data-page="modifications"><span class="ft-nav-ico">🔄</span> Demandes</a>
+</div>
+
+<script>
+(function(){
+  var user=sessionStorage.getItem("ft_user");
+  var publicPages=["fritime_login.html","fritime_inscription_publique.html","fritime_sondage_parent.html","","index.html"];
+  var currentPage=window.location.pathname.split("/").pop();
+  if(!user&&!publicPages.includes(currentPage)){window.location.href="fritime_login.html";return;}
+  if(user){
+    var u=JSON.parse(user);
+    var ini2=((u.nom||"").split(" ").map(function(p){return p[0]||"";}).join("")).substring(0,2).toUpperCase();
+    document.getElementById("ft-avatar-initials").textContent=ini2||"?";
+    document.getElementById("ft-user-name").textContent=u.nom||"";
+    document.getElementById("ft-menu-name").textContent=u.nom||"";
+    document.getElementById("ft-menu-role").textContent=u.role||"";
+    document.getElementById("ft-user-name").style.display="block";
+  }
+  document.querySelectorAll(".ft-nav-item[data-page]").forEach(function(el){
+    if(currentPage.includes(el.dataset.page))el.classList.add("active");
+  });
+})();
+function toggleSidebar(){
+  document.getElementById("ft-sidebar").classList.toggle("open");
+  document.getElementById("ft-sidebar-overlay").classList.toggle("open");
+}
+function toggleAvatarMenu(){document.getElementById("ft-avatar-menu").classList.toggle("open");}
+document.addEventListener("click",function(e){
+  var menu=document.getElementById("ft-avatar-menu");
+  var avatar=document.getElementById("ft-avatar");
+  if(menu&&!avatar.contains(e.target))menu.classList.remove("open");
+});
+function doLogout(){sessionStorage.removeItem("ft_user");window.location.href="fritime_login.html";}
+</script>
+
+<div class="ft-wrap">
+<div class="ft-sb" id="ft-sb">
+  <div class="ft-sb-sec">Principal</div>
+  <a href="fritime_dashboard.html">🏠 Tableau de bord</a>
+  <a href="fritime_activites.html">🎯 Activités</a>
+  <a href="fritime_enfants_inscriptions.html">👦 Enfants &amp; Inscriptions</a>
+  <div class="ft-sb-sec">Organisation</div>
+  <a href="fritime_planning.html">📅 Planning / Fiches</a>
+  <a href="fritime_taches.html">✅ Tâches</a>
+  <a href="fritime_comite.html">👥 Comité</a>
+  <a href="fritime_campagnes.html">📧 Campagnes</a>
+  <a href="fritime_sondages.html">⭐ Sondages</a>
+  <div class="ft-sb-sec">Finances &amp; Partenaires</div>
+  <a href="fritime_budget.html">💰 Budget</a>
+  <a href="fritime_prestataires.html">🤝 Prestataires</a>
+  <div class="ft-sb-sec">Contenu</div>
+  <a href="fritime_idees.html">🏷️ Catégories &amp; Idées</a>
+  <a href="fritime_documents.html">📁 Documents</a>
+  <div class="ft-sb-sec">Sécurité</div>
+  <a href="fritime_incidents.html">⚠️ Incidents</a>
+  <a href="fritime_urgences.html">🚨 Urgences</a>
+  <a href="fritime_modifications.html">🔄 Demandes</a>
+</div>
+
+<div class="ft-content">
+<div class="container">
+
+<!-- Barre offline -->
+<div class="offline-bar hidden" id="offline-bar">
+  <div style="display:flex;align-items:center;gap:8px">
+    <div class="offline-dot" id="offline-dot"></div>
+    <span id="offline-label">Hors ligne</span>
+    <span class="sync-badge zero" id="sync-badge">0</span>
+  </div>
+  <div id="offline-sync-msg" style="font-size:11px;opacity:.7"></div>
+</div>
+
+<!-- En-tête -->
+<div class="header">
+  <div>
+    <h1>Enfants &amp; Inscriptions</h1>
+    <div class="subtitle">Gestion des participants et de leurs inscriptions — Fri-Time</div>
+  </div>
+  <div style="display:flex;gap:8px" id="header-actions">
+    <button class="btn btn-primary" id="btn-nouvel-enfant" onclick="openEnfCreate()">+ Nouvel enfant</button>
+  </div>
+</div>
+
+<!-- Onglets principaux -->
+<div class="module-tabs">
+  <button class="module-tab active" id="mtab-enfants" onclick="switchModuleTab('enfants',this)">👦 Enfants</button>
+  <button class="module-tab" id="mtab-inscriptions" onclick="switchModuleTab('inscriptions',this)">📋 Inscriptions</button>
+</div>
+
+<!-- ===================== SECTION ENFANTS ===================== -->
+<div class="module-section active" id="section-enfants">
+
+<div class="metrics" id="enf-metrics"></div>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchEnfTab('liste',this)">Liste des enfants</button>
+  <button class="tab" onclick="switchEnfTab('selection',this)">Sélection par activité</button>
+</div>
+
+<div id="panel-enf-liste" class="panel active">
+  <div class="toolbar">
+    <input class="search" id="enf-search" placeholder="Rechercher un enfant..." oninput="renderEnfants()" />
+    <button class="filter-btn active" onclick="setEnfFiltre('tous',this)">Tous</button>
+    <button class="filter-btn" onclick="setEnfFiltre('actif',this)">Actifs</button>
+    <button class="filter-btn" onclick="setEnfFiltre('banni',this)">Bannis</button>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Enfant</th><th>Âge</th><th>Commune</th><th>Participations</th><th>Activités confirmées</th><th>Statut</th></tr></thead>
+      <tbody id="enf-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<div id="panel-enf-selection" class="panel">
+  <div class="algo-box">
+    <div style="font-size:13px;font-weight:600;margin-bottom:8px">Algorithme de sélection</div>
+    <div style="font-size:12px;color:#555;line-height:1.8">
+      1. Priorité aux enfants ayant le moins de participations<br>
+      2. En cas d'égalité, ordre de préférence déclaré par les parents<br>
+      3. Léger facteur aléatoire pour diversifier les profils<br>
+      4. Enfants non retenus → liste d'attente automatique
+    </div>
+  </div>
+  <div class="fg" style="max-width:320px">
+    <label class="fl">Choisir une activité</label>
+    <select class="fi" id="enf-sel-act" onchange="runEnfSelection()">
+      <option value="">— Sélectionner —</option>
+    </select>
+  </div>
+  <div id="enf-sel-result" style="display:none">
+    <div class="grid2" style="margin-bottom:1rem">
+      <div><div style="font-size:13px;font-weight:600;margin-bottom:10px">Sélectionnés</div><div id="enf-sel-in"></div></div>
+      <div><div style="font-size:13px;font-weight:600;margin-bottom:10px">Liste d'attente</div><div id="enf-sel-wait"></div></div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-sm" onclick="runEnfSelection()">Recalculer</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- /section-enfants -->
+
+<!-- ===================== SECTION INSCRIPTIONS ===================== -->
+<div class="module-section" id="section-inscriptions">
+
+<!-- Boutons actions inscriptions -->
+<div style="display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap">
+  <button class="btn btn-primary" onclick="openAddInscription()">+ Inscrire un enfant</button>
+  <button class="btn" style="background:#eaf3de;color:#275a0a;border-color:#c0dd97;font-weight:600" onclick="ouvrirSelectionModal()">🎯 Lancer la sélection</button>
+</div>
+
+<!-- Lien feuille de présence -->
+<div style="background:#e6f1fb;border-radius:10px;padding:10px 14px;margin-bottom:1rem;display:flex;align-items:center;gap:10px;font-size:13px;color:#0c447c">
+  <span style="font-size:16px">👥</span>
+  <span>La <strong>feuille de présence</strong> se trouve dans <a href="fritime_planning.html" style="color:#0c447c;font-weight:600;text-decoration:underline">Planning / Fiches</a> — ouvre la fiche de l'activité pour y accéder.</span>
+</div>
+
+<!-- Flux de statut -->
+<div class="status-flow">
+  <span class="flow-step badge-inscrit">Inscrit</span> →
+  <span class="flow-step badge-attente">En attente</span> →
+  <span class="flow-step badge-selectionne">Sélectionné</span> →
+  <span class="flow-step badge-confirme">Confirmé</span> →
+  <span class="flow-step badge-present">Présent</span>
+  <span style="color:#aaa">|</span>
+  <span class="flow-step badge-absent">Absent</span>
+</div>
+
+<!-- Ordre de sélection -->
+<div style="background:#fff;border:1px solid #eee;border-radius:10px;padding:12px 16px;margin-bottom:1.5rem;display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap">
+  <div style="font-size:12px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;margin-top:2px">Ordre de sélection</div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;flex:1">
+    <div style="display:flex;align-items:center;gap:6px;font-size:12px">
+      <span style="background:#1a1a1a;color:#fff;width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">1</span>
+      <span><strong>Jamais participé</strong> — priorité absolue</span>
+    </div>
+    <span style="color:#ddd;font-size:12px">·</span>
+    <div style="display:flex;align-items:center;gap:6px;font-size:12px">
+      <span style="background:#1a1a1a;color:#fff;width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">2</span>
+      <span><strong>Moins de participations</strong> — équité sur la durée</span>
+    </div>
+    <span style="color:#ddd;font-size:12px">·</span>
+    <div style="display:flex;align-items:center;gap:6px;font-size:12px">
+      <span style="background:#1a1a1a;color:#fff;width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">3</span>
+      <span><strong>Ordre de préférence</strong> — souhait de la famille</span>
+    </div>
+    <span style="color:#ddd;font-size:12px">·</span>
+    <div style="display:flex;align-items:center;gap:6px;font-size:12px">
+      <span style="background:#aaa;color:#fff;width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">4</span>
+      <span style="color:#888"><strong>Aléatoire</strong> — en cas d'égalité</span>
+    </div>
+  </div>
+</div>
+
+<!-- Sélection activité -->
+<div class="act-selector" id="act-selector"></div>
+
+<!-- Métriques -->
+<div class="metrics-5" id="insc-metrics"></div>
+
+<!-- Onglets inscriptions -->
+<div class="tabs">
+  <button class="tab active" onclick="switchInscTab('liste',this)">Liste <span class="tab-count" id="count-liste">0</span></button>
+  <button class="tab" onclick="switchInscTab('attente',this)">En attente <span class="tab-count" id="count-attente">0</span></button>
+</div>
+
+<div id="panel-liste"></div>
+<div id="panel-attente" style="display:none"></div>
+
+</div><!-- /section-inscriptions -->
+
+</div><!-- /container -->
+</div><!-- /ft-content -->
+</div><!-- /ft-wrap -->
+
+<!-- ===================== MODALS ENFANTS ===================== -->
+<div id="mEnfCreate" class="overlay" onclick="if(event.target.id==='mEnfCreate')closeEnfCreate()">
+<div class="modal" onclick="event.stopPropagation()">
+  <div class="modal-title">Nouvel enfant</div>
+  <div class="fr"><div class="fg"><label class="fl">Prénom *</label><input class="fi" id="cp" /></div><div class="fg"><label class="fl">Nom *</label><input class="fi" id="cn" /></div></div>
+  <div class="fr">
+    <div class="fg"><label class="fl">Date de naissance</label><input class="fi" type="date" id="cd" onchange="calcEnfAge()" /></div>
+    <div class="fg"><label class="fl">Âge (calculé)</label><input class="fi" id="ca" readonly style="background:#f5f5f3" /></div>
+  </div>
+  <div class="fg"><label class="fl">Commune / village</label>
+    <select class="fi" id="cc">
+      <option value="">— Choisir —</option>
+      <optgroup label="Commune de Haut-Intyamon">
+        <option value="Albeuve">Albeuve</option><option value="Lessoc">Lessoc</option>
+        <option value="Montbovon">Montbovon</option><option value="Neirivue">Neirivue</option>
+        <option value="Sciernes">Sciernes</option>
+      </optgroup>
+      <optgroup label="Commune de Bas-Intyamon">
+        <option value="Enney">Enney</option><option value="Villars-sous-Mont">Villars-sous-Mont</option>
+      </optgroup>
+      <optgroup label="Commune de Grandvillard">
+        <option value="Grandvillard">Grandvillard</option>
+      </optgroup>
+    </select>
+  </div>
+  <div class="sec" style="border-top:none;padding-top:0;margin-top:.5rem">Parent / responsable</div>
+  <div class="fr"><div class="fg"><label class="fl">Prénom</label><input class="fi" id="cpp" /></div><div class="fg"><label class="fl">Nom</label><input class="fi" id="cpn" /></div></div>
+  <div class="fr"><div class="fg"><label class="fl">Email</label><input class="fi" type="email" id="cpe" /></div><div class="fg"><label class="fl">Téléphone</label><input class="fi" type="tel" id="cpt" /></div></div>
+  <div class="sec">Notes</div>
+  <div class="fg"><label class="fl">Allergies, besoins spéciaux...</label><textarea class="fi" id="cno" rows="2" style="resize:vertical"></textarea></div>
+  <div class="mf"><button class="btn" onclick="closeEnfCreate()">Annuler</button><button class="btn btn-primary" onclick="saveEnfCreate()">Enregistrer</button></div>
+</div>
+</div>
+
+<div id="mEnfDetail" class="overlay" onclick="if(event.target.id==='mEnfDetail')closeEnfDetail()">
+<div class="modal" onclick="event.stopPropagation()"><div id="enf-det"></div></div>
+</div>
+
+<div id="mEnfBan" class="overlay" onclick="if(event.target.id==='mEnfBan')closeEnfBan()">
+<div class="modal" style="max-width:400px" onclick="event.stopPropagation()">
+  <div class="modal-title">Bannir cet enfant</div>
+  <div class="fg"><label class="fl">Motif obligatoire</label><textarea class="fi" id="ban-motif" rows="3" placeholder="Raison du bannissement..."></textarea></div>
+  <div class="mf"><button class="btn" onclick="closeEnfBan()">Annuler</button><button class="btn btn-danger" onclick="confirmEnfBan()">Confirmer le bannissement</button></div>
+</div>
+</div>
+
+<div id="mEnfEdit" class="overlay" onclick="if(event.target.id==='mEnfEdit')closeEnfEdit()" style="display:none">
+<div class="modal" onclick="event.stopPropagation()">
+  <div class="modal-title">Modifier l'enfant</div>
+  <div class="fr"><div class="fg"><label class="fl">Prénom *</label><input class="fi" id="ep" /></div><div class="fg"><label class="fl">Nom *</label><input class="fi" id="en" /></div></div>
+  <div class="fr"><div class="fg"><label class="fl">Date de naissance</label><input class="fi" type="date" id="ed" onchange="calcEnfEditAge()" /></div><div class="fg"><label class="fl">Âge</label><input class="fi" id="ea" readonly /></div></div>
+  <div class="fg"><label class="fl">Commune</label>
+    <select class="fi" id="ec">
+      <option value="">— Choisir —</option>
+      <optgroup label="Commune de Haut-Intyamon">
+        <option value="Albeuve">Albeuve</option><option value="Lessoc">Lessoc</option>
+        <option value="Montbovon">Montbovon</option><option value="Neirivue">Neirivue</option>
+        <option value="Sciernes">Sciernes</option>
+      </optgroup>
+      <optgroup label="Commune de Bas-Intyamon">
+        <option value="Enney">Enney</option><option value="Villars-sous-Mont">Villars-sous-Mont</option>
+      </optgroup>
+      <optgroup label="Commune de Grandvillard">
+        <option value="Grandvillard">Grandvillard</option>
+      </optgroup>
+    </select>
+  </div>
+  <div class="fr"><div class="fg"><label class="fl">Prénom parent</label><input class="fi" id="epp" /></div><div class="fg"><label class="fl">Nom parent</label><input class="fi" id="epn" /></div></div>
+  <div class="fr"><div class="fg"><label class="fl">Email parent</label><input class="fi" type="email" id="epe" /></div><div class="fg"><label class="fl">Tél. parent</label><input class="fi" type="tel" id="ept" /></div></div>
+  <div class="fg"><label class="fl">Notes / Infos médicales</label><textarea class="fi" id="eno" rows="2"></textarea></div>
+  <div class="mf"><button class="btn" onclick="closeEnfEdit()">Annuler</button><button class="btn btn-primary" onclick="saveEnfEdit()">Enregistrer</button></div>
+</div>
+</div>
+
+<div id="mAddPart" class="overlay" onclick="if(event.target.id==='mAddPart')closeAddPart()" style="display:none">
+<div class="modal" style="max-width:400px" onclick="event.stopPropagation()">
+  <div class="modal-title">Ajouter une participation</div>
+  <div style="font-size:13px;color:#555;margin-bottom:1rem">Enfant : <strong id="part-enfant-nom"></strong></div>
+  <div class="fg"><label class="fl">Activité *</label>
+    <select class="fi" id="part-act-sel"><option value="">— Choisir une activité —</option></select>
+  </div>
+  <div style="font-size:12px;color:#888;margin-top:4px;margin-bottom:1rem">Seules les activités auxquelles l'enfant n'est pas encore inscrit sont affichées.</div>
+  <div class="mf"><button class="btn" onclick="closeAddPart()">Annuler</button><button class="btn btn-primary" onclick="saveAddPart()">Valider la participation</button></div>
+</div>
+</div>
+
+<!-- ===================== MODALS INSCRIPTIONS ===================== -->
+<div id="mInscription" class="overlay" onclick="if(event.target.id==='mInscription')closeMInscription()">
+<div class="modal" onclick="event.stopPropagation()">
+  <div class="modal-title" id="insc-title">Inscrire un enfant</div>
+  <div class="fg"><label class="fl">Enfant *</label><select class="fi" id="i-enfant"><option value="">— Choisir —</option></select></div>
+  <div class="fg"><label class="fl">Activité *</label><select class="fi" id="i-activite" onchange="updateActInfo()"><option value="">— Choisir —</option></select></div>
+  <div id="i-act-info" style="display:none" class="info-box bleu"></div>
+  <div class="fr">
+    <div class="fg"><label class="fl">Statut</label>
+      <select class="fi" id="i-statut">
+        <option value="inscrit">Inscrit</option>
+        <option value="attente" selected>En attente</option>
+        <option value="selectionne">Sélectionné</option>
+        <option value="confirme">Confirmé</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">Préférence (ordre)</label><input class="fi" type="number" id="i-pref" min="1" placeholder="Ex: 1 = 1er choix" /></div>
+  </div>
+  <div class="fg"><label class="fl">Notes</label><input class="fi" id="i-notes" placeholder="Remarques particulières..." /></div>
+  <div class="mf">
+    <button class="btn btn-danger btn-sm" id="i-del-btn" style="display:none" onclick="deleteInscription()">Retirer</button>
+    <div style="display:flex;gap:8px">
+      <button class="btn" onclick="closeMInscription()">Annuler</button>
+      <button class="btn btn-primary" onclick="saveInscription()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<div id="mSelection" class="overlay" onclick="if(event.target.id==='mSelection')document.getElementById('mSelection').style.display='none'">
+<div class="modal" style="max-width:620px" onclick="event.stopPropagation()">
+  <div class="modal-title">🎯 Lancer la sélection automatique</div>
+  <div style="background:#e6f1fb;border-radius:8px;padding:12px;font-size:13px;color:#0c447c;margin-bottom:1rem">
+    <strong>Critères appliqués :</strong><br>
+    1. Priorité aux enfants n'ayant jamais participé<br>
+    2. Équité : moins de participations passées = priorité<br>
+    3. Respect de l'ordre de préférence de la famille<br>
+    4. Tirage au sort en cas d'égalité
+  </div>
+  <div class="fg"><label class="fl">Activité concernée</label>
+    <select class="fi" id="sel-activite" onchange="previewSelection()"><option value="">— Choisir une activité —</option></select>
+  </div>
+  <div id="sel-preview" style="display:none;margin-bottom:1rem">
+    <div style="font-size:12px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Aperçu de la sélection</div>
+    <div id="sel-preview-content"></div>
+  </div>
+  <div class="mf">
+    <button class="btn" onclick="document.getElementById('mSelection').style.display='none'">Annuler</button>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-primary" id="sel-confirm-btn" onclick="confirmerSelection()" style="display:none">✓ Confirmer la sélection</button>
+      <button class="btn" id="sel-email-btn" onclick="envoyerConfirmations()" style="display:none;background:#eaf3de;color:#275a0a;border-color:#c0dd97">📧 Envoyer les confirmations</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ===================== SCRIPTS ===================== -->
+<script>
+// ---- Données partagées ----
+var enfants=[];
+var inscriptions=[];
+var activites=[];
+var nEnf=7, nInsc=10;
+var enfSelId=null, enfBanId=null, enfFiltre='tous';
+var selectedActId=null;
+var inscCurrentTab="liste";
+var editInscId=null;
+
+const STATUTS={inscrit:"Inscrit",attente:"En attente",selectionne:"Sélectionné",confirme:"Confirmé",present:"Présent",absent:"Absent"};
+const STATUT_ORDER=["inscrit","attente","selectionne","confirme","present","absent"];
+
+// ---- Utilitaires ----
+function ini(nom){var p=(nom||"").trim().split(" ");return((p[0]||"")[0]+(p[1]||"")[0]).toUpperCase();}
+function fmtDate(d){if(!d)return"";var parts=d.split("-");return parts[2]+"."+parts[1]+"."+parts[0];}
+function calcAgeFrom(d){
+  if(!d)return null;
+  var t=new Date(),b=new Date(d);
+  var a=t.getFullYear()-b.getFullYear();
+  if(t.getMonth()-b.getMonth()<0||(t.getMonth()===b.getMonth()&&t.getDate()<b.getDate()))a--;
+  return a;
+}
+function ageE(e){return calcAgeFrom(e.ddn)??e.age;}
+function getEnfant(id){return enfants.find(function(e){return e.id==id;});}
+function getAct(id){return activites.find(function(a){return a.id==id;});}
+function getInscForAct(actId){return inscriptions.filter(function(i){return i.activiteId==actId;});}
+
+// ---- Navigation modules ----
+function switchModuleTab(name, btn){
+  document.querySelectorAll(".module-tab").forEach(function(t){t.classList.remove("active");});
+  document.querySelectorAll(".module-section").forEach(function(s){s.classList.remove("active");});
+  btn.classList.add("active");
+  document.getElementById("section-"+name).classList.add("active");
+  // Adapter le bouton header
+  if(name==="enfants"){
+    document.getElementById("btn-nouvel-enfant").style.display="inline-block";
+  } else {
+    document.getElementById("btn-nouvel-enfant").style.display="none";
+  }
+}
+
+// ---- ENFANTS ----
+function calcEnfAge(){var a=calcAgeFrom(document.getElementById('cd').value);document.getElementById('ca').value=a!==null?a+' ans':'—';}
+function calcEnfEditAge(){var a=calcAgeFrom(document.getElementById('ed').value);document.getElementById('ea').value=a!==null?a+' ans':'—';}
+
+function calcPartsFromInscriptions(){
+  enfants=enfants.map(function(e){
+    var count=inscriptions.filter(function(i){return i.enfant_id==e.id||i.enfantId==e.id;}).filter(function(i){return i.presence===true||i.statut==="present";}).length;
+    return Object.assign({},e,{parts:count});
+  });
+}
+
+function renderEnfMetrics(){
+  var ac=enfants.filter(function(e){return e.statut==='actif';}).length;
+  var ba=enfants.filter(function(e){return e.statut==='banni';}).length;
+  var tot=enfants.reduce(function(s,e){return s+e.parts;},0);
+  var moy=ac?+(tot/ac).toFixed(1):0;
+  document.getElementById('enf-metrics').innerHTML=[
+    {val:enfants.length,lbl:'Total'},{val:ac,lbl:'Actifs'},{val:ba,lbl:'Bannis'},{val:moy,lbl:'Moy. part.'}
+  ].map(function(x){return '<div class="metric"><div class="metric-val">'+x.val+'</div><div class="metric-lbl">'+x.lbl+'</div></div>';}).join('');
+}
+
+function getEnfFiltered(){
+  var q=(document.getElementById('enf-search')||{value:''}).value.toLowerCase();
+  return enfants.filter(function(e){
+    var mf=enfFiltre==='tous'||(enfFiltre==='actif'&&e.statut==='actif')||(enfFiltre==='banni'&&e.statut==='banni');
+    var ms=!q||((e.prenom||"")+" "+(e.nom||"")).toLowerCase().includes(q)||(e.commune||"").toLowerCase().includes(q);
+    return mf&&ms;
+  });
+}
+
+function renderEnfants(){
+  renderEnfMetrics();
+  var rows=getEnfFiltered();
+  var tb=document.getElementById('enf-tbody');
+  if(!rows.length){tb.innerHTML='<tr><td colspan="6" style="text-align:center;padding:2rem;color:#888">Aucun enfant trouvé</td></tr>';return;}
+  tb.innerHTML=rows.map(function(e){
+    var aConf=(e.activitesConfirmees||[]);
+    return '<tr onclick="openEnfDetail('+e.id+')" style="'+(e.statut==='banni'?'opacity:.55':'')+'">'+
+      '<td><div style="display:flex;align-items:center;gap:10px"><div class="avatar">'+ini((e.prenom||"")+" "+(e.nom||""))+'</div>'+
+      '<div><div style="font-weight:500;display:flex;align-items:center;gap:6px">'+(e.prenom||"")+' '+(e.nom||"")+
+      (e.notes?'<span title="'+(e.notes||'').replace(/"/g,'&quot;')+'" style="display:inline-flex;align-items:center;justify-content:center;background:#fff3cd;color:#856404;border:1px solid #ffc107;border-radius:50%;width:18px;height:18px;font-size:11px;cursor:help;flex-shrink:0">⚠</span>':'')+
+      '</div><div style="font-size:11px;color:#888">'+(e.pp||"")+' '+(e.pn||"")+'</div></div></div></td>'+
+      '<td>'+(calcAgeFrom(e.ddn)??e.age)+' ans</td><td>'+(e.commune||"")+'</td>'+
+      '<td><span class="part-badge">'+e.parts+'</span></td>'+
+      '<td>'+(aConf.length?aConf.map(function(a){return '<span style="display:inline-block;font-size:11px;padding:2px 7px;border-radius:20px;background:#e6f1fb;color:#0c447c;margin:1px">'+a+'</span>';}).join(' '):'<span style="color:#bbb;font-size:12px">—</span>')+'</td>'+
+      '<td><span class="badge badge-'+e.statut+'">'+(e.statut==='actif'?'Actif':'Banni')+'</span></td>'+
+      '</tr>';
+  }).join('');
+}
+
+function setEnfFiltre(f,btn){
+  enfFiltre=f;
+  document.querySelectorAll('.filter-btn').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  renderEnfants();
+}
+
+function switchEnfTab(n,btn){
+  document.querySelectorAll('#section-enfants .tab').forEach(function(t){t.classList.remove('active');});
+  document.querySelectorAll('#section-enfants .panel').forEach(function(p){p.classList.remove('active');});
+  btn.classList.add('active');
+  document.getElementById('panel-enf-'+n).classList.add('active');
+  if(n==='selection') renderEnfSelection();
+}
+
+function renderEnfSelection(){
+  var sel=document.getElementById('enf-sel-act');
+  sel.innerHTML='<option value="">— Sélectionner —</option>'+
+    activites.map(function(a){return '<option value="'+a.id+'">'+a.nom+' ('+a.places+' places)</option>';}).join('');
+}
+
+function runEnfSelection(){
+  var aid=parseInt(document.getElementById('enf-sel-act').value);
+  if(!aid){document.getElementById('enf-sel-result').style.display='none';return;}
+  var act=getAct(aid);
+  if(!act)return;
+  var elig=enfants.filter(function(e){var a=calcAgeFrom(e.ddn)??e.age;return e.statut==='actif'&&(!act.ageMin||a>=act.ageMin)&&(!act.ageMax||a<=act.ageMax);});
+  var scored=elig.map(function(e){return Object.assign({},e,{score:e.parts+Math.random()*.4});}).sort(function(a,b){return a.score-b.score;});
+  var sel=scored.slice(0,act.places),wait=scored.slice(act.places);
+  document.getElementById('enf-sel-result').style.display='block';
+  var mkR=function(arr,cls){return arr.length?arr.map(function(e,i){return '<div class="sel-row"><div style="display:flex;align-items:center;gap:8px"><span class="rk '+cls+'">'+(i+1)+'</span>'+e.prenom+' '+e.nom+'</div><span style="font-size:12px;color:#888">'+e.parts+' part.</span></div>';}).join(''):'<div style="font-size:12px;color:#888;padding:8px 0">Aucun</div>';};
+  document.getElementById('enf-sel-in').innerHTML=mkR(sel,'rk-sel');
+  document.getElementById('enf-sel-wait').innerHTML=mkR(wait,'rk-wait');
+}
+
+function openEnfCreate(){document.getElementById('mEnfCreate').style.display='flex';}
+function closeEnfCreate(){
+  document.getElementById('mEnfCreate').style.display='none';
+  ['cp','cn','cd','ca','cc','cpp','cpn','cpe','cpt','cno'].forEach(function(i){var el=document.getElementById(i);if(el)el.value='';});
+}
+async function saveEnfCreate(){
+  var p=document.getElementById('cp').value.trim(),n=document.getElementById('cn').value.trim();
+  if(!p||!n){alert('Prénom et nom obligatoires');return;}
+  var ddn=document.getElementById('cd').value;
+  var pN=p.toLowerCase(),nN=n.toLowerCase(),dN=ddn||'';
+  var doublon=enfants.find(function(e){return (e.prenom||'').toLowerCase()===pN&&(e.nom||'').toLowerCase()===nN&&(e.ddn||'')===dN;});
+  if(doublon){alert('Un enfant avec le même prénom, nom et date de naissance existe déjà ('+doublon.prenom+' '+doublon.nom+').');return;}
+  var newE={prenom:p,nom:n,ddn:ddn||null,age:calcAgeFrom(ddn)||0,commune:document.getElementById('cc').value.trim(),pp:document.getElementById('cpp').value.trim(),pn:document.getElementById('cpn').value.trim(),pe:document.getElementById('cpe').value.trim(),pt:document.getElementById('cpt').value.trim(),notes:document.getElementById('cno').value.trim(),parts:0,statut:'actif'};
+  if(typeof FriDB!=='undefined'){try{var res=await FriDB.saveEnfant(newE);if(res&&res[0]&&res[0].id)newE.id=res[0].id;else newE.id=nEnf++;}catch(e){console.warn(e);newE.id=nEnf++;}}else{newE.id=nEnf++;}
+  enfants.push(newE);
+  closeEnfCreate();renderEnfants();
+}
+
+function openEnfDetail(id){
+  enfSelId=id;
+  renderEnfDet();
+  document.getElementById('mEnfDetail').style.display='flex';
+}
+function closeEnfDetail(){document.getElementById('mEnfDetail').style.display='none';}
+function renderEnfDet(){
+  var e=enfants.find(function(x){return x.id===enfSelId;});if(!e)return;
+  document.getElementById('enf-det').innerHTML=
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">'+
+    '<div style="display:flex;align-items:center;gap:12px">'+
+    '<div class="avatar" style="width:44px;height:44px;font-size:16px">'+ini((e.prenom||"")+" "+(e.nom||""))+'</div>'+
+    '<div><div style="font-size:15px;font-weight:600">'+(e.prenom||"")+' '+(e.nom||"")+'</div>'+
+    '<span class="badge badge-'+e.statut+'">'+(e.statut==='actif'?'Actif':'Banni')+'</span></div></div>'+
+    '<button class="btn btn-sm" onclick="closeEnfDetail()">✕</button></div>'+
+    (e.statut==='banni'?'<div class="ban-box">Banni : '+e.banMotif+'</div>':'')+
+    '<div class="grid2" style="margin-bottom:12px">'+
+    '<div><div class="dl">Naissance</div><div class="dv">'+(e.ddn?e.ddn.split('-').reverse().join('.'):'—')+'</div></div>'+
+    '<div><div class="dl">Âge</div><div class="dv">'+(calcAgeFrom(e.ddn)??e.age)+' ans</div></div>'+
+    '<div><div class="dl">Commune</div><div class="dv">'+(e.commune||'—')+'</div></div>'+
+    '<div><div class="dl">Participations</div><div class="dv"><span class="part-badge">'+e.parts+'</span></div></div></div>'+
+    '<div style="background:#f5f5f3;border-radius:8px;padding:10px 12px;margin-bottom:12px">'+
+    '<div class="dl">Parent / responsable</div>'+
+    '<div style="font-weight:500;font-size:13px;margin-top:4px">'+(e.pp||"")+' '+(e.pn||"")+'</div>'+
+    '<div style="font-size:12px;color:#888;margin-top:2px">'+(e.pe||'—')+' · '+(e.pt||'—')+'</div></div>'+
+    (e.notes?'<div class="note-box">'+e.notes+'</div>':'')+
+    '<div class="mf" style="flex-wrap:wrap;gap:8px">'+
+    '<div style="display:flex;gap:8px">'+
+    (e.statut==='actif'?'<button class="btn btn-sm btn-danger" onclick="openEnfBan('+e.id+')">Bannir</button>':'<button class="btn btn-sm" onclick="debannirEnf('+e.id+')">Réactiver</button>')+
+    '<button class="btn btn-sm" onclick="openAddPart('+e.id+')">+ Participation</button>'+
+    '<button class="btn btn-sm" style="color:#791f1f;border-color:#f4c0c0" onclick="deleteEnfant('+e.id+')">🗑 Supprimer</button></div>'+
+    '<div style="display:flex;gap:8px">'+
+    '<button class="btn btn-sm" onclick="openEnfEdit('+e.id+')">Modifier</button>'+
+    '<button class="btn btn-sm btn-primary" onclick="closeEnfDetail()">Fermer</button></div></div>';
+}
+
+function openEnfBan(id){enfBanId=id;document.getElementById('ban-motif').value='';document.getElementById('mEnfBan').style.display='flex';}
+function openBanModal(id){enfBanId=id;document.getElementById('ban-motif').value="Absence non justifiée à une activité confirmée";document.getElementById('mEnfBan').style.display='flex';}
+function closeEnfBan(){document.getElementById('mEnfBan').style.display='none';}
+async function confirmEnfBan(){
+  var m=document.getElementById('ban-motif').value.trim();if(!m){alert('Motif obligatoire');return;}
+  var enfant=enfants.find(function(e){return e.id===enfBanId;});
+  enfants=enfants.map(function(e){return e.id===enfBanId?Object.assign({},e,{statut:'banni',banMotif:m}):e;});
+  if(typeof FriDB!=="undefined"){try{await FriDB.query("enfants","PATCH",{statut:"banni",ban_motif:m},"?id=eq."+enfBanId);}catch(e){console.warn(e);}}
+  if(enfant&&typeof FriBrevo!=="undefined"){
+    var parent={prenom:enfant.pp||"",nom:enfant.pn||"",email:enfant.pe||""};
+    if(parent.email){try{await FriBrevo.sendNotificationBannissement(enfant,parent,m,m.toLowerCase().includes("absence"));}catch(e){console.warn(e);}}
+  }
+  closeEnfBan();if(enfSelId===enfBanId)renderEnfDet();renderEnfants();
+}
+async function debannirEnf(id){
+  enfants=enfants.map(function(e){return e.id===id?Object.assign({},e,{statut:'actif',banMotif:''}):e;});
+  if(typeof FriDB!=="undefined"){try{await FriDB.query("enfants","PATCH",{statut:"actif",ban_motif:""},"?id=eq."+id);}catch(e){console.warn(e);}}
+  renderEnfDet();renderEnfants();
+}
+async function deleteEnfant(id){
+  var e=enfants.find(function(x){return x.id===id;});if(!e)return;
+  if(confirm('Supprimer '+e.prenom+' '+e.nom+' ?\n\nCette action supprimera aussi ses inscriptions.\n\nCette action est irréversible.')){
+    if(typeof FriDB!=='undefined')try{await FriDB.deleteEnfant(id);}catch(e){console.warn(e);}
+    enfants=enfants.filter(function(x){return x.id!==id;});
+    closeEnfDetail();renderEnfants();
+  }
+}
+async function openAddPart(id){
+  enfSelId=id;
+  var e=enfants.find(function(x){return x.id===id;});if(!e)return;
+  if(typeof FriDB!=='undefined'){try{var fresh=await FriDB.getInscriptions();if(fresh&&fresh.length)inscriptions=fresh;}catch(e){console.warn(e);}}
+  var dejainscrit=inscriptions.filter(function(i){return parseInt(i.enfant_id||i.enfantId||0)===id;}).map(function(i){return Number(i.activite_id||i.activiteId||0);});
+  var dispo=activites.filter(function(a){return !dejainscrit.includes(Number(a.id));});
+  var sel=document.getElementById('part-act-sel');
+  sel.innerHTML='<option value="">— Choisir une activité —</option>'+dispo.map(function(a){return '<option value="'+a.id+'">'+a.nom+'</option>';}).join('');
+  document.getElementById('part-enfant-nom').textContent=e.prenom+' '+e.nom;
+  document.getElementById('mAddPart').style.display='flex';
+}
+function closeAddPart(){document.getElementById('mAddPart').style.display='none';}
+async function saveAddPart(){
+  var actId=parseInt(document.getElementById('part-act-sel').value);
+  if(!actId){alert('Choisis une activité');return;}
+  var e=enfants.find(function(x){return x.id===enfSelId;});if(!e)return;
+  if(typeof FriDB!=='undefined'){try{var freshAll=await FriDB.getInscriptions();if(freshAll)inscriptions=freshAll;}catch(e){console.warn(e);}}
+  var doublon=inscriptions.some(function(i){return parseInt(i.enfant_id||i.enfantId||0)===enfSelId&&parseInt(i.activite_id||i.activiteId||0)===actId;});
+  if(doublon){var act=getAct(actId);alert(e.prenom+' '+e.nom+' est déjà inscrit(e) à "'+(act&&act.nom||'cette activité')+'".'); return;}
+  var newInsc={enfant_id:enfSelId,activite_id:actId,statut:'confirme',presence:true};
+  if(typeof FriDB!=='undefined'){try{var res=await FriDB.query('inscriptions','POST',newInsc,'');if(res&&res[0])newInsc=Object.assign({},newInsc,res[0],{presence:true});}catch(e){console.warn(e);}}
+  inscriptions.push(newInsc);
+  calcPartsFromInscriptions();closeAddPart();renderEnfDet();renderEnfants();
+}
+
+function openEnfEdit(id){enfSelId=id;renderEnfEdit();document.getElementById('mEnfEdit').style.display='flex';}
+function closeEnfEdit(){document.getElementById('mEnfEdit').style.display='none';}
+function renderEnfEdit(){
+  var e=enfants.find(function(x){return x.id===enfSelId;});if(!e)return;
+  document.getElementById('ep').value=e.prenom||'';
+  document.getElementById('en').value=e.nom||'';
+  document.getElementById('ed').value=e.ddn||'';
+  document.getElementById('ea').value=e.age?e.age+' ans':'';
+  document.getElementById('ec').value=e.commune||'';
+  document.getElementById('epp').value=e.pp||'';
+  document.getElementById('epn').value=e.pn||'';
+  document.getElementById('epe').value=e.pe||'';
+  document.getElementById('ept').value=e.pt||'';
+  document.getElementById('eno').value=e.notes||'';
+}
+async function saveEnfEdit(){
+  var p=document.getElementById('ep').value.trim(),n=document.getElementById('en').value.trim();
+  if(!p||!n){alert('Prénom et nom obligatoires');return;}
+  var ddn=document.getElementById('ed').value;
+  var data={id:enfSelId,prenom:p,nom:n,ddn:ddn||null,age:calcAgeFrom(ddn)||0,commune:document.getElementById('ec').value.trim(),pp:document.getElementById('epp').value.trim(),pn:document.getElementById('epn').value.trim(),pe:document.getElementById('epe').value.trim(),pt:document.getElementById('ept').value.trim(),notes:document.getElementById('eno').value.trim()};
+  enfants=enfants.map(function(e){return e.id===enfSelId?Object.assign({},e,data):e;});
+  if(typeof FriDB!=='undefined'){try{await FriDB.saveEnfant(data);}catch(e){console.warn(e);}}
+  closeEnfEdit();renderEnfDet();renderEnfants();
+}
+
+// ---- INSCRIPTIONS ----
+function renderActSelector(){
+  document.getElementById("act-selector").innerHTML=activites.map(function(a){
+    var inscs=getInscForAct(a.id);
+    var confirms=inscs.filter(function(i){return ["confirme","present","absent"].includes(i.statut);}).length;
+    var pct=Math.round(confirms/a.places*100);
+    return '<div class="act-card'+(a.id===selectedActId?" selected":"")+'" onclick="selectAct('+a.id+')">'+
+      '<div class="act-title">'+a.nom+'</div>'+
+      '<div class="act-sub">'+fmtDate(a.date)+' · '+a.places+' places</div>'+
+      '<div class="prog-wrap"><div class="prog-bar" style="width:'+Math.min(100,pct)+'%"></div></div>'+
+      '<div class="prog-label">'+confirms+' confirmé(s) / '+a.places+'</div>'+
+      renderBoutonEmail(a.id)+
+      '</div>';
+  }).join("");
+}
+
+function renderInscMetrics(){
+  var inscs=getInscForAct(selectedActId);
+  var act=getAct(selectedActId);
+  document.getElementById("insc-metrics").innerHTML=[
+    {val:inscs.length,lbl:"Inscrits"},
+    {val:inscs.filter(function(i){return i.statut==="attente";}).length,lbl:"En attente"},
+    {val:inscs.filter(function(i){return i.statut==="selectionne";}).length,lbl:"Sélectionnés"},
+    {val:inscs.filter(function(i){return i.statut==="confirme";}).length,lbl:"Confirmés"},
+    {val:inscs.filter(function(i){return ["confirme","present","absent"].includes(i.statut);}).length+"/"+(act?act.places:0),lbl:"Places utilisées"},
+  ].map(function(x){return '<div class="metric"><div class="metric-val">'+x.val+'</div><div class="metric-lbl">'+x.lbl+'</div></div>';}).join("");
+}
+
+function renderInscTabs(){
+  var inscs=getInscForAct(selectedActId);
+  document.getElementById("count-liste").textContent=inscs.length;
+  document.getElementById("count-attente").textContent=inscs.filter(function(i){return i.statut==="attente";}).length;
+}
+
+function renderListe(){
+  var inscs=getInscForAct(selectedActId);
+  var sorted=[...inscs].sort(function(a,b){return STATUT_ORDER.indexOf(a.statut)-STATUT_ORDER.indexOf(b.statut);});
+  var p=document.getElementById("panel-liste");
+  if(!inscs.length){p.innerHTML='<div class="empty">Aucune inscription pour cette activité</div>';return;}
+  p.innerHTML='<div class="table-wrap"><table>'+
+    '<thead><tr><th>Enfant</th><th>Âge</th><th>Parent / contact</th><th>Préférence</th><th>Statut</th><th>Actions</th></tr></thead>'+
+    '<tbody>'+sorted.map(function(i){
+      var e=getEnfant(i.enfantId);if(!e)return"";
+      return '<tr>'+
+        '<td><div style="display:flex;align-items:center;gap:8px"><div class="avatar">'+ini((e.prenom||"")+" "+(e.nom||""))+'</div>'+
+        '<div><div style="font-weight:500;display:flex;align-items:center;gap:6px">'+(e.prenom||"")+' '+(e.nom||"")+
+        (e.notes?'<span title="'+(e.notes||'').replace(/"/g,'&quot;')+'" style="display:inline-flex;align-items:center;justify-content:center;background:#fff3cd;color:#856404;border:1px solid #ffc107;border-radius:50%;width:17px;height:17px;font-size:11px;cursor:help">⚠</span>':'')+
+        '</div>'+(i.notes?'<div style="font-size:11px;color:#888">'+i.notes+'</div>':'')+
+        '</div></div></td>'+
+        '<td>'+ageE(e)+' ans</td>'+
+        '<td><div style="font-size:12px">'+(e.pp||"")+' '+(e.pn||"")+'</div><div style="font-size:11px;color:#888">'+(e.pt||e.pe||"")+'</div></td>'+
+        '<td style="text-align:center">'+(i.pref?'#'+i.pref:'—')+'</td>'+
+        '<td><span class="badge badge-'+i.statut+'">'+STATUTS[i.statut]+'</span></td>'+
+        '<td><div style="display:flex;gap:4px;flex-wrap:wrap">'+
+        (i.statut==="selectionne"?'<button class="btn btn-sm" onclick="changeStatut('+i.id+',\'confirme\')" style="font-size:11px;background:#eaf3de;color:#275a0a;border-color:#c0dd97">✓ Confirmer</button>':'')+
+        (i.statut==="inscrit"?'<button class="btn btn-sm" onclick="changeStatut('+i.id+',\'attente\')" style="font-size:11px">→ Attente</button>':'')+
+        (i.statut==="attente"?'<button class="btn btn-sm" onclick="changeStatut('+i.id+',\'selectionne\')" style="font-size:11px;background:#e6f1fb;color:#0c447c;border-color:#b5d4f4">→ Sélectionner</button>':'')+
+        '<button class="btn btn-sm" onclick="openEditInsc('+i.id+')" style="font-size:11px">✎</button>'+
+        '</div></td></tr>';
+    }).join("")+'</tbody></table></div>';
+}
+
+function renderAttente(){
+  var inscs=getInscForAct(selectedActId).filter(function(i){return i.statut==="attente";});
+  var p=document.getElementById("panel-attente");
+  if(!inscs.length){p.innerHTML='<div class="empty">Aucun enfant en liste d\'attente</div>';return;}
+  p.innerHTML='<div class="info-box bleu" style="margin-bottom:1rem">Les enfants en liste d\'attente seront contactés si une place se libère. Ordre basé sur la préférence déclarée.</div>'+
+    '<div class="table-wrap"><table>'+
+    '<thead><tr><th>Rang</th><th>Enfant</th><th>Âge</th><th>Parent / contact</th><th>Préférence</th><th>Actions</th></tr></thead>'+
+    '<tbody>'+[...inscs].sort(function(a,b){return (a.pref||99)-(b.pref||99);}).map(function(i,idx){
+      var e=getEnfant(i.enfantId);if(!e)return"";
+      return '<tr>'+
+        '<td><span style="font-size:16px;font-weight:700;color:#633806">'+(idx+1)+'</span></td>'+
+        '<td><div style="display:flex;align-items:center;gap:8px"><div class="avatar">'+ini((e.prenom||"")+" "+(e.nom||""))+'</div>'+
+        '<div style="font-weight:500">'+(e.prenom||"")+' '+(e.nom||"")+'</div></div></td>'+
+        '<td>'+ageE(e)+' ans</td>'+
+        '<td><div style="font-size:12px">'+(e.pp||"")+' '+(e.pn||"")+'</div><div style="font-size:11px;color:#888">'+(e.pt||e.pe||"")+'</div></td>'+
+        '<td>#'+(i.pref||"—")+'</td>'+
+        '<td><button class="btn btn-sm" onclick="changeStatut('+i.id+',\'selectionne\')" style="font-size:11px;background:#e6f1fb;color:#0c447c;border-color:#b5d4f4">→ Sélectionner</button></td>'+
+        '</tr>';
+    }).join("")+'</tbody></table></div>';
+}
+
+function renderAll(){
+  renderActSelector();
+  renderInscMetrics();
+  renderInscTabs();
+  renderListe();
+  renderAttente();
+}
+
+function selectAct(id){selectedActId=id;renderAll();}
+
+function switchInscTab(name,btn){
+  inscCurrentTab=name;
+  document.querySelectorAll('#section-inscriptions .tab').forEach(function(t){t.classList.remove('active');});
+  btn.classList.add('active');
+  ['liste','attente'].forEach(function(n){
+    document.getElementById("panel-"+n).style.display=n===name?"block":"none";
+  });
+}
+
+function changeStatut(inscId,newStatut){
+  inscriptions=inscriptions.map(function(i){return i.id===inscId?Object.assign({},i,{statut:newStatut}):i;});
+  renderAll();
+}
+
+async function setPresence(inscId,val){
+  var insc=inscriptions.find(function(i){return i.id===inscId;});if(!insc)return;
+  var oldPres=insc.presence;
+  var newPresVal=oldPres===val?null:val;
+  var newStatut=oldPres===val?insc.statut:val;
+  inscriptions=inscriptions.map(function(i){return i.id===inscId?Object.assign({},i,{presence:newPresVal,statut:newStatut}):i;});
+  if(navigator.onLine&&typeof FriDB!=="undefined"){
+    try{await FriDB.query("inscriptions","PATCH",{presence:newPresVal,statut:newStatut},"?id=eq."+inscId);}
+    catch(e){await friOfflineQueueAdd({type:"presence",inscId:inscId,presence:newPresVal,statut:newStatut,ts:Date.now()});updateOfflineBar();}
+  } else {
+    await friOfflineQueueAdd({type:"presence",inscId:inscId,presence:newPresVal,statut:newStatut,ts:Date.now()});updateOfflineBar();
+  }
+  if(newPresVal==="absent"){
+    var insc2=inscriptions.find(function(i){return i.id===inscId;});
+    var enfant=enfants.find(function(e){return insc2&&String(e.id)===String(insc2.enfantId);});
+    if(enfant&&enfant.statut!=="banni"){
+      if(confirm("Marquer cet enfant ("+enfant.prenom+" "+enfant.nom+") comme absent non justifié et le bannir pour le reste de la saison ?")){openBanModal(enfant.id);}
+    }
+  }
+  renderAll();
+}
+
+async function bannerEnfant(enfantId,motif){
+  var enfant=enfants.find(function(e){return String(e.id)===String(enfantId);});
+  enfants=enfants.map(function(e){return String(e.id)===String(enfantId)?Object.assign({},e,{statut:"banni",banMotif:motif}):e;});
+  if(typeof FriDB!=="undefined"){try{await FriDB.query("enfants","PATCH",{statut:"banni",ban_motif:motif},"?id=eq."+enfantId);}catch(e){console.warn(e);}}
+  if(enfant&&typeof FriBrevo!=="undefined"){
+    var parent={prenom:enfant.pp||"",nom:enfant.pn||"",email:enfant.pe||""};
+    if(parent.email){try{await FriBrevo.sendNotificationBannissement(enfant,parent,motif,motif.toLowerCase().includes("absence"));}catch(e){console.warn(e);}}
+  }
+}
+
+function openAddInscription(){
+  var enfantSel=document.getElementById("i-enfant");
+  var actSel=document.getElementById("i-activite");
+  var enfantsTries=enfants.slice().sort(function(a,b){return ((a.prenom||"")+" "+(a.nom||"")).localeCompare((b.prenom||"")+" "+(b.nom||""),"fr");});
+  enfantSel.innerHTML='<option value="">— Choisir —</option>'+enfantsTries.map(function(e){return '<option value="'+e.id+'">'+e.prenom+' '+e.nom+' ('+ageE(e)+' ans)</option>';}).join("");
+  actSel.innerHTML='<option value="">— Choisir —</option>'+activites.map(function(a){return '<option value="'+a.id+'">'+a.nom+'</option>';}).join("");
+  editInscId=null;
+  document.getElementById("insc-title").textContent="Inscrire un enfant";
+  document.getElementById("i-del-btn").style.display="none";
+  document.getElementById("i-enfant").selectedIndex=0;
+  document.getElementById("i-statut").value="inscrit";
+  document.getElementById("i-pref").value="";
+  document.getElementById("i-notes").value="";
+  document.getElementById("i-act-info").style.display="none";
+  fillActSelect(selectedActId);
+  document.getElementById("mInscription").style.display="flex";
+}
+
+function openEditInsc(id){
+  editInscId=id;
+  var i=inscriptions.find(function(x){return x.id===id;});if(!i)return;
+  document.getElementById("insc-title").textContent="Modifier l'inscription";
+  document.getElementById("i-del-btn").style.display="inline-block";
+  // Populate enfant select
+  var enfantSel=document.getElementById("i-enfant");
+  var enfantsTries=enfants.slice().sort(function(a,b){return ((a.prenom||"")+" "+(a.nom||"")).localeCompare((b.prenom||"")+" "+(b.nom||""),"fr");});
+  enfantSel.innerHTML='<option value="">— Choisir —</option>'+enfantsTries.map(function(e){return '<option value="'+e.id+'">'+e.prenom+' '+e.nom+' ('+ageE(e)+' ans)</option>';}).join("");
+  enfantSel.value=i.enfantId;
+  document.getElementById("i-statut").value=i.statut==="present"||i.statut==="absent"?"confirme":i.statut;
+  document.getElementById("i-pref").value=i.pref||"";
+  document.getElementById("i-notes").value=i.notes||"";
+  fillActSelect(i.activiteId);
+  document.getElementById("mInscription").style.display="flex";
+}
+
+function fillActSelect(currentId){
+  var sel=document.getElementById("i-activite");
+  sel.innerHTML='<option value="">— Choisir —</option>'+activites.map(function(a){return '<option value="'+a.id+'"'+(a.id===currentId?' selected':'')+'>'+a.nom+'</option>';}).join("");
+  updateActInfo();
+}
+
+function updateActInfo(){
+  var actId=parseInt(document.getElementById("i-activite").value);
+  var act=getAct(actId);
+  var info=document.getElementById("i-act-info");
+  if(act){
+    var inscs=getInscForAct(act.id);
+    var confirms=inscs.filter(function(i){return ["confirme","present","absent"].includes(i.statut);}).length;
+    info.style.display="block";
+    info.textContent=act.nom+' — '+fmtDate(act.date)+' — '+confirms+'/'+act.places+' places confirmées';
+  } else {info.style.display="none";}
+}
+
+function closeMInscription(){document.getElementById("mInscription").style.display="none";}
+
+async function saveInscription(){
+  var enfantId=parseInt(document.getElementById("i-enfant").value);
+  var activiteId=parseInt(document.getElementById("i-activite").value);
+  if(!enfantId||!activiteId){alert("Enfant et activité obligatoires");return;}
+  if(typeof FriDB!=="undefined"){try{var freshAll=await FriDB.getInscriptions();if(freshAll)inscriptions=freshAll.map(mapInscription);}catch(e){console.warn(e);}}
+  var doublon=inscriptions.find(function(i){
+    return parseInt(i.enfantId||i.enfant_id||0)===enfantId&&parseInt(i.activiteId||i.activite_id||0)===activiteId&&i.id!=editInscId;
+  });
+  if(doublon){alert("Cet enfant est déjà inscrit à cette activité.");return;}
+  var data={enfantId:enfantId,activiteId:activiteId,statut:document.getElementById("i-statut").value,pref:parseInt(document.getElementById("i-pref").value)||null,notes:document.getElementById("i-notes").value.trim(),presence:null};
+  if(editInscId){
+    inscriptions=inscriptions.map(function(i){return i.id===editInscId?Object.assign({},i,data):i;});
+    if(typeof FriDB!=="undefined")try{await FriDB.quickSave("inscriptions",Object.assign({id:editInscId},data));}catch(e){console.warn(e);}
+  } else {
+    var newI=Object.assign({id:nInsc++},data);
+    if(typeof FriDB!=="undefined"){try{var res=await FriDB.quickSave("inscriptions",newI);if(res&&res[0]&&res[0].id)newI.id=res[0].id;}catch(e){console.warn(e);}}
+    inscriptions.push(newI);
+  }
+  closeMInscription();selectedActId=activiteId;renderAll();
+}
+
+function deleteInscription(){
+  if(confirm("Retirer cet enfant de l'activité ?")){
+    inscriptions=inscriptions.filter(function(i){return i.id!==editInscId;});
+    if(typeof FriDB!=="undefined")FriDB.query("inscriptions","DELETE",null,"?id=eq."+editInscId).catch(function(e){console.warn(e);});
+    closeMInscription();renderAll();
+  }
+}
+
+function renderBoutonEmail(actId){
+  var act=activites.find(function(a){return String(a.id)===String(actId);});
+  if(!act)return"";
+  var confirmes=inscriptions.filter(function(i){return String(i.activiteId)===String(actId)&&i.statut==="confirme";});
+  if(!confirmes.length)return"";
+  return '<button class="btn btn-sm" data-actid="'+actId+'" style="background:#eaf3de;color:#275a0a;border-color:#c0dd97;margin-top:8px" onclick="envoyerConfirmationsActivite(this.dataset.actid)">📧 Envoyer les confirmations ('+confirmes.length+')</button>';
+}
+
+async function envoyerConfirmationsActivite(actId){
+  if(typeof FriBrevo==="undefined"){alert("Module email non chargé.");return;}
+  var act=activites.find(function(a){return String(a.id)===String(actId);});
+  if(!act){alert("Activité introuvable.");return;}
+  try{var freshActs=await FriDB.getActivites();if(freshActs&&freshActs.length){activites=freshActs;act=activites.find(function(a){return String(a.id)===String(actId);})||act;}}catch(e){}
+  var confirmes=inscriptions.filter(function(i){return String(i.activiteId)===String(actId)&&i.statut==="confirme";});
+  if(!confirmes.length){alert("Aucune inscription confirmée.");return;}
+  var respNom=act.responsableNom||act.responsable_nom||"";
+  if(!respNom){alert("⚠️ Aucun responsable du jour assigné à cette activité.\n\nAssigne un responsable dans le module Activités avant d'envoyer les confirmations.");return;}
+  if(!confirm("Envoyer "+confirmes.length+" mail(s) de confirmation pour : "+act.nom+" ?"))return;
+  var ok=0,erreurs=0;
+  var respTelGlobal=act.responsableTel||act.responsable_tel||"";
+  for(var k=0;k<confirmes.length;k++){
+    var insc=confirmes[k];
+    var enfant=enfants.find(function(e){return String(e.id)===String(insc.enfantId);});
+    if(!enfant){erreurs++;continue;}
+    var parent={prenom:enfant.pp||'',nom:enfant.pn||'',email:enfant.pe||''};
+    if(!parent.email){erreurs++;continue;}
+    try{await FriBrevo.sendConfirmationParticipation(enfant,parent,act);ok++;}catch(e){erreurs++;}
+  }
+  alert("✓ "+ok+" mail(s) envoyé(s)"+(erreurs?" — "+erreurs+" échec(s)":""));
+}
+
+// ---- Modal sélection auto ----
+function ouvrirSelectionModal(){
+  var sel=document.getElementById("sel-activite");
+  sel.innerHTML='<option value="">— Choisir une activité —</option>';
+  var today=new Date().toISOString().split("T")[0];
+  var actsWithWaiting=activites.filter(function(a){return inscriptions.some(function(i){return String(i.activiteId)===String(a.id)&&i.statut==="attente";});});
+  actsWithWaiting.sort(function(a,b){return (a.nom||"").localeCompare(b.nom||"","fr");}).forEach(function(a){
+    var waiting=inscriptions.filter(function(i){return String(i.activiteId)===String(a.id)&&i.statut==="attente";}).length;
+    var confirmed=inscriptions.filter(function(i){return String(i.activiteId)===String(a.id)&&i.statut==="confirme";}).length;
+    var dispo=(a.places||0)-confirmed;
+    var label=(a.nom||"")+" — "+waiting+" en attente, "+dispo+"/"+(a.places||0)+" places dispo";
+    sel.innerHTML+='<option value="'+a.id+'">'+label+'</option>';
+  });
+  document.getElementById("sel-preview").style.display="none";
+  document.getElementById("sel-confirm-btn").style.display="none";
+  document.getElementById("mSelection").style.display="flex";
+}
+
+function previewSelection(){
+  var actId=document.getElementById("sel-activite").value;
+  if(!actId){document.getElementById("sel-preview").style.display="none";return;}
+  var activite=activites.find(function(a){return String(a.id)===String(actId);});if(!activite)return;
+  var places=activite.places||0;
+  var confirmes=inscriptions.filter(function(i){return String(i.activiteId)===String(actId)&&i.statut==="confirme";}).length;
+  var placesDisponibles=places-confirmes;
+  var enAttente=inscriptions.filter(function(i){return String(i.activiteId)===String(actId)&&i.statut==="attente";});
+  var candidats=enAttente.map(function(insc){
+    var enfant=enfants.find(function(e){return String(e.id)===String(insc.enfantId);});
+    var nbPartic=inscriptions.filter(function(i){return String(i.enfantId)===String(insc.enfantId)&&i.statut==="confirme";}).length;
+    return {insc:insc,enfant:enfant,nbPartic:nbPartic,pref:insc.pref||99,alea:Math.random(),banni:enfant&&enfant.statut==="banni"};
+  }).filter(function(c){return !c.banni;});
+  candidats.sort(function(a,b){
+    var aJ=a.nbPartic===0?0:1,bJ=b.nbPartic===0?0:1;
+    if(aJ!==bJ)return aJ-bJ;
+    if(a.nbPartic!==b.nbPartic)return a.nbPartic-b.nbPartic;
+    if(a.pref!==b.pref)return a.pref-b.pref;
+    return a.alea-b.alea;
+  });
+  var selectionnes=candidats.slice(0,placesDisponibles),nonSel=candidats.slice(placesDisponibles);
+  window._selectionResult={selectionnes:selectionnes,nonSelectionnes:nonSel,actId:actId};
+  var html='<div style="margin-bottom:8px"><strong>'+selectionnes.length+' sélectionné(s)</strong> sur '+candidats.length+' en attente</div>';
+  if(selectionnes.length){
+    html+='<div style="font-size:11px;font-weight:600;color:#275a0a;text-transform:uppercase;margin-bottom:6px">✓ Sélectionnés</div>';
+    html+=selectionnes.map(function(c){
+      var nom=c.enfant?(c.enfant.prenom||"")+" "+(c.enfant.nom||""):"#"+c.insc.enfantId;
+      var raison=c.nbPartic===0?"jamais participé":c.nbPartic+" participation(s)";
+      return '<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:#eaf3de;border-radius:8px;margin-bottom:4px"><span>✓</span><div><strong>'+nom+'</strong> <span style="font-size:11px;color:#275a0a">('+raison+')</span></div></div>';
+    }).join("");
+  }
+  if(nonSel.length){
+    html+='<div style="font-size:11px;font-weight:600;color:#888;text-transform:uppercase;margin:8px 0 6px">En attente</div>';
+    html+=nonSel.map(function(c){
+      var nom=c.enfant?(c.enfant.prenom||"")+" "+(c.enfant.nom||""):"#"+c.insc.enfantId;
+      return '<div style="padding:6px 10px;background:#f5f5f3;border-radius:8px;margin-bottom:4px"><strong style="color:#888">'+nom+'</strong></div>';
+    }).join("");
+  }
+  document.getElementById("sel-preview-content").innerHTML=html;
+  document.getElementById("sel-preview").style.display="block";
+  document.getElementById("sel-confirm-btn").style.display=selectionnes.length?"inline-block":"none";
+}
+
+async function confirmerSelection(){
+  var result=window._selectionResult;if(!result)return;
+  var btn=document.getElementById("sel-confirm-btn");btn.textContent="Confirmation en cours...";btn.disabled=true;
+  var errors=0;
+  for(var k=0;k<result.selectionnes.length;k++){
+    var insc=result.selectionnes[k].insc;
+    try{
+      await FriDB.query("inscriptions","PATCH",{statut:"confirme"},"?id=eq."+insc.id);
+      inscriptions=inscriptions.map(function(i){return i.id===insc.id?Object.assign({},i,{statut:"confirme"}):i;});
+    }catch(e){errors++;console.warn(e);}
+  }
+  document.getElementById("mSelection").style.display="none";renderAll();
+  btn.textContent="✓ Confirmer la sélection";btn.disabled=false;
+  alert("✓ "+result.selectionnes.length+" enfant(s) confirmé(s)"+(errors?" ("+errors+" erreur(s))":""));
+}
+
+// ---- Chargement de données ----
+function mapInscription(item){
+  var m=Object.assign({},item);
+  if(m.enfant_id!==undefined)m.enfantId=m.enfant_id;
+  if(m.activite_id!==undefined)m.activiteId=m.activite_id;
+  return m;
+}
+
+async function loadAllData(){
+  await friOfflineInit();
+  updateOfflineBar();
+  var a=0;
+  while(typeof FriDB==='undefined'&&a<30){await new Promise(function(r){setTimeout(r,100);});a++;}
+  if(!navigator.onLine||typeof FriDB==='undefined'){
+    var c_act=await friCacheGet('activites'),c_enf=await friCacheGet('enfants'),c_ins=await friCacheGet('inscriptions');
+    if(c_act)activites=c_act;
+    if(c_enf)enfants=c_enf;
+    if(c_ins)inscriptions=c_ins.map(mapInscription);
+    if(activites.length&&!selectedActId)selectedActId=activites[0].id;
+    calcPartsFromInscriptions();renderEnfants();renderAll();return;
+  }
+  try{
+    var results=await Promise.all([FriDB.getActivites(),FriDB.getEnfants(),FriDB.getInscriptions()]);
+    if(results[0]&&results[0].length){activites=results[0];await friCacheSet('activites',activites);}
+    if(results[1]&&results[1].length){enfants=results[1];await friCacheSet('enfants',enfants);}
+    if(results[2]&&results[2].length){inscriptions=results[2].map(mapInscription);await friCacheSet('inscriptions',results[2]);}
+    if(activites.length&&!selectedActId)selectedActId=activites[0].id;
+    calcPartsFromInscriptions();renderEnfants();renderAll();
+  }catch(e){
+    console.warn('[Load] erreur, fallback cache:',e);
+    var c2_act=await friCacheGet('activites'),c2_enf=await friCacheGet('enfants'),c2_ins=await friCacheGet('inscriptions');
+    if(c2_act)activites=c2_act;
+    if(c2_enf)enfants=c2_enf;
+    if(c2_ins)inscriptions=c2_ins.map(mapInscription);
+    if(activites.length&&!selectedActId)selectedActId=activites[0].id;
+    calcPartsFromInscriptions();renderEnfants();renderAll();
+  }
+}
+
+// Render initial (sans données)
+renderEnfants();
+renderAll();
+loadAllData();
+</script>
+
+<!-- ===================== MODULE OFFLINE ===================== -->
+<script>
+var _friDB_offline=null;
+function friOfflineInit(){
+  return new Promise(function(resolve){
+    if(_friDB_offline){resolve(_friDB_offline);return;}
+    var req=indexedDB.open('fritime_offline_v1',1);
+    req.onupgradeneeded=function(e){var db=e.target.result;if(!db.objectStoreNames.contains('cache'))db.createObjectStore('cache',{keyPath:'key'});if(!db.objectStoreNames.contains('queue'))db.createObjectStore('queue',{keyPath:'id',autoIncrement:true});};
+    req.onsuccess=function(e){_friDB_offline=e.target.result;resolve(_friDB_offline);};
+    req.onerror=function(){resolve(null);};
+  });
+}
+function friCacheSet(key,data){return new Promise(function(resolve){if(!_friDB_offline){resolve();return;}try{var tx=_friDB_offline.transaction('cache','readwrite');tx.objectStore('cache').put({key:key,data:data,ts:Date.now()});tx.oncomplete=function(){resolve();};tx.onerror=function(){resolve();};}catch(e){resolve();}});}
+function friCacheGet(key){return new Promise(function(resolve){if(!_friDB_offline){resolve(null);return;}try{var tx=_friDB_offline.transaction('cache','readonly');var req=tx.objectStore('cache').get(key);req.onsuccess=function(e){resolve(e.target.result?e.target.result.data:null);};req.onerror=function(){resolve(null);};}catch(e){resolve(null);}});}
+function friOfflineQueueAdd(op){return new Promise(function(resolve){if(!_friDB_offline){resolve();return;}try{var tx=_friDB_offline.transaction('queue','readwrite');tx.objectStore('queue').add(op);tx.oncomplete=function(){resolve();};tx.onerror=function(){resolve();};}catch(e){resolve();}});}
+function friOfflineQueueGetAll(){return new Promise(function(resolve){if(!_friDB_offline){resolve([]);return;}try{var tx=_friDB_offline.transaction('queue','readonly');var req=tx.objectStore('queue').getAll();req.onsuccess=function(e){resolve(e.target.result||[]);};req.onerror=function(){resolve([]);};}catch(e){resolve([]);}});}
+function friOfflineQueueDelete(id){return new Promise(function(resolve){if(!_friDB_offline){resolve();return;}try{var tx=_friDB_offline.transaction('queue','readwrite');tx.objectStore('queue').delete(id);tx.oncomplete=function(){resolve();};tx.onerror=function(){resolve();};}catch(e){resolve();}});}
+function friOfflineQueueCount(){return new Promise(function(resolve){if(!_friDB_offline){resolve(0);return;}try{var tx=_friDB_offline.transaction('queue','readonly');var req=tx.objectStore('queue').count();req.onsuccess=function(e){resolve(e.target.result||0);};req.onerror=function(){resolve(0);};}catch(e){resolve(0);}});}
+async function updateOfflineBar(){
+  var bar=document.getElementById('offline-bar'),dot=document.getElementById('offline-dot'),label=document.getElementById('offline-label'),badge=document.getElementById('sync-badge'),msg=document.getElementById('offline-sync-msg');
+  if(!bar)return;
+  var count=await friOfflineQueueCount();
+  bar.classList.remove('hidden');
+  if(navigator.onLine){dot.className='offline-dot online';label.textContent='En ligne';if(count>0){badge.textContent=count;badge.className='sync-badge';msg.textContent='Synchronisation en cours...';}else{badge.className='sync-badge zero';msg.textContent='';setTimeout(function(){bar.classList.add('hidden');},2000);}}
+  else{dot.className='offline-dot';label.textContent='Hors ligne';if(count>0){badge.textContent=count;badge.className='sync-badge';msg.textContent=count+' modification(s) en attente';}else{badge.className='sync-badge zero';msg.textContent='Données depuis le cache local';}}
+}
+async function friSyncQueue(){
+  if(!navigator.onLine||typeof FriDB==='undefined')return;
+  var queue=await friOfflineQueueGetAll();if(!queue.length){updateOfflineBar();return;}
+  for(var k=0;k<queue.length;k++){var op=queue[k];try{if(op.type==='presence')await FriDB.query('inscriptions','PATCH',{presence:op.presence,statut:op.statut},'?id=eq.'+op.inscId);await friOfflineQueueDelete(op.id);}catch(e){console.warn(e);}}
+  try{var fresh=await FriDB.getInscriptions();if(fresh&&fresh.length){inscriptions=fresh.map(mapInscription);await friCacheSet('inscriptions',fresh);}}catch(e){}
+  updateOfflineBar();renderAll();
+}
+window.addEventListener('online',function(){updateOfflineBar();friSyncQueue();});
+window.addEventListener('offline',function(){updateOfflineBar();});
+</script>
+
+<script>
+(function(){
+  var p=window.location.pathname.split("/").pop();
+  document.querySelectorAll("#ft-sb a").forEach(function(a){if(a.getAttribute("href")===p)a.className="on";});
+})();
+// Détecter si on arrive depuis un lien vers inscriptions
+if(window.location.hash==="#inscriptions"){
+  var btn=document.getElementById("mtab-inscriptions");
+  if(btn)switchModuleTab("inscriptions",btn);
+}
+</script>
+</body>
+</html>
