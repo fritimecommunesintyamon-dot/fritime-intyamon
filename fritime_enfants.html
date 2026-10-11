@@ -390,6 +390,17 @@ async function saveCreate(){
   const p=document.getElementById('cp').value.trim(),n=document.getElementById('cn').value.trim();
   if(!p||!n){alert('Prénom et nom obligatoires');return;}
   const ddn=document.getElementById('cd').value;
+  // Vérification doublon : même prénom + nom + date de naissance
+  var pNorm=p.toLowerCase().trim(),nNorm=n.toLowerCase().trim(),ddnNorm=ddn||'';
+  var doublon=enfants.find(function(e){
+    return (e.prenom||'').toLowerCase().trim()===pNorm
+        && (e.nom||'').toLowerCase().trim()===nNorm
+        && (e.ddn||'')===ddnNorm;
+  });
+  if(doublon){
+    alert('Un enfant avec le même prénom, nom et date de naissance existe déjà dans la liste (' + doublon.prenom + ' ' + doublon.nom + ').');
+    return;
+  }
   var newE={prenom:p,nom:n,ddn:ddn||null,age:calcAgeFrom(ddn)||0,commune:document.getElementById('cc').value.trim(),pp:document.getElementById('cpp').value.trim(),pn:document.getElementById('cpn').value.trim(),pe:document.getElementById('cpe').value.trim(),pt:document.getElementById('cpt').value.trim(),notes:document.getElementById('cno').value.trim(),parts:0,statut:'actif'};
   if(typeof FriDB!=='undefined'){
     try{
