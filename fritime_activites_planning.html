@@ -340,7 +340,12 @@ textarea{resize:vertical;min-height:80px}
       </div>
       <div class="sec"><label>Prestataire</label><select id="f-prest"><option value="">Aucun</option></select></div>
       <div class="sec"><label>Responsable</label><input id="f-resp" placeholder="Nom du responsable"></div>
+      <div class="fg">
+        <div class="sec"><label>Âge min</label><input type="number" id="f-age-min" placeholder="ex: 6"></div>
+        <div class="sec"><label>Âge max</label><input type="number" id="f-age-max" placeholder="ex: 12"></div>
+      </div>
       <div class="sec"><label>Description</label><textarea id="f-desc" rows="3" placeholder="Description de l'activité…"></textarea></div>
+      <div class="sec"><label>Notes internes</label><textarea id="f-notes" rows="2" placeholder="Notes privées…"></textarea></div>
       <div class="sec"><label>Lien inscription</label><input id="f-lien" placeholder="https://…"></div>
       <div class="sec"><label>Photo (URL)</label><input id="f-photo" placeholder="https://…" oninput="previewPhoto(this.value)">
         <img id="f-photo-prev" class="img-preview" style="display:none;max-height:120px">
@@ -382,7 +387,8 @@ textarea{resize:vertical;min-height:80px}
       <button class="btn btn-outline btn-sm" onclick="closeOverlay('mResponsable')">✕</button>
     </div>
     <div class="modal-body">
-      <div class="sec"><label>Nouveau responsable</label><input id="resp-input" placeholder="Nom du responsable"></div>
+      <div class="sec"><label>Membre du comité</label><select id="resp-select"><option value="">— Saisir manuellement —</option></select></div>
+      <div class="sec"><label>Ou saisir manuellement</label><input id="resp-input" placeholder="Nom du responsable"></div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeOverlay('mResponsable')">Annuler</button>
@@ -412,7 +418,7 @@ textarea{resize:vertical;min-height:80px}
 <script src="fritime_brevo.js"></script>
 <script>
 // ═══ SHARED VARIABLES ═══
-var activites=[], inscriptions=[], enfants=[], prestataires=[];
+var activites=[], inscriptions=[], enfants=[], prestataires=[], membres=[];
 var nextId=4, nextPrestId=100, categories=[], sousCategories=[];
 var actSelId=null, actEditId=null, actFilter='tous';
 var currentActId=null, currentTab='encours', searchVal='';
@@ -458,16 +464,18 @@ function renderGrid(){
   var list=actFilter==='tous'?activites:activites.filter(a=>a.categorie===actFilter);
   if(!list.length){document.getElementById('act-grid').innerHTML='<div class="empty">Aucune activité</div>';return;}
   document.getElementById('act-grid').innerHTML=list.map(a=>{
-    var insc=inscriptions.filter(i=>i.activite_id===a.id).length;
+    var insc=inscriptions.filter(i=>(i.activiteId||i.activite_id)===a.id).length;
     return `<div class="card" onclick="openDetail(${a.id})">
+      ${a.image?`<img src="${esc(a.image)}" style="width:100%;height:140px;object-fit:cover;border-radius:8px 8px 0 0;display:block">`:''}
       <div class="card-head">
         <div class="card-title">${esc(a.nom)}</div>
         <span class="card-status badge-${a.statut}">${a.statut}</span>
       </div>
       <div class="card-meta">
-        <span>📅 ${fd(a.date)}${a.heure_debut?' · '+fh(a.heure_debut)+(a.heure_fin?' → '+fh(a.heure_fin):''):''}</span>
+        <span>📅 ${fd(a.date)}${a.heureDebut?' · '+fh(a.heureDebut)+(a.heureFin?' → '+fh(a.heureFin):''):''}</span>
         ${a.lieu?`<span>📍 ${esc(a.lieu)}</span>`:''}
         ${a.responsable_nom?`<span>👤 ${esc(a.responsable_nom)}</span>`:''}
+        ${(a.ageMin||a.ageMax)?`<span>👶 ${a.ageMin||'?'}–${a.ageMax||'?'} ans</span>`:''}
       </div>
       <div class="card-footer">
         <span class="card-cat">${esc(a.categorie||'—')}</span>
@@ -491,19 +499,24 @@ function openCreate(editing){
     if(a){
       document.getElementById('f-titre').value=a.nom||'';
       document.getElementById('f-date').value=a.date||'';
-      document.getElementById('f-hdeb').value=a.heure_debut||'';
-      document.getElementById('f-hfin').value=a.heure_fin||'';
+      document.getElementById('f-hdeb').value=a.heureDebut||'';
+      document.getElementById('f-hfin').value=a.heureFin||'';
       document.getElementById('f-lieu').value=a.lieu||'';
       document.getElementById('f-resp').value=a.responsable_nom||'';
-      document.getElementById('f-desc').value=a.description||'';
+      document.getElementById('f-desc').value=a.desc||'';
       document.getElementById('f-lien').value='';
       document.getElementById('f-photo').value=a.image||'';
-      document.getElementById('f-places').value='';
+      document.getElementById('f-places').value=a.places||'';
       document.getElementById('f-cout').value='';
-      document.getElementById('f-cout-facture').value=a.cout_facture||'commune';
-      _publique=a.t_public||false;
+      document.getElementById('f-cout-facture').value=a.coutFacture||'commune';
+      document.getElementById('f-age-min').value=a.ageMin||'';
+      document.getElementById('f-age-max').value=a.ageMax||'';
+      document.getElementById('f-notes').value=a.notes||'';
+      var fprest=document.getElementById('f-prest');
+      if(fprest&&a.prestId)setTimeout(function(){fprest.value=a.prestId;},200);
+      _publique=a.tPublic||false;
       _currentStatut=a.statut||'brouillon';
-      previewPhoto(a.photo||'');
+      previewPhoto(a.image||'');
       fillCatSelect();
       setTimeout(()=>{
         document.getElementById('f-cat').value=a.categorie||'';
@@ -519,11 +532,14 @@ function openCreate(editing){
     document.getElementById('f-lieu').value='';
     document.getElementById('f-resp').value='';
     document.getElementById('f-desc').value='';
+    document.getElementById('f-notes').value='';
     document.getElementById('f-lien').value='';
     document.getElementById('f-photo').value='';
     document.getElementById('f-places').value='';
     document.getElementById('f-cout').value='';
     document.getElementById('f-cout-facture').value='commune';
+    document.getElementById('f-age-min').value='';
+    document.getElementById('f-age-max').value='';
     _publique=false;
     _currentStatut='brouillon';
     previewPhoto('');
@@ -581,8 +597,12 @@ async function saveActivite(){
     cout_facture:document.getElementById('f-cout-facture').value||'commune',
     responsable_nom:document.getElementById('f-resp').value.trim()||null,
     description:document.getElementById('f-desc').value.trim()||null,
+    notes:document.getElementById('f-notes').value.trim()||null,
     image:document.getElementById('f-photo').value.trim()||null,
-    t_public:_publique
+    t_public:_publique,
+    prest_id:document.getElementById('f-prest').value?parseInt(document.getElementById('f-prest').value)||null:null,
+    age_min:document.getElementById('f-age-min').value?parseInt(document.getElementById('f-age-min').value)||null:null,
+    age_max:document.getElementById('f-age-max').value?parseInt(document.getElementById('f-age-max').value)||null:null
   };
   try {
     if(actEditId){
@@ -607,21 +627,32 @@ function openDetail(id){
   actSelId=id;
   var a=activites.find(x=>x.id===id);
   if(!a)return;
-  var insc=inscriptions.filter(i=>i.activite_id===id);
+  var insc=inscriptions.filter(i=>(i.activiteId||i.activite_id)===id);
+  var prest=a.prestId?prestataires.find(p=>p.id===a.prestId):null;
+  var lienInsc=window.location.origin+'/fritime_inscription_publique.html?id='+id;
   document.getElementById('det').innerHTML=`
+    ${a.image?`<img src="${esc(a.image)}" style="width:100%;max-height:200px;object-fit:cover;border-radius:8px;margin-bottom:.75rem">`:''}
     <div class="mf">
       <div class="dl">Titre</div><div class="dv">${esc(a.nom)}</div>
-      <div class="dl">Date</div><div class="dv">${fd(a.date)}${a.heure_debut?' · '+fh(a.heure_debut)+(a.heure_fin?' → '+fh(a.heure_fin):''):''}</div>
+      <div class="dl">Date</div><div class="dv">${fd(a.date)}${a.heureDebut?' · '+fh(a.heureDebut)+(a.heureFin?' → '+fh(a.heureFin):''):''}</div>
       ${a.lieu?`<div class="dl">Lieu</div><div class="dv">${esc(a.lieu)}</div>`:''}
-      <div class="dl">Statut</div><div class="dv"><span class="card-status badge-${a.statut}">${a.statut}</span></div>
+      <div class="dl">Statut</div><div class="dv"><span class="card-status badge-${a.statut}">${a.statut}${a.tMeteo?' 🌧️':''}</span></div>
       ${a.categorie?`<div class="dl">Catégorie</div><div class="dv">${esc(a.categorie)}${a.sous_categorie?' › '+esc(a.sous_categorie):''}</div>`:''}
-      ${a.responsable_nom?`<div class="dl">Responsable</div><div class="dv">${esc(a.responsable_nom)} <button class="btn btn-outline btn-sm" style="margin-left:.5rem" onclick="openModifResponsable(${id})">Modifier</button></div>`:''}
+      ${(a.ageMin||a.ageMax)?`<div class="dl">Tranche d'âge</div><div class="dv">${a.ageMin||'?'} – ${a.ageMax||'?'} ans</div>`:''}
+      ${prest?`<div class="dl">Prestataire</div><div class="dv">${esc(prest.nom)}</div>`:''}
+      <div class="dl">Responsable</div><div class="dv">${a.responsable_nom?esc(a.responsable_nom):'—'} <button class="btn btn-outline btn-sm" style="margin-left:.5rem" onclick="openModifResponsable(${id})">Modifier</button></div>
+      ${a.coutFacture?`<div class="dl">Facturation</div><div class="dv">${esc(a.coutFacture)}</div>`:''}
       <div class="dl">Inscriptions</div><div class="dv">${insc.length}</div>
-      ${a.description?`<div class="dl">Description</div><div class="dv">${esc(a.description)}</div>`:''}
+      ${a.desc?`<div class="dl">Description</div><div class="dv">${esc(a.desc)}</div>`:''}
+      ${a.notes?`<div class="dl">Notes internes</div><div class="dv">${esc(a.notes)}</div>`:''}
+      <div class="dl">Lien inscription</div><div class="dv"><a href="${lienInsc}" target="_blank" style="font-size:12px;word-break:break-all">${lienInsc}</a></div>
     </div>
     <div style="margin-top:1rem;display:flex;gap:.5rem;flex-wrap:wrap">
       <button class="btn btn-outline btn-sm" onclick="changeStatut(${id},'publie')">📢 Publier</button>
+      <button class="btn btn-outline btn-sm" onclick="changeStatut(${id},'complet')">🔒 Complet</button>
       <button class="btn btn-outline btn-sm" onclick="changeStatut(${id},'realise')">✅ Réalisé</button>
+      <button class="btn btn-outline btn-sm" onclick="changeStatut(${id},'annule')">❌ Annuler</button>
+      <button class="btn btn-outline btn-sm" onclick="changeStatutMeteo(${id})">🌧️ Annulé météo</button>
       <button class="btn btn-outline btn-sm" onclick="openChecklist(${id})">📋 Checklist</button>
     </div>`;
   openOverlay('mDetail');
@@ -645,11 +676,31 @@ async function changeStatut(id,statut){
   if(idx>=0)activites[idx].statut=statut;
   closeDetail();renderAct();
 }
+async function changeStatutMeteo(id){
+  try{await FriDB.query('activites','PATCH',{statut:'annule',t_meteo:true},'?id=eq.'+id);}catch(e){console.warn(e);}
+  var idx=activites.findIndex(function(a){return a.id===id;});
+  if(idx>=0){activites[idx].statut='annule';activites[idx].tMeteo=true;}
+  closeDetail();renderAct();
+}
+function autoUpdateStatuts(){
+  var today=new Date().toISOString().split('T')[0];
+  activites.forEach(function(a){
+    if(a.date<today&&(a.statut==='publie'||a.statut==='complet')){
+      FriDB.query('activites','PATCH',{statut:'realise'},'?id=eq.'+a.id).catch(function(){});
+      a.statut='realise';
+    }
+  });
+}
 
 function openModifResponsable(id){
   modifRespActId=id;
   var a=activites.find(function(x){return x.id===id;});
-  document.getElementById('resp-input').value=a?a.responsable_nom||'':'';
+  var sel=document.getElementById('resp-select');
+  sel.innerHTML='<option value="">— Saisir manuellement —</option>'+membres.map(function(m){return`<option value="${esc(m.prenom+' '+m.nom)}">${esc(m.prenom+' '+m.nom)}</option>`;}).join('');
+  var cur=a?a.responsable_nom||'':'';
+  sel.value=cur;
+  document.getElementById('resp-input').value=cur;
+  sel.onchange=function(){if(sel.value)document.getElementById('resp-input').value=sel.value;};
   openOverlay('mResponsable');
 }
 
@@ -672,18 +723,32 @@ const CHECKLIST=[
 function openChecklist(id){
   var a=activites.find(x=>x.id===id);
   document.getElementById('mChecklistTitle').textContent='Checklist – '+(a?a.nom:'');
+  var saved={};
+  try{saved=JSON.parse(localStorage.getItem('ck-'+id)||'{}');}catch(e){}
   var html='';
   CHECKLIST.forEach(g=>{
     html+=`<div class="checklist-group"><h4>${g.group}</h4>`;
     g.items.forEach((item,i)=>{
       var cid=`ck-${id}-${g.group.replace(/\s/g,'')}-${i}`;
-      html+=`<div class="checklist-item"><input type="checkbox" id="${cid}"><label for="${cid}">${item}</label></div>`;
+      var chk=saved[cid]?'checked':'';
+      html+=`<div class="checklist-item"><input type="checkbox" id="${cid}" ${chk} onchange="saveChecklist(${id})"><label for="${cid}">${item}</label></div>`;
     });
     html+='</div>';
   });
   document.getElementById('mChecklistBody').innerHTML=html;
   closeOverlay('mDetail');
   openOverlay('mChecklist');
+}
+function saveChecklist(id){
+  var state={};
+  document.querySelectorAll(`#mChecklistBody input[type=checkbox]`).forEach(function(cb){state[cb.id]=cb.checked;});
+  try{localStorage.setItem('ck-'+id,JSON.stringify(state));}catch(e){}
+}
+function savePlanChecklist(id,cb,ckid){
+  var state={};
+  try{state=JSON.parse(localStorage.getItem('ck-'+id)||'{}');}catch(e){}
+  state[ckid]=cb.checked;
+  try{localStorage.setItem('ck-'+id,JSON.stringify(state));}catch(e){}
 }
 
 // ═══ PLANNING — RENDER ═══
@@ -709,7 +774,7 @@ function renderPlanList(){
   if(!list.length){document.getElementById('plan-list-items').innerHTML='<div style="padding:2rem;text-align:center;color:#aaa;font-size:13px">Aucune activité</div>';return;}
   document.getElementById('plan-list-items').innerHTML=list.map(a=>{
     var isArch=archiveStatuts.includes(a.statut);
-    var insc=inscriptions.filter(i=>i.activite_id===a.id).length;
+    var insc=inscriptions.filter(i=>(i.activiteId||i.activite_id)===a.id).length;
     return `<div class="plan-item${currentActId===a.id?' active':''}" onclick="openPlanDetail(${a.id})">
       <div class="pi-top">
         <div class="pi-title">${esc(a.nom)}</div>
@@ -730,7 +795,7 @@ function openPlanDetail(id){
   renderPlanList();
   var a=activites.find(x=>x.id===id);
   if(!a)return;
-  var insc=inscriptions.filter(i=>i.activite_id===id);
+  var insc=inscriptions.filter(i=>(i.activiteId||i.activite_id)===id);
   var archiveStatuts=['realise','annule'];
   var isArch=archiveStatuts.includes(a.statut);
   var html=`<div class="plan-detail">
@@ -745,28 +810,33 @@ function openPlanDetail(id){
       <h3>Informations</h3>
       <div class="pd-grid">
         <div class="pd-field"><div class="pd-label">Date</div><div class="pd-val">${fd(a.date)}</div></div>
-        ${a.heure_debut?`<div class="pd-field"><div class="pd-label">Horaire</div><div class="pd-val">${fh(a.heure_debut)}${a.heure_fin?' → '+fh(a.heure_fin):''}</div></div>`:''}
+        ${(a.heureDebut||a.heure_debut)?`<div class="pd-field"><div class="pd-label">Horaire</div><div class="pd-val">${fh(a.heureDebut||a.heure_debut)}${(a.heureFin||a.heure_fin)?' → '+fh(a.heureFin||a.heure_fin):''}</div></div>`:''}
         ${a.lieu?`<div class="pd-field"><div class="pd-label">Lieu</div><div class="pd-val">${esc(a.lieu)}</div></div>`:''}
         ${a.responsable_nom?`<div class="pd-field"><div class="pd-label">Responsable</div><div class="pd-val">${esc(a.responsable_nom)}</div></div>`:''}
-        ${a.cout_facture?`<div class="pd-field"><div class="pd-label">Facturation</div><div class="pd-val">${esc(a.cout_facture)}</div></div>`:''}
+        ${(a.ageMin||a.ageMax)?`<div class="pd-field"><div class="pd-label">Tranche d'âge</div><div class="pd-val">${a.ageMin||'?'} – ${a.ageMax||'?'} ans</div></div>`:''}
+        ${(a.coutFacture||a.cout_facture)?`<div class="pd-field"><div class="pd-label">Facturation</div><div class="pd-val">${esc(a.coutFacture||a.cout_facture)}</div></div>`:''}
         <div class="pd-field"><div class="pd-label">Inscriptions</div><div class="pd-val">${insc.length}</div></div>
       </div>
-      ${a.description?`<div class="pd-field" style="margin-top:.75rem"><div class="pd-label">Description</div><div class="pd-val">${esc(a.description)}</div></div>`:''}
+      ${(a.desc||a.description)?`<div class="pd-field" style="margin-top:.75rem"><div class="pd-label">Description</div><div class="pd-val">${esc(a.desc||a.description)}</div></div>`:''}
     </div>`;
   if(insc.length){
     html+=`<div class="pd-section"><h3>Inscriptions (${insc.length})</h3><table class="insc-table"><thead><tr><th>Enfant</th><th>Statut</th></tr></thead><tbody>`;
     insc.forEach(i=>{
-      var enf=enfants.find(e=>e.id===i.enfant_id);
-      html+=`<tr><td>${esc(enf?enf.prenom+' '+enf.nom:'ID '+i.enfant_id)}</td><td><span class="badge-${i.presence||'inscrit'}">${i.presence||'inscrit'}</span></td></tr>`;
+      var eid=i.enfantId||i.enfant_id;
+      var enf=enfants.find(e=>e.id===eid);
+      html+=`<tr><td>${esc(enf?enf.prenom+' '+enf.nom:'ID '+eid)}</td><td><span class="badge-${i.presence||'inscrit'}">${i.presence||'inscrit'}</span></td></tr>`;
     });
     html+=`</tbody></table></div>`;
   }
+  var pSaved={};try{pSaved=JSON.parse(localStorage.getItem('ck-'+id)||'{}');}catch(e){}
   html+=`<div class="pd-section"><h3>Checklist</h3>`;
   CHECKLIST.forEach(g=>{
     html+=`<div class="checklist-group"><h4>${g.group}</h4>`;
     g.items.forEach((item,i)=>{
       var cid=`pck-${id}-${g.group.replace(/\s/g,'')}-${i}`;
-      html+=`<div class="checklist-item"><input type="checkbox" id="${cid}"><label for="${cid}">${item}</label></div>`;
+      var ckid=`ck-${id}-${g.group.replace(/\s/g,'')}-${i}`;
+      var chk=pSaved[ckid]?'checked':'';
+      html+=`<div class="checklist-item"><input type="checkbox" id="${cid}" `+chk+` onchange="savePlanChecklist(${id},this,'`+`ck-${id}-${g.group.replace(/\s/g,'')}-${i}'` +`)"><label for="${cid}">${item}</label></div>`;
     });
     html+='</div>';
   });
@@ -841,10 +911,12 @@ async function loadAllData(){
     var inscRes=await FriDB.getInscriptions().catch(function(){return[];});
     var enfRes=await FriDB.getEnfants().catch(function(){return[];});
     var prestRes=await FriDB.getPrestataires().catch(function(){return[];});
+    var membRes=await FriDB.getMembres().catch(function(){return[];});
     activites=actRes||[];
     inscriptions=inscRes||[];
     enfants=enfRes||[];
     prestataires=prestRes||[];
+    membres=membRes||[];
     friCacheSet('activites',activites);
     friCacheSet('inscriptions',inscriptions);
     friCacheSet('enfants',enfants);
@@ -855,8 +927,10 @@ async function loadAllData(){
     inscriptions=await friCacheGet('inscriptions')||[];
     enfants=await friCacheGet('enfants')||[];
     prestataires=await friCacheGet('prestataires')||[];
+    membres=[];
   }
   if(typeof FriCats!=='undefined'&&typeof FriCats.loadAndFill==='function')await FriCats.loadAndFill('f-cat','f-souscat');
+  autoUpdateStatuts();
   renderAct();
   renderPlanList();
 }
