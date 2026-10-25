@@ -341,12 +341,13 @@ textarea{resize:vertical;min-height:80px}
         <div class="sec"><label>Coût comité (CHF)</label><input type="number" id="f-cout" placeholder="0"></div>
       </div>
       <div class="sec"><label>Pris en charge par</label>
-        <select id="f-cout-facture">
+        <select id="f-cout-facture" onchange="onCoutFactureChange()">
           <option value="commune">Commune</option>
           <option value="prestataire">Prestataire</option>
           <option value="association">Association</option>
           <option value="autre">Autre</option>
         </select>
+        <input id="f-cout-facture-autre" placeholder="Préciser…" style="display:none;margin-top:4px">
       </div>
       <div class="sec"><label>Participation enfants (CHF)</label><input type="number" id="f-cout-participant" placeholder="0 = gratuit"></div>
       <div class="sec"><label>Prestataire</label>
@@ -568,7 +569,10 @@ function openCreate(editing){
       document.getElementById('f-photo').value=a.image||'';
       document.getElementById('f-places').value=a.places||'';
       document.getElementById('f-cout').value=a.cout||'';
-      document.getElementById('f-cout-facture').value=a.coutFacture||'commune';
+      var cfVal=a.coutFacture||'commune';
+      var cfPredefined=['commune','prestataire','association','autre'];
+      if(cfVal&&!cfPredefined.includes(cfVal)){document.getElementById('f-cout-facture').value='autre';document.getElementById('f-cout-facture-autre').value=cfVal;document.getElementById('f-cout-facture-autre').style.display='block';}
+      else{document.getElementById('f-cout-facture').value=cfVal;document.getElementById('f-cout-facture-autre').value='';document.getElementById('f-cout-facture-autre').style.display='none';}
       document.getElementById('f-cout-participant').value=a.coutType||'';
       document.getElementById('f-age-min').value=a.ageMin||'';
       document.getElementById('f-age-max').value=a.ageMax||'';
@@ -604,6 +608,8 @@ function openCreate(editing){
     document.getElementById('f-places').value='';
     document.getElementById('f-cout').value='';
     document.getElementById('f-cout-facture').value='commune';
+    document.getElementById('f-cout-facture-autre').value='';
+    document.getElementById('f-cout-facture-autre').style.display='none';
     document.getElementById('f-cout-participant').value='';
     document.getElementById('f-age-min').value='';
     document.getElementById('f-age-max').value='';
@@ -666,6 +672,13 @@ async function confirmerAddPrest(){
     btn.disabled=false;btn.textContent='Créer';
     alert('Erreur lors de la création : '+e2.message);
   }
+}
+
+function onCoutFactureChange(){
+  var v=document.getElementById('f-cout-facture').value;
+  var inp=document.getElementById('f-cout-facture-autre');
+  inp.style.display=(v==='autre')?'block':'none';
+  if(v!=='autre')inp.value='';
 }
 
 function fillRespSelect(){
@@ -749,7 +762,7 @@ async function saveActivite(){
     statut:_currentStatut,
     t_meteo:_tMeteo,
     cout:document.getElementById('f-cout').value?parseFloat(document.getElementById('f-cout').value)||null:null,
-    cout_facture:document.getElementById('f-cout-facture').value||'commune',
+    cout_facture:(function(){var v=document.getElementById('f-cout-facture').value;if(v==='autre'){var a2=document.getElementById('f-cout-facture-autre').value.trim();return a2||'autre';}return v||'commune';})(),
     cout_type:document.getElementById('f-cout-participant').value?parseFloat(document.getElementById('f-cout-participant').value)||null:null,
     responsable_nom:document.getElementById('f-resp').value.trim()||null,
     description:document.getElementById('f-desc').value.trim()||null,
