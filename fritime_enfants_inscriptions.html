@@ -348,6 +348,9 @@ function doLogout(){sessionStorage.removeItem("ft_user");window.location.href="f
 <!-- ===================== SECTION INSCRIPTIONS ===================== -->
 <div class="module-section" id="section-inscriptions">
 
+<!-- DEBUG TEMPORAIRE — à supprimer après diagnostic -->
+<div id="debug-bar" style="background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:8px 12px;font-size:12px;color:#856404;margin-bottom:10px"></div>
+
 <!-- Boutons actions inscriptions -->
 <div style="display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap">
   <button class="btn btn-primary" onclick="openAddInscription()">+ Inscrire un enfant</button>
@@ -924,6 +927,13 @@ function renderAll(){
   renderInscTabs();
   renderListe();
   renderAttente();
+  var db=document.getElementById("debug-bar");
+  if(db){
+    var inscsTotal=inscriptions.length;
+    var inscsAct=getInscForAct(selectedActId).length;
+    db.innerHTML="🔍 DEBUG — Activités: "+activites.length+" | Enfants: "+enfants.length+" | Inscriptions total: "+inscsTotal+" | Inscriptions activité sélectionnée (id="+selectedActId+"): "+inscsAct+
+      (inscriptions.length?"<br>IDs inscriptions: "+inscriptions.slice(0,5).map(function(i){return "insc#"+i.id+"→enfant"+i.enfantId+"/act"+i.activiteId;}).join(", "):"");
+  }
 }
 
 function selectAct(id){selectedActId=id;renderAll();}
