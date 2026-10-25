@@ -261,8 +261,12 @@ textarea{resize:vertical;min-height:80px}
         <button class="btn btn-primary" onclick="openCreate()">+ Nouvelle activité</button>
       </div>
       <div class="metrics" id="act-metrics"></div>
-      <div id="saison-bar" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:.5rem">
-        <span style="font-size:11px;color:#888;margin-right:2px">Saison :</span>
+      <div id="periode-bar" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:.5rem;font-size:13px">
+        <span style="color:#888;font-size:12px">Période :</span>
+        <input type="text" id="periode-deb" placeholder="JJ.MM.AAAA" maxlength="10" style="width:105px;padding:4px 8px;border:1px solid #ddd;border-radius:6px;font-size:12px" oninput="applyPeriode()">
+        <span style="color:#aaa;font-size:12px">→</span>
+        <input type="text" id="periode-fin" placeholder="JJ.MM.AAAA" maxlength="10" style="width:105px;padding:4px 8px;border:1px solid #ddd;border-radius:6px;font-size:12px" oninput="applyPeriode()">
+        <button onclick="resetPeriode()" style="background:none;border:none;cursor:pointer;font-size:13px;color:#aaa;padding:0 2px" title="Effacer">✕</button>
       </div>
       <div class="filters" id="act-filters"></div>
       <div class="grid" id="act-grid"></div>
@@ -291,7 +295,13 @@ textarea{resize:vertical;min-height:80px}
         <div class="plan-list-head">
           <h2>📅 Planning</h2>
           <input class="plan-search" type="text" placeholder="Rechercher…" id="plan-search" oninput="searchVal=this.value;renderPlanList()">
-          <div id="plan-saison-bar" style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:.4rem"></div>
+          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:.4rem;font-size:12px">
+            <span style="color:#888">Du</span>
+            <input type="text" id="plan-periode-deb" placeholder="JJ.MM.AAAA" maxlength="10" style="width:95px;padding:3px 7px;border:1px solid #ddd;border-radius:6px;font-size:12px" oninput="applyPeriode()">
+            <span style="color:#aaa">au</span>
+            <input type="text" id="plan-periode-fin" placeholder="JJ.MM.AAAA" maxlength="10" style="width:95px;padding:3px 7px;border:1px solid #ddd;border-radius:6px;font-size:12px" oninput="applyPeriode()">
+            <button onclick="resetPeriode()" style="background:none;border:none;cursor:pointer;font-size:12px;color:#aaa;padding:0" title="Effacer">✕</button>
+          </div>
           <div class="plan-tabs">
             <button class="plan-tab active" id="ptab-encours" onclick="switchPlanTab('encours')">En cours</button>
             <button class="plan-tab" id="ptab-archives" onclick="switchPlanTab('archives')">Archives</button>
@@ -310,7 +320,7 @@ textarea{resize:vertical;min-height:80px}
 </div>
 
 <!-- ═══════════ MODAUX CAMPAGNES ═══════════ -->
-<div id="mCampCreate" class="overlay" onclick="if(event.target.id==='mCampCreate')campCloseMCreate()" style="display:none">
+<div id="mCampCreate" class="overlay" onclick="if(event.target.id==='mCampCreate')campCloseMCreate()">
 <div class="modal" onclick="event.stopPropagation()">
   <div class="modal-title" id="camp-create-title">Nouvelle campagne</div>
   <div style="font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.06em;margin:.5rem 0 .75rem;padding-top:.5rem;border-top:1px solid #eee">Informations</div>
@@ -338,7 +348,7 @@ textarea{resize:vertical;min-height:80px}
   <div style="margin-bottom:.75rem">
     <label style="font-size:12px;color:#666;margin-bottom:4px;display:block">Le lien suivant sera transmis à l'école pour diffusion</label>
     <div style="background:#f5f5f3;border-radius:8px;padding:10px 12px;font-size:12px;font-family:monospace;display:flex;align-items:center;justify-content:space-between;gap:8px;word-break:break-all">
-      <span id="camp-preview-link">https://fritimegruyere.ch/inscription?id=XXX</span>
+      <span id="camp-preview-link">https://fritime-intyamon-1t2w.vercel.app/fritime_inscription_publique.html?id=XXX</span>
       <button class="btn btn-sm" onclick="campCopyLink()">📋 Copier</button>
     </div>
   </div>
@@ -353,11 +363,11 @@ textarea{resize:vertical;min-height:80px}
 </div>
 </div>
 
-<div id="mCampDetail" class="overlay" onclick="if(event.target.id==='mCampDetail')campCloseMDetail()" style="display:none">
+<div id="mCampDetail" class="overlay" onclick="if(event.target.id==='mCampDetail')campCloseMDetail()">
 <div class="modal" onclick="event.stopPropagation()"><div id="camp-detail-content"></div></div>
 </div>
 
-<div id="mCampEnvoi" class="overlay" onclick="if(event.target.id==='mCampEnvoi')campCloseMEnvoi()" style="display:none">
+<div id="mCampEnvoi" class="overlay" onclick="if(event.target.id==='mCampEnvoi')campCloseMEnvoi()">
 <div class="modal" style="max-width:460px" onclick="event.stopPropagation()">
   <div class="modal-title">Confirmer l'envoi à l'école</div>
   <div style="background:#eaf3de;color:#275a0a;border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:1rem;line-height:1.5">Le lien du formulaire sera copié et prêt à être transmis à l'administration scolaire. L'école se charge de la diffusion aux ~470 élèves.</div>
@@ -603,96 +613,53 @@ function renderMetrics(){
     <div class="metric"><div class="metric-val">${real}</div><div class="metric-lbl">Réalisées</div></div>`;
 }
 
-// ═══ SAISONS ═══
-// Format: [{nom, emoji, debut:'MM-DD', fin:'MM-DD'}]
-// debut/fin peuvent enjamber le 31 déc (ex: début 09-01, fin 12-31)
-var saisons=[
-  {nom:'Automne', emoji:'🍂', debut:'09-01', fin:'12-31'},
-  {nom:'Hiver',   emoji:'❄️', debut:'01-01', fin:'03-31'},
-  {nom:'Printemps',emoji:'🌸',debut:'04-01', fin:'06-30'},
-  {nom:'Été',     emoji:'☀️', debut:'07-01', fin:'08-31'}
-];
-var saisonActive='toutes'; // 'toutes' ou index 0-3
+// ═══ FILTRE PÉRIODE ═══
+var periodeDebISO=null, periodeFinISO=null;
 
-function getSaisonStorage(){try{var v=localStorage.getItem('fritime_saisons');return v?JSON.parse(v):null;}catch(e){return null;}}
-function saveSaisonStorage(){try{localStorage.setItem('fritime_saisons',JSON.stringify(saisons));}catch(e){}}
-
-function dateInSaison(dateStr, s){
-  if(!dateStr)return false;
-  var md=dateStr.substring(5); // 'MM-DD'
-  if(s.debut<=s.fin) return md>=s.debut && md<=s.fin;
-  // enjambe l'année (ex: 11-01 → 02-28)
-  return md>=s.debut || md<=s.fin;
+// Convertit JJ.MM.AAAA → AAAA-MM-JJ (pour comparaison ISO)
+function parsePeriodeInput(v){
+  v=v.trim();
+  var m=v.match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
+  if(!m)return null;
+  return m[3]+'-'+m[2]+'-'+m[1];
 }
 
-function detectSaisonCourante(){
-  var today=new Date();
-  var md=(String(today.getMonth()+1).padStart(2,'0'))+'-'+(String(today.getDate()).padStart(2,'0'));
-  for(var i=0;i<saisons.length;i++){
-    var s=saisons[i];
-    var inS=s.debut<=s.fin?(md>=s.debut&&md<=s.fin):(md>=s.debut||md<=s.fin);
-    if(inS)return i;
-  }
-  return 'toutes';
+function syncPeriodeInputs(){
+  var d1=document.getElementById('periode-deb');
+  var d2=document.getElementById('periode-fin');
+  var p1=document.getElementById('plan-periode-deb');
+  var p2=document.getElementById('plan-periode-fin');
+  var vd=periodeDebISO?periodeDebISO.split('-').reverse().join('.'):'';
+  var vf=periodeFinISO?periodeFinISO.split('-').reverse().join('.'):'';
+  if(d1)d1.value=vd; if(d2)d2.value=vf;
+  if(p1)p1.value=vd; if(p2)p2.value=vf;
 }
 
-function filterBySaison(list){
-  if(saisonActive==='toutes')return list;
-  var s=saisons[saisonActive];
-  return list.filter(function(a){return a.date&&dateInSaison(a.date,s);});
+function applyPeriode(){
+  // lire depuis l'input qui vient d'être modifié (actif ou planning)
+  var d1=document.activeElement&&document.activeElement.id==='plan-periode-deb'?document.getElementById('plan-periode-deb'):document.getElementById('periode-deb');
+  var d2=document.activeElement&&document.activeElement.id==='plan-periode-fin'?document.getElementById('plan-periode-fin'):document.getElementById('periode-fin');
+  if(!d1)d1=document.getElementById('periode-deb');
+  if(!d2)d2=document.getElementById('periode-fin');
+  periodeDebISO=parsePeriodeInput(d1?d1.value:'');
+  periodeFinISO=parsePeriodeInput(d2?d2.value:'');
+  syncPeriodeInputs();
+  renderAct();renderPlanList();
 }
 
-function renderSaisonBar(){
-  var btns=saisons.map(function(s,i){
-    return '<button class="filter-btn'+(saisonActive===i?' active':'')+'" onclick="setSaison('+i+')">'+s.emoji+' '+s.nom+'</button>';
-  }).join('');
-  btns='<button class="filter-btn'+(saisonActive==='toutes'?' active':'')+'" onclick="setSaison(\'toutes\')">Toutes</button>'+btns;
-  btns+='<button title="Paramétrer les saisons" onclick="openSaisonConfig()" style="background:none;border:none;cursor:pointer;font-size:14px;padding:4px 6px;color:#888">⚙️</button>';
-  var bar=document.getElementById('saison-bar');
-  if(bar){
-    var label=bar.querySelector('span');
-    bar.innerHTML='<span style="font-size:11px;color:#888;margin-right:2px">Saison :</span>'+btns;
-  }
-  var planBar=document.getElementById('plan-saison-bar');
-  if(planBar){
-    planBar.innerHTML=saisons.map(function(s,i){
-      return '<button class="plan-tab'+(saisonActive===i?' active':'')+'" onclick="setSaison('+i+')">'+s.emoji+' '+s.nom+'</button>';
-    }).join('')+'<button class="plan-tab'+(saisonActive==='toutes'?' active':'')+'" onclick="setSaison(\'toutes\')">Toutes</button>'
-    +'<button title="Paramétrer" onclick="openSaisonConfig()" style="background:none;border:none;cursor:pointer;font-size:13px;padding:4px 5px;color:#888">⚙️</button>';
-  }
+function resetPeriode(){
+  periodeDebISO=null;periodeFinISO=null;
+  syncPeriodeInputs();
+  renderAct();renderPlanList();
 }
 
-function setSaison(v){saisonActive=v;renderSaisonBar();renderAct();renderPlanList();}
-
-function openSaisonConfig(){
-  var html='<div style="position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9900;display:flex;align-items:center;justify-content:center" id="mSaisonConfig">'
-    +'<div style="background:#fff;border-radius:14px;padding:1.5rem;width:min(420px,92vw);max-height:90vh;overflow-y:auto">'
-    +'<div style="font-size:16px;font-weight:600;margin-bottom:1rem">⚙️ Paramétrer les saisons</div>'
-    +'<div style="font-size:12px;color:#888;margin-bottom:1rem">Définir les dates de début et fin de chaque saison (format MM-JJ).</div>'
-    +saisons.map(function(s,i){
-      return '<div style="margin-bottom:.75rem;display:grid;grid-template-columns:120px 1fr 1fr;gap:8px;align-items:center">'
-        +'<div style="font-size:13px;font-weight:500">'+s.emoji+' '+s.nom+'</div>'
-        +'<div><label style="font-size:11px;color:#888">Début</label><input id="sc-deb-'+i+'" value="'+s.debut+'" style="width:100%;padding:5px 8px;border:1px solid #ddd;border-radius:6px;font-size:13px" placeholder="MM-JJ"></div>'
-        +'<div><label style="font-size:11px;color:#888">Fin</label><input id="sc-fin-'+i+'" value="'+s.fin+'" style="width:100%;padding:5px 8px;border:1px solid #ddd;border-radius:6px;font-size:13px" placeholder="MM-JJ"></div>'
-        +'</div>';
-    }).join('')
-    +'<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:1rem">'
-    +'<button class="btn btn-outline btn-sm" onclick="document.getElementById(\'mSaisonConfig\').remove()">Annuler</button>'
-    +'<button class="btn btn-primary btn-sm" onclick="saveSaisonConfig()">Enregistrer</button>'
-    +'</div></div></div>';
-  document.body.insertAdjacentHTML('beforeend',html);
-}
-
-function saveSaisonConfig(){
-  for(var i=0;i<saisons.length;i++){
-    var deb=document.getElementById('sc-deb-'+i).value.trim();
-    var fin=document.getElementById('sc-fin-'+i).value.trim();
-    if(/^\d{2}-\d{2}$/.test(deb))saisons[i].debut=deb;
-    if(/^\d{2}-\d{2}$/.test(fin))saisons[i].fin=fin;
-  }
-  saveSaisonStorage();
-  var m=document.getElementById('mSaisonConfig');if(m)m.remove();
-  renderSaisonBar();renderAct();renderPlanList();
+function filterByPeriode(list){
+  return list.filter(function(a){
+    if(!a.date)return(!periodeDebISO&&!periodeFinISO);
+    if(periodeDebISO&&a.date<periodeDebISO)return false;
+    if(periodeFinISO&&a.date>periodeFinISO)return false;
+    return true;
+  });
 }
 
 function setFilter(f){actFilter=f;renderFilters();renderGrid();}
@@ -704,7 +671,7 @@ function renderFilters(){
 
 function renderGrid(){
   var list=actFilter==='tous'?activites:activites.filter(a=>a.categorie===actFilter);
-  list=filterBySaison(list);
+  list=filterByPeriode(list);
   if(!list.length){document.getElementById('act-grid').innerHTML='<div class="empty">Aucune activité</div>';return;}
   document.getElementById('act-grid').innerHTML=list.map(a=>{
     var allInsc=inscriptions.filter(i=>(i.activiteId||i.activite_id)===a.id);
@@ -1171,7 +1138,7 @@ function switchPlanTab(tab){
 function getPlanList(){
   var archiveStatuts=['realise','annule'];
   var list=activites.filter(function(a){return currentTab==='archives'?archiveStatuts.includes(a.statut):!archiveStatuts.includes(a.statut);});
-  list=filterBySaison(list);
+  list=filterByPeriode(list);
   if(searchVal){var sv=searchVal.toLowerCase();list=list.filter(function(a){return (a.nom||'').toLowerCase().includes(sv)||(a.lieu||'').toLowerCase().includes(sv);});}
   return list.sort(function(a,b){return a.date>b.date?1:-1;});
 }
@@ -1340,9 +1307,6 @@ async function loadAllData(){
   }
   if(typeof FriCats!=='undefined'&&typeof FriCats.loadAndFill==='function')await FriCats.loadAndFill('f-cat','f-souscat');
   autoUpdateStatuts();
-  var stored=getSaisonStorage();if(stored&&stored.length===saisons.length)saisons=stored;
-  saisonActive=detectSaisonCourante();
-  renderSaisonBar();
   renderAct();
   renderPlanList();
 }
@@ -1412,8 +1376,8 @@ function campOpenCreate(){
   document.getElementById('cc-periode').value='';
   document.getElementById('cc-deadline').value='';
   document.getElementById('cc-message').value='';
-  document.getElementById('camp-preview-link').textContent='https://fritimegruyere.ch/inscription?id=XXX';
-  document.getElementById('mCampCreate').style.display='flex';
+  document.getElementById('camp-preview-link').textContent='https://fritime-intyamon-1t2w.vercel.app/fritime_inscription_publique.html?id=XXX';
+  document.getElementById('mCampCreate').classList.add('open');
 }
 
 function campOpenEdit(id){
@@ -1427,12 +1391,12 @@ function campOpenEdit(id){
   document.getElementById('cc-periode').value=c.periode||'';
   document.getElementById('cc-deadline').value=c.deadline||'';
   document.getElementById('cc-message').value=c.message||'';
-  document.getElementById('camp-preview-link').textContent='https://fritimegruyere.ch/inscription?id='+id;
+  document.getElementById('camp-preview-link').textContent='https://fritime-intyamon-1t2w.vercel.app/fritime_inscription_publique.html?id='+id;
   campRenderActivitesCheckboxes(c.activites||[]);
-  document.getElementById('mCampCreate').style.display='flex';
+  document.getElementById('mCampCreate').classList.add('open');
 }
 
-function campCloseMCreate(){document.getElementById('mCampCreate').style.display='none';}
+function campCloseMCreate(){document.getElementById('mCampCreate').classList.remove('open');}
 
 async function campSaveCampaign(statut){
   var titre=document.getElementById('cc-titre').value.trim();
@@ -1459,10 +1423,10 @@ async function campDeleteCampaign(){
 }
 
 function campCopyLink(){var t=document.getElementById('camp-preview-link').textContent;navigator.clipboard.writeText(t).then(function(){alert('Lien copié !');}).catch(function(){alert('Lien : '+t);});}
-function campCopyFormLink(id){var t='https://fritimegruyere.ch/inscription?id='+id;navigator.clipboard.writeText(t).then(function(){alert('Lien copié !');}).catch(function(){alert('Lien : '+t);});}
+function campCopyFormLink(id){var t='https://fritime-intyamon-1t2w.vercel.app/fritime_inscription_publique.html?id='+id;navigator.clipboard.writeText(t).then(function(){alert('Lien copié !');}).catch(function(){alert('Lien : '+t);});}
 
-function campOpenEnvoi(id){campEnvoiTargetId=id;document.getElementById('mCampEnvoi').style.display='flex';}
-function campCloseMEnvoi(){document.getElementById('mCampEnvoi').style.display='none';}
+function campOpenEnvoi(id){campEnvoiTargetId=id;document.getElementById('mCampEnvoi').classList.add('open');}
+function campCloseMEnvoi(){document.getElementById('mCampEnvoi').classList.remove('open');}
 
 async function campConfirmEnvoi(){
   var campaign=campaigns.find(function(c){return c.id===campEnvoiTargetId;});if(!campaign)return;
@@ -1511,11 +1475,11 @@ function campOpenDetail(id){
     +'</tr></thead><tbody>'+acts+'</tbody></table></div>':'')
     +'<div style="margin-top:1rem;padding-top:1rem;border-top:1px solid #eee"><div style="font-size:12px;color:#888;margin-bottom:6px">Lien du formulaire</div>'
     +'<div style="background:#f5f5f3;border-radius:8px;padding:10px 12px;font-size:12px;font-family:monospace;display:flex;align-items:center;justify-content:space-between;gap:8px;word-break:break-all">'
-    +'<span>https://fritimegruyere.ch/inscription?id='+c.id+'</span><button class="btn btn-sm" onclick="campCopyFormLink('+c.id+')">📋 Copier</button></div></div>'
+    +'<span>https://fritime-intyamon-1t2w.vercel.app/fritime_inscription_publique.html?id='+c.id+'</span><button class="btn btn-sm" onclick="campCopyFormLink('+c.id+')">📋 Copier</button></div></div>'
     +'<div style="display:flex;justify-content:space-between;align-items:center;margin-top:1.25rem;padding-top:1rem;border-top:1px solid #eee">'
     +'<div style="display:flex;gap:8px"><button class="btn btn-sm" onclick="campCloseMDetail();campOpenEdit('+c.id+')">✏️ Modifier</button><button class="btn btn-sm" style="color:#c0392b;border-color:#c0392b" onclick="campCloseMDetail();campConfirmDeleteCampaign('+c.id+')">🗑️ Supprimer</button></div>'
     +'<button class="btn btn-primary btn-sm" onclick="campCloseMDetail()">Fermer</button></div>';
-  document.getElementById('mCampDetail').style.display='flex';
+  document.getElementById('mCampDetail').classList.add('open');
 }
 
 function campConfirmDeleteCampaign(id){
@@ -1525,7 +1489,7 @@ function campConfirmDeleteCampaign(id){
     if(typeof FriDB!=='undefined')FriDB.query('campagnes','DELETE',null,'?id=eq.'+id).catch(function(e){console.warn(e);});
   }
 }
-function campCloseMDetail(){document.getElementById('mCampDetail').style.display='none';}
+function campCloseMDetail(){document.getElementById('mCampDetail').classList.remove('open');}
 
 function campRenderAll(){campRenderMetrics();campRenderCampaigns();}
 
