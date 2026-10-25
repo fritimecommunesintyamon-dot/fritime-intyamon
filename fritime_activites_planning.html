@@ -373,6 +373,7 @@ textarea{resize:vertical;min-height:80px}
 <div id="mCampEnvoi" class="overlay" onclick="if(event.target.id==='mCampEnvoi')campCloseMEnvoi()">
 <div class="modal" style="max-width:460px" onclick="event.stopPropagation()">
   <div class="modal-title">Confirmer l'envoi à l'école</div>
+  <div class="modal-body">
   <div style="background:#eaf3de;color:#275a0a;border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:1rem;line-height:1.5">Le lien du formulaire sera copié et prêt à être transmis à l'administration scolaire. L'école se charge de la diffusion aux ~470 élèves.</div>
   <div style="margin-bottom:.75rem"><label style="font-size:12px;color:#666;margin-bottom:4px;display:block">Email de l'école</label>
     <input style="width:100%;padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit" id="camp-envoi-email" placeholder="secretariat@ecole-bulle.ch">
@@ -388,6 +389,7 @@ Le comité Fri-Time</textarea>
   <div style="display:flex;justify-content:space-between;align-items:center;margin-top:1.25rem;padding-top:1rem;border-top:1px solid #eee">
     <button class="btn" onclick="campCloseMEnvoi()">Annuler</button>
     <button class="btn btn-primary" onclick="campConfirmEnvoi()">📧 Confirmer l'envoi</button>
+  </div>
   </div>
 </div>
 </div>
