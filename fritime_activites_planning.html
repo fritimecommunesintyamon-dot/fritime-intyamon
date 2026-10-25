@@ -349,8 +349,18 @@ textarea{resize:vertical;min-height:80px}
         </select>
       </div>
       <div class="sec"><label>Participation enfants (CHF)</label><input type="number" id="f-cout-participant" placeholder="0 = gratuit"></div>
-      <div class="sec"><label>Prestataire</label><select id="f-prest"><option value="">Aucun</option></select></div>
-      <div class="sec"><label>Responsable</label><input id="f-resp" placeholder="Nom du responsable"></div>
+      <div class="sec"><label>Prestataire</label>
+        <div style="display:flex;gap:6px;align-items:center">
+          <select id="f-prest" style="flex:1"><option value="">Aucun</option></select>
+          <button type="button" class="btn btn-outline btn-sm" onclick="openAddPrest()" style="white-space:nowrap">+ Ajouter</button>
+        </div>
+      </div>
+      <div class="sec"><label>Responsable</label>
+        <select id="f-resp-select" onchange="onRespSelectChange()" style="margin-bottom:4px">
+          <option value="">— Saisir manuellement —</option>
+        </select>
+        <input id="f-resp" placeholder="Nom du responsable">
+      </div>
       <div class="fg">
         <div class="sec"><label>Âge min</label><input type="number" id="f-age-min" placeholder="ex: 6"></div>
         <div class="sec"><label>Âge max</label><input type="number" id="f-age-max" placeholder="ex: 12"></div>
@@ -358,8 +368,16 @@ textarea{resize:vertical;min-height:80px}
       <div class="sec"><label>Description</label><textarea id="f-desc" rows="3" placeholder="Description de l'activité…"></textarea></div>
       <div class="sec"><label>Notes internes</label><textarea id="f-notes" rows="2" placeholder="Notes privées…"></textarea></div>
       <div class="sec"><label>Lien inscription</label><input id="f-lien" placeholder="https://…"></div>
-      <div class="sec"><label>Photo (URL)</label><input id="f-photo" placeholder="https://…" oninput="previewPhoto(this.value)">
-        <img id="f-photo-prev" class="img-preview" style="display:none;max-height:120px">
+      <div class="sec"><label>Photo</label>
+        <div style="display:flex;gap:6px;align-items:center;margin-bottom:4px">
+          <label class="btn btn-outline btn-sm" style="cursor:pointer;white-space:nowrap">
+            📷 Uploader
+            <input type="file" id="f-photo-file" accept="image/*" style="display:none" onchange="uploadPhotoFile(this)">
+          </label>
+          <span id="f-photo-upload-status" style="font-size:12px;color:#666"></span>
+        </div>
+        <input id="f-photo" placeholder="https://… (ou uploader ci-dessus)" oninput="previewPhoto(this.value)">
+        <img id="f-photo-prev" class="img-preview" style="display:none;max-height:120px;margin-top:6px">
       </div>
       <div class="sec" id="f-publique-sec">
         <div class="toggle-row">
@@ -387,6 +405,35 @@ textarea{resize:vertical;min-height:80px}
       </div>
     </div>
     <div class="modal-body" id="det"></div>
+  </div>
+</div>
+
+<!-- ═══════════ MODAL AJOUTER PRESTATAIRE ═══════════ -->
+<div class="overlay" id="mAddPrest">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-title">
+      <span>Nouveau prestataire</span>
+      <button class="btn btn-outline btn-sm" onclick="closeOverlay('mAddPrest')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="sec"><label>Nom *</label><input id="np-nom" placeholder="Nom du prestataire"></div>
+      <div class="sec"><label>Type</label>
+        <select id="np-type">
+          <option value="">— Choisir —</option>
+          <option value="personne">Personne physique</option>
+          <option value="entreprise">Entreprise</option>
+          <option value="association">Association</option>
+          <option value="commune">Commune</option>
+          <option value="autre">Autre</option>
+        </select>
+      </div>
+      <div class="sec"><label>Email</label><input type="email" id="np-email" placeholder="contact@…"></div>
+      <div class="sec"><label>Téléphone</label><input type="tel" id="np-tel" placeholder="+41…"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeOverlay('mAddPrest')">Annuler</button>
+      <button class="btn btn-primary" onclick="confirmerAddPrest()" id="np-save-btn">Créer</button>
+    </div>
   </div>
 </div>
 
@@ -513,7 +560,9 @@ function openCreate(editing){
       document.getElementById('f-hdeb').value=a.heureDebut||'';
       document.getElementById('f-hfin').value=a.heureFin||'';
       document.getElementById('f-lieu').value=a.lieu||'';
+      fillRespSelect();
       document.getElementById('f-resp').value=a.responsable_nom||'';
+      document.getElementById('f-resp-select').value=(a.responsable_nom&&membres.find(function(m){return(m.prenom+' '+m.nom).trim()===a.responsable_nom;}))?a.responsable_nom:'';
       document.getElementById('f-desc').value=a.desc||'';
       document.getElementById('f-lien').value='';
       document.getElementById('f-photo').value=a.image||'';
@@ -529,6 +578,7 @@ function openCreate(editing){
       _publique=a.tPublic||false;
       _currentStatut=a.statut||'brouillon';
       _tMeteo=a.tMeteo||false;
+      document.getElementById('f-photo-upload-status').textContent='';
       previewPhoto(a.image||'');
       fillCatSelect();
       setTimeout(()=>{
@@ -543,11 +593,14 @@ function openCreate(editing){
     document.getElementById('f-hdeb').value='';
     document.getElementById('f-hfin').value='';
     document.getElementById('f-lieu').value='';
+    fillRespSelect();
+    document.getElementById('f-resp-select').value='';
     document.getElementById('f-resp').value='';
     document.getElementById('f-desc').value='';
     document.getElementById('f-notes').value='';
     document.getElementById('f-lien').value='';
     document.getElementById('f-photo').value='';
+    document.getElementById('f-photo-upload-status').textContent='';
     document.getElementById('f-places').value='';
     document.getElementById('f-cout').value='';
     document.getElementById('f-cout-facture').value='commune';
@@ -576,6 +629,84 @@ async function addCat(){ await FriCats.addCategorie("f-new-cat-val","f-cat","f-s
 function fillPrestSelect(){
   var s=document.getElementById('f-prest');
   s.innerHTML='<option value="">Aucun</option>'+prestataires.map(p=>`<option value="${p.id}">${esc(p.nom)}</option>`).join('');
+}
+
+function openAddPrest(){
+  document.getElementById('np-nom').value='';
+  document.getElementById('np-type').value='';
+  document.getElementById('np-email').value='';
+  document.getElementById('np-tel').value='';
+  document.getElementById('np-save-btn').disabled=false;
+  document.getElementById('np-save-btn').textContent='Créer';
+  document.getElementById('mAddPrest').style.display='flex';
+}
+
+async function confirmerAddPrest(){
+  var nom=document.getElementById('np-nom').value.trim();
+  if(!nom){alert('Le nom est obligatoire.');return;}
+  var btn=document.getElementById('np-save-btn');
+  btn.disabled=true;btn.textContent='Création…';
+  var obj={nom:nom};
+  var t=document.getElementById('np-type').value;
+  var e=document.getElementById('np-email').value.trim();
+  var tel=document.getElementById('np-tel').value.trim();
+  if(t)obj.type=t;
+  if(e)obj.email=e;
+  if(tel)obj.tel=tel;
+  try{
+    var res=await FriDB.query('prestataires','POST',obj,'');
+    var newPrest=Array.isArray(res)?res[0]:res;
+    if(newPrest&&newPrest.id){
+      prestataires.push(newPrest);
+      fillPrestSelect();
+      document.getElementById('f-prest').value=newPrest.id;
+    }
+    closeOverlay('mAddPrest');
+  }catch(e2){
+    btn.disabled=false;btn.textContent='Créer';
+    alert('Erreur lors de la création : '+e2.message);
+  }
+}
+
+function fillRespSelect(){
+  var s=document.getElementById('f-resp-select');
+  if(!s)return;
+  s.innerHTML='<option value="">— Saisir manuellement —</option>'
+    +membres.map(function(m){var n=(m.prenom||'')+' '+(m.nom||'');return`<option value="${esc(n.trim())}">${esc(n.trim())}</option>`;}).join('');
+}
+
+function onRespSelectChange(){
+  var v=document.getElementById('f-resp-select').value;
+  if(v)document.getElementById('f-resp').value=v;
+}
+
+async function uploadPhotoFile(input){
+  var file=input.files[0];
+  if(!file)return;
+  var status=document.getElementById('f-photo-upload-status');
+  status.textContent='Upload en cours…';
+  var ext=file.name.split('.').pop().toLowerCase()||'jpg';
+  var fname='activites/'+Date.now()+'.'+ext;
+  try{
+    var resp=await fetch('https://pixktldfpjtnimngvgqz.supabase.co/storage/v1/object/photos/'+fname,{
+      method:'POST',
+      headers:{
+        'apikey':'sb_publishable_ZV04eYw85SDFQi43SwZJTg_igofPU8X',
+        'Authorization':'Bearer sb_publishable_ZV04eYw85SDFQi43SwZJTg_igofPU8X',
+        'Content-Type':file.type||'image/jpeg'
+      },
+      body:file
+    });
+    if(!resp.ok){var e2=await resp.text();throw new Error(e2);}
+    var publicUrl='https://pixktldfpjtnimngvgqz.supabase.co/storage/v1/object/public/photos/'+fname;
+    document.getElementById('f-photo').value=publicUrl;
+    previewPhoto(publicUrl);
+    status.textContent='✅ Photo uploadée';
+    input.value='';
+  }catch(err){
+    status.textContent='❌ Erreur : '+err.message;
+    console.warn('uploadPhotoFile err:',err);
+  }
 }
 
 function selectStatut(s){_currentStatut=s;_tMeteo=false;updateStatutBtns();updateMeteoUI();}
