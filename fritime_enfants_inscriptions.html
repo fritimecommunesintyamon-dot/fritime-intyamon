@@ -348,9 +348,6 @@ function doLogout(){sessionStorage.removeItem("ft_user");window.location.href="f
 <!-- ===================== SECTION INSCRIPTIONS ===================== -->
 <div class="module-section" id="section-inscriptions">
 
-<!-- DEBUG TEMPORAIRE — à supprimer après diagnostic -->
-<div id="debug-log" style="background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:8px 12px;font-size:12px;color:#856404;margin-bottom:4px"></div>
-<div id="debug-bar" style="background:#fff8e1;border:1px solid #ffc107;border-radius:8px;padding:8px 12px;font-size:12px;color:#856404;margin-bottom:10px"></div>
 
 <!-- Boutons actions inscriptions -->
 <div style="display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap">
@@ -1185,36 +1182,27 @@ function mapInscription(item){
   return m;
 }
 
-function dbg(msg){var el=document.getElementById("debug-log");if(el)el.innerHTML=(el.innerHTML?el.innerHTML+"<br>":"")+msg;}
-
 async function loadAllData(){
-  dbg("▶ loadAllData démarré");
-  try{await friOfflineInit();}catch(ex){dbg("⚠ friOfflineInit erreur: "+ex.message);}
-  try{updateOfflineBar();}catch(ex){dbg("⚠ updateOfflineBar erreur: "+ex.message);}
+  await friOfflineInit();
+  updateOfflineBar();
   var a=0;
   while(typeof FriDB==='undefined'&&a<30){await new Promise(function(r){setTimeout(r,100);});a++;}
-  dbg("FriDB défini: "+(typeof FriDB!=='undefined')+" | En ligne: "+navigator.onLine+" | Attente: "+a+"×100ms");
   if(!navigator.onLine||typeof FriDB==='undefined'){
-    dbg("⚠️ Mode hors-ligne ou FriDB absent — lecture du cache");
     var c_act=await friCacheGet('activites'),c_enf=await friCacheGet('enfants'),c_ins=await friCacheGet('inscriptions');
     if(c_act)activites=c_act;
     if(c_enf)enfants=c_enf;
     if(c_ins)inscriptions=c_ins.map(mapInscription);
-    dbg("Cache: act="+activites.length+" enf="+enfants.length+" ins="+inscriptions.length);
     pickBestActId();
     calcPartsFromInscriptions();renderEnfants();renderAll();return;
   }
   try{
-    dbg("→ Chargement Supabase en cours...");
     var results=await Promise.all([FriDB.getActivites(),FriDB.getEnfants(),FriDB.getInscriptions()]);
-    dbg("✅ Supabase OK — act="+((results[0]||[]).length)+" enf="+((results[1]||[]).length)+" ins="+((results[2]||[]).length));
     if(results[0]&&results[0].length){activites=results[0];await friCacheSet('activites',activites);}
     if(results[1]&&results[1].length){enfants=results[1];await friCacheSet('enfants',enfants);}
     if(results[2]&&results[2].length){inscriptions=results[2].map(mapInscription);await friCacheSet('inscriptions',results[2]);}
     pickBestActId();
     calcPartsFromInscriptions();renderEnfants();renderAll();
   }catch(e){
-    dbg("❌ Erreur Supabase: "+e.message);
     console.warn('[Load] erreur, fallback cache:',e);
     var c2_act=await friCacheGet('activites'),c2_enf=await friCacheGet('enfants'),c2_ins=await friCacheGet('inscriptions');
     if(c2_act)activites=c2_act;
@@ -1228,7 +1216,6 @@ async function loadAllData(){
 // Render initial (sans données)
 renderEnfants();
 renderAll();
-loadAllData();
 </script>
 
 <!-- ===================== MODULE OFFLINE ===================== -->
@@ -1266,6 +1253,7 @@ async function friSyncQueue(){
 }
 window.addEventListener('online',function(){updateOfflineBar();friSyncQueue();});
 window.addEventListener('offline',function(){updateOfflineBar();});
+loadAllData();
 </script>
 
 <script>
