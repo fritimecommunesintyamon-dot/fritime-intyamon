@@ -486,6 +486,8 @@ Le comité Fri-Time</textarea>
         </div>
       </div>
     </div>
+      <div id="act-form-error" style="display:none;background:#fdf0f0;border:1px solid #f4c0c0;border-radius:8px;padding:10px 14px;font-size:13px;color:#7a1f1f;margin-top:.75rem;line-height:1.6"></div>
+    </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeCreate()">Annuler</button>
       <button class="btn btn-primary" onclick="saveActivite()">Enregistrer</button>
@@ -789,7 +791,7 @@ function openCreate(editing){
   openOverlay('mCreate');
 }
 
-function closeCreate(){closeOverlay('mCreate');renderAct();}
+function closeCreate(){var eb=document.getElementById('act-form-error');if(eb)eb.style.display='none';closeOverlay('mCreate');renderAct();}
 
 function fillCatSelect(){ FriCats.fillCatSelect("f-cat"); }
 async function addCat(){ await FriCats.addCategorie("f-new-cat-val","f-cat","f-souscat","f-new-cat"); }
@@ -913,7 +915,41 @@ function previewPhoto(url){
 async function saveActivite(){
   var nom=document.getElementById('f-titre').value.trim();
   var date=document.getElementById('f-date').value;
-  if(!nom||!date){alert('Titre et date requis');return;}
+  var hdeb=document.getElementById('f-hdeb').value;
+  var hfin=document.getElementById('f-hfin').value;
+  var lieu=document.getElementById('f-lieu').value.trim();
+  var cat=document.getElementById('f-cat').value;
+  var places=document.getElementById('f-places').value;
+  var cout=document.getElementById('f-cout').value;
+  var coutParticipant=document.getElementById('f-cout-participant').value;
+  var resp=document.getElementById('f-resp').value.trim();
+  var ageMin=document.getElementById('f-age-min').value;
+  var ageMax=document.getElementById('f-age-max').value;
+  var desc=document.getElementById('f-desc').value.trim();
+  var photo=document.getElementById('f-photo').value.trim();
+  var erreurs=[];
+  if(!nom) erreurs.push('Le <strong>titre</strong> est obligatoire.');
+  if(!date) erreurs.push('La <strong>date</strong> est obligatoire.');
+  if(!hdeb) erreurs.push('L\'<strong>heure de début</strong> est obligatoire.');
+  if(!hfin) erreurs.push('L\'<strong>heure de fin</strong> est obligatoire.');
+  if(!lieu) erreurs.push('Le <strong>lieu</strong> est obligatoire.');
+  if(!cat) erreurs.push('La <strong>catégorie</strong> est obligatoire.');
+  if(places===''||places===null) erreurs.push('Le <strong>nombre de places</strong> est obligatoire (mettre 0 si illimité).');
+  if(cout===''||cout===null) erreurs.push('Le <strong>coût comité</strong> est obligatoire (mettre 0 si gratuit).');
+  if(coutParticipant===''||coutParticipant===null) erreurs.push('La <strong>participation enfants</strong> est obligatoire (mettre 0 si gratuit).');
+  if(!resp) erreurs.push('Le <strong>responsable</strong> est obligatoire.');
+  if(ageMin===''||ageMin===null) erreurs.push('L\'<strong>âge minimum</strong> est obligatoire.');
+  if(ageMax===''||ageMax===null) erreurs.push('L\'<strong>âge maximum</strong> est obligatoire.');
+  if(!desc) erreurs.push('La <strong>description</strong> est obligatoire.');
+  if(!photo) erreurs.push('La <strong>photo</strong> est obligatoire (uploader ou saisir un lien).');
+  var errBox=document.getElementById('act-form-error');
+  if(erreurs.length){
+    errBox.innerHTML='⚠️ Merci de compléter les champs suivants :<ul style="margin:.5rem 0 0 1rem;padding:0">'+erreurs.map(function(e){return'<li>'+e+'</li>';}).join('')+'</ul>';
+    errBox.style.display='block';
+    errBox.scrollIntoView({behavior:'smooth',block:'nearest'});
+    return;
+  }
+  errBox.style.display='none';
   var data={
     nom:nom,date:date,
     heure_debut:document.getElementById('f-hdeb').value||null,
