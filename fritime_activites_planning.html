@@ -1475,13 +1475,11 @@ function campOpenEnvoi(id){
   campEnvoiTargetId=id;
   var camp=campaigns.find(function(c){return c.id===id;})||{};
   var lien='https://fritime-intyamon-1t2w.vercel.app/fritime_inscription_publique.html?id='+id;
-  var dlLine=camp.deadline?'\nDate limite d\'inscription : '+fd(camp.deadline)+'\n':'';
   var msgKlapp=
     'Chers parents,\n'+
     'Les inscriptions aux activités Fri-Time sont ouvertes !\n\n'+
     'Qu\'est-ce que Fri-Time ? C\'est un projet cantonal, arrivé dans la vallée de l\'Intyamon en 2026, qui propose des activités extra-scolaires aux enfants scolarisés. Notre objectif : offrir à chaque enfant de l\'Intyamon la possibilité de découvrir de nouvelles activités, sur un pied d\'égalité. Les activités sont proposées dans la mesure du possible de manière gratuite, afin que chaque enfant puisse y participer dans les mêmes conditions.\n\n'+
-    'Les activités sont ponctuelles : chaque activité n\'a lieu qu\'une seule fois et les places sont limitées. L\'inscription est obligatoire pour y participer.\n'+
-    dlLine+
+    'Les activités sont ponctuelles : chaque activité n\'a lieu qu\'une seule fois et les places sont limitées. L\'inscription est obligatoire pour y participer. Au minimum 12 activités vous sont proposées chaque année.\n\n'+
     'Pour inscrire votre enfant, rendez-vous ici :\n'+
     lien+'\n\n'+
     'Nous vous souhaitons beaucoup de plaisir à la découverte du programme !\n'+
