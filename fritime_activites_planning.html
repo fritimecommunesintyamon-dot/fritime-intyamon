@@ -692,6 +692,24 @@ async function changeStatut(id,statut){
   closeDetail();renderAct();
 }
 async function changeStatutMeteo(id){
+  var a=activites.find(function(x){return x.id===id;});
+  if(!a)return;
+  var confirmes=inscriptions.filter(function(i){
+    return String(i.activiteId||i.activite_id)===String(id)&&i.statut==='confirme';
+  });
+  var nbMails=confirmes.length;
+  var msg='🌧️ Annulation pour cause de mauvais temps\n\n'
+    +'Activité : '+a.nom+'\n\n'
+    +'Ce qui va se passer :\n'
+    +'• Le statut de l\'activité passera à "Annulé"\n'
+    +'• Le flag météo sera activé\n';
+  if(nbMails>0){
+    msg+='• Un email d\'annulation sera envoyé automatiquement à '+nbMails+' participant'+(nbMails>1?'s':'')+' confirmé'+(nbMails>1?'s':'')+'\n';
+  } else {
+    msg+='• Aucun participant confirmé — aucun email ne sera envoyé\n';
+  }
+  msg+='\nCette action est irréversible. Confirmer ?';
+  if(!confirm(msg))return;
   try{await FriDB.query('activites','PATCH',{statut:'annule',t_meteo:true},'?id=eq.'+id);}catch(e){console.warn(e);}
   var idx=activites.findIndex(function(a){return a.id===id;});
   if(idx>=0){activites[idx].statut='annule';activites[idx].tMeteo=true;}
