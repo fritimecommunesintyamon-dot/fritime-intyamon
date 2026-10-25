@@ -856,7 +856,7 @@ async function loadAllData(){
     enfants=await friCacheGet('enfants')||[];
     prestataires=await friCacheGet('prestataires')||[];
   }
-  if(typeof FriCats!=='undefined')await FriCats.load();
+  if(typeof FriCats!=='undefined'&&typeof FriCats.loadAndFill==='function')await FriCats.loadAndFill('f-cat','f-souscat');
   renderAct();
   renderPlanList();
 }
