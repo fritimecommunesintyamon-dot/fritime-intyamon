@@ -352,7 +352,8 @@ textarea{resize:vertical;min-height:80px}
       <button class="btn btn-sm" onclick="campCopyLink()">📋 Copier</button>
     </div>
   </div>
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:1.25rem;padding-top:1rem;border-top:1px solid #eee">
+  <div id="camp-form-error" style="display:none;background:#fdf0f0;border:1px solid #f4c0c0;border-radius:8px;padding:10px 14px;font-size:13px;color:#7a1f1f;margin-top:.75rem;line-height:1.6"></div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:1rem;padding-top:1rem;border-top:1px solid #eee">
     <button class="btn btn-sm" id="camp-c-del-btn" style="display:none;color:#7a1f1f;border-color:#f4c0c0" onclick="campDeleteCampaign()">Supprimer</button>
     <div style="display:flex;gap:8px">
       <button class="btn" onclick="campCloseMCreate()">Annuler</button>
@@ -1396,12 +1397,29 @@ function campOpenEdit(id){
   document.getElementById('mCampCreate').classList.add('open');
 }
 
-function campCloseMCreate(){document.getElementById('mCampCreate').classList.remove('open');}
+function campCloseMCreate(){document.getElementById('mCampCreate').classList.remove('open');var e=document.getElementById('camp-form-error');if(e)e.style.display='none';}
 
 async function campSaveCampaign(statut){
   var titre=document.getElementById('cc-titre').value.trim();
-  if(!titre){alert('Le titre est obligatoire');return;}
-  var data={titre:titre,type:document.getElementById('cc-type').value,periode:document.getElementById('cc-periode').value.trim(),deadline:document.getElementById('cc-deadline').value,message:document.getElementById('cc-message').value.trim(),activites:campGetSelectedActivites(),statut:statut};
+  var periode=document.getElementById('cc-periode').value.trim();
+  var deadline=document.getElementById('cc-deadline').value;
+  var message=document.getElementById('cc-message').value.trim();
+  var actsSelected=campGetSelectedActivites();
+  var erreurs=[];
+  if(!titre)erreurs.push('Le <strong>titre</strong> est obligatoire.');
+  if(!periode)erreurs.push('La <strong>période</strong> est obligatoire (ex : Automne 2025).');
+  if(!deadline)erreurs.push('La <strong>date limite</strong> d\'inscription est obligatoire.');
+  if(!message)erreurs.push('Le <strong>message</strong> pour les familles est obligatoire.');
+  if(!actsSelected.length)erreurs.push('Sélectionne au moins <strong>une activité</strong>.');
+  var errBox=document.getElementById('camp-form-error');
+  if(erreurs.length){
+    errBox.innerHTML='⚠️ Merci de compléter les champs suivants :<ul style="margin:.5rem 0 0 1rem;padding:0">'+erreurs.map(function(e){return'<li>'+e+'</li>';}).join('')+'</ul>';
+    errBox.style.display='block';
+    errBox.scrollIntoView({behavior:'smooth',block:'nearest'});
+    return;
+  }
+  errBox.style.display='none';
+  var data={titre:titre,type:document.getElementById('cc-type').value,periode:periode,deadline:deadline,message:message,activites:actsSelected,statut:statut};
   if(campEditId){
     campaigns=campaigns.map(function(c){return c.id===campEditId?Object.assign({},c,data):c;});
     if(typeof FriDB!=='undefined')try{await FriDB.quickSave('campagnes',Object.assign({id:campEditId},data));}catch(e){console.warn(e);}
