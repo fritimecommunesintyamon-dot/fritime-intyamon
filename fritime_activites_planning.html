@@ -269,8 +269,18 @@ textarea{resize:vertical;min-height:80px}
   </div>
 
   <!-- ═══════════════ MODULE CAMPAGNES ═══════════════ -->
-  <div id="mod-campagnes" style="display:none;height:calc(100vh - 100px)">
-    <iframe id="iframe-campagnes" src="" style="width:100%;height:100%;border:none;display:block" allowfullscreen></iframe>
+  <div id="mod-campagnes" style="display:none">
+    <div class="container">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem">
+        <div><h1 style="font-size:20px;font-weight:600">📧 Campagnes</h1><div style="font-size:13px;color:#666;margin-top:2px">Annonces et formulaires d'inscription — Fri-Time</div></div>
+        <button class="btn btn-primary" onclick="campOpenCreate()">+ Nouvelle campagne</button>
+      </div>
+      <div style="background:#e6f1fb;color:#0c447c;border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:1rem;line-height:1.5">
+        Le lien généré pour chaque campagne est transmis par l'école à tous les élèves (~470). Les familles remplissent le formulaire directement en ligne. Les inscriptions arrivent automatiquement dans le module Inscriptions.
+      </div>
+      <div id="camp-metrics" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.5rem"></div>
+      <div id="camp-campaigns-list"></div>
+    </div>
   </div>
 
   <!-- ═══════════════ MODULE PLANNING ═══════════════ -->
@@ -295,6 +305,76 @@ textarea{resize:vertical;min-height:80px}
       </div>
     </div>
   </div>
+</div>
+
+<!-- ═══════════ MODAUX CAMPAGNES ═══════════ -->
+<div id="mCampCreate" class="overlay" onclick="if(event.target.id==='mCampCreate')campCloseMCreate()" style="display:none">
+<div class="modal" onclick="event.stopPropagation()">
+  <div class="modal-title" id="camp-create-title">Nouvelle campagne</div>
+  <div style="font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.06em;margin:.5rem 0 .75rem;padding-top:.5rem;border-top:1px solid #eee">Informations</div>
+  <div style="margin-bottom:.75rem"><label style="font-size:12px;color:#666;margin-bottom:4px;display:block">Titre de la campagne *</label>
+    <input style="width:100%;padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit" id="cc-titre" placeholder="Ex: Inscription activités printemps 2026">
+  </div>
+  <div style="margin-bottom:.75rem"><label style="font-size:12px;color:#666;margin-bottom:4px;display:block">Type</label>
+    <select style="width:100%;padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit" id="cc-type">
+      <option value="inscription">Formulaire d'inscription</option>
+      <option value="annonce">Annonce d'activités</option>
+      <option value="bilan">Bilan semestriel</option>
+      <option value="mixte">Mixte (annonce + inscription)</option>
+    </select>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:.75rem">
+    <div><label style="font-size:12px;color:#666;margin-bottom:4px;display:block">Période</label><input style="width:100%;padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit" id="cc-periode" placeholder="Ex: Printemps 2026"></div>
+    <div><label style="font-size:12px;color:#666;margin-bottom:4px;display:block">Date limite inscription</label><input type="date" style="width:100%;padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit" id="cc-deadline"></div>
+  </div>
+  <div style="margin-bottom:.75rem"><label style="font-size:12px;color:#666;margin-bottom:4px;display:block">Message d'introduction</label>
+    <textarea style="width:100%;padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit;resize:vertical;min-height:80px" id="cc-message" rows="3" placeholder="Bonjour, nous avons le plaisir de vous annoncer..."></textarea>
+  </div>
+  <div style="font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.06em;margin:1rem 0 .75rem;padding-top:1rem;border-top:1px solid #eee">Activités incluses</div>
+  <div id="camp-activites-checkboxes"></div>
+  <div style="font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.06em;margin:1rem 0 .75rem;padding-top:1rem;border-top:1px solid #eee">Aperçu du lien</div>
+  <div style="margin-bottom:.75rem">
+    <label style="font-size:12px;color:#666;margin-bottom:4px;display:block">Le lien suivant sera transmis à l'école pour diffusion</label>
+    <div style="background:#f5f5f3;border-radius:8px;padding:10px 12px;font-size:12px;font-family:monospace;display:flex;align-items:center;justify-content:space-between;gap:8px;word-break:break-all">
+      <span id="camp-preview-link">https://fritimegruyere.ch/inscription?id=XXX</span>
+      <button class="btn btn-sm" onclick="campCopyLink()">📋 Copier</button>
+    </div>
+  </div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:1.25rem;padding-top:1rem;border-top:1px solid #eee">
+    <button class="btn btn-sm" id="camp-c-del-btn" style="display:none;color:#7a1f1f;border-color:#f4c0c0" onclick="campDeleteCampaign()">Supprimer</button>
+    <div style="display:flex;gap:8px">
+      <button class="btn" onclick="campCloseMCreate()">Annuler</button>
+      <button class="btn" onclick="campSaveCampaign('brouillon')">Sauvegarder</button>
+      <button class="btn btn-primary" onclick="campSaveCampaign('pret')">✓ Marquer comme prêt</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<div id="mCampDetail" class="overlay" onclick="if(event.target.id==='mCampDetail')campCloseMDetail()" style="display:none">
+<div class="modal" onclick="event.stopPropagation()"><div id="camp-detail-content"></div></div>
+</div>
+
+<div id="mCampEnvoi" class="overlay" onclick="if(event.target.id==='mCampEnvoi')campCloseMEnvoi()" style="display:none">
+<div class="modal" style="max-width:460px" onclick="event.stopPropagation()">
+  <div class="modal-title">Confirmer l'envoi à l'école</div>
+  <div style="background:#eaf3de;color:#275a0a;border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:1rem;line-height:1.5">Le lien du formulaire sera copié et prêt à être transmis à l'administration scolaire. L'école se charge de la diffusion aux ~470 élèves.</div>
+  <div style="margin-bottom:.75rem"><label style="font-size:12px;color:#666;margin-bottom:4px;display:block">Email de l'école</label>
+    <input style="width:100%;padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit" id="camp-envoi-email" placeholder="secretariat@ecole-bulle.ch">
+  </div>
+  <div style="margin-bottom:.75rem"><label style="font-size:12px;color:#666;margin-bottom:4px;display:block">Message d'accompagnement</label>
+    <textarea style="width:100%;padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit;resize:vertical;min-height:80px" id="camp-envoi-message" rows="3">Bonjour,
+
+Veuillez transmettre ce lien aux familles de vos élèves pour les inscriptions aux activités Fri-Time.
+
+Merci de votre collaboration,
+Le comité Fri-Time</textarea>
+  </div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:1.25rem;padding-top:1rem;border-top:1px solid #eee">
+    <button class="btn" onclick="campCloseMEnvoi()">Annuler</button>
+    <button class="btn btn-primary" onclick="campConfirmEnvoi()">📧 Confirmer l'envoi</button>
+  </div>
+</div>
 </div>
 
 <!-- ═══════════ MODAL CRÉER/MODIFIER ACTIVITÉ ═══════════ -->
@@ -507,12 +587,7 @@ function switchModuleTab(name){
   document.getElementById('mtab-activites').className='mod-tab'+(name==='activites'?' active':'');
   document.getElementById('mtab-planning').className='mod-tab'+(name==='planning'?' active':'');
   document.getElementById('mtab-campagnes').className='mod-tab'+(name==='campagnes'?' active':'');
-  if(name==='campagnes'){
-    var iframe=document.getElementById('iframe-campagnes');
-    if(!iframe.src||iframe.src==='about:blank'||iframe.src===''){
-      iframe.src='fritime_campagnes.html';
-    }
-  }
+  if(name==='campagnes'&&!campDataLoaded){campDataLoaded=true;loadCampagnesData();}
   location.hash=name;
 }
 
@@ -1173,8 +1248,206 @@ async function loadAllData(){
   renderPlanList();
 }
 
+// ═══ CAMPAGNES ═══
+var campDataLoaded=false;
+var campaigns=[], campEditId=null, campEnvoiTargetId=null, campNid=4;
+var campActivitesDispo=[];
+var CAMP_TYPE_LABELS={inscription:"Formulaire d'inscription",annonce:"Annonce",bilan:"Bilan semestriel",mixte:"Mixte"};
+
+function campRenderMetrics(){
+  document.getElementById('camp-metrics').innerHTML=[
+    {val:campaigns.length,lbl:'Total campagnes'},
+    {val:campaigns.filter(function(c){return c.statut==='envoye';}).length,lbl:'Envoyées'},
+    {val:campaigns.reduce(function(s,c){return s+(c.reponses||[]).length;},0),lbl:'Inscriptions reçues'},
+    {val:campaigns.filter(function(c){return c.statut==='pret';}).length,lbl:'Prêtes à envoyer'},
+  ].map(function(x){return'<div style="background:#fff;border-radius:10px;padding:12px;border:1px solid #eee;text-align:center"><div style="font-size:22px;font-weight:600">'+x.val+'</div><div style="font-size:11px;color:#888;margin-top:2px">'+x.lbl+'</div></div>';}).join('');
+}
+
+function campRenderCampaigns(){
+  var list=document.getElementById('camp-campaigns-list');
+  if(!campaigns.length){list.innerHTML='<div style="text-align:center;padding:2.5rem;color:#888;font-size:13px">Aucune campagne créée</div>';return;}
+  list.innerHTML=[].concat(campaigns).sort(function(a,b){return b.id-a.id;}).map(function(c){
+    var badgeColor={brouillon:'#f5f5f3',pret:'#faeeda',envoye:'#eaf3de',archive:'#eee'}[c.statut]||'#eee';
+    var badgeTxt={brouillon:'Brouillon',pret:'Prêt à envoyer',envoye:'Envoyé',archive:'Archivé'}[c.statut]||c.statut;
+    return'<div style="background:#fff;border:1px solid #eee;border-radius:12px;padding:1.25rem;margin-bottom:10px;cursor:pointer;'+(c.statut==='envoye'?'border-left:3px solid #275a0a':'')+'" onclick="campOpenDetail('+c.id+')">'
+      +'<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">'
+      +'<div><div style="font-size:15px;font-weight:600">'+(c.titre||'')+'</div><div style="font-size:12px;color:#888;margin-top:2px">'+(CAMP_TYPE_LABELS[c.type]||c.type||'')+(c.periode?' · '+c.periode:'')+'</div></div>'
+      +'<span style="font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500;background:'+badgeColor+'">'+badgeTxt+'</span>'
+      +'</div>'
+      +(c.message?'<div style="font-size:13px;color:#555;margin-bottom:10px;line-height:1.5">'+c.message.substring(0,120)+(c.message.length>120?'…':'')+'</div>':'')
+      +'<div style="font-size:12px;color:#888;display:flex;gap:12px;flex-wrap:wrap">'
+      +(c.deadline?'<span>📅 Limite : '+fd(c.deadline)+'</span>':'')
+      +(c.activites&&c.activites.length?'<span>🎯 '+c.activites.length+' activité(s)</span>':'')
+      +(c.dateEnvoi?'<span>📧 Envoyé le '+fd(c.dateEnvoi)+'</span>':'')
+      +'</div>'
+      +'<div style="display:flex;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid #eee;flex-wrap:wrap">'
+      +(c.statut==='brouillon'||c.statut==='pret'?'<button class="btn btn-sm btn-primary" onclick="event.stopPropagation();campOpenEnvoi('+c.id+')">📧 Envoyer à l\'école</button>':'')
+      +(c.statut!=='envoye'?'<button class="btn btn-sm" onclick="event.stopPropagation();campOpenEdit('+c.id+')">Modifier</button>':'')
+      +'<button class="btn btn-sm" onclick="event.stopPropagation();campOpenDetail('+c.id+')">Voir détails</button>'
+      +(c.statut==='envoye'?'<button class="btn btn-sm" onclick="event.stopPropagation();campCopyFormLink('+c.id+')">🔗 Copier le lien</button>':'')
+      +'</div></div>';
+  }).join('');
+}
+
+function campRenderActivitesCheckboxes(selectedIds){
+  var liste=campActivitesDispo.length?campActivitesDispo:activites;
+  if(!liste||!liste.length){document.getElementById('camp-activites-checkboxes').innerHTML='<p style="font-size:13px;color:#888;padding:8px 0">Aucune activité disponible.</p>';return;}
+  document.getElementById('camp-activites-checkboxes').innerHTML=liste.map(function(a){
+    var chk=(selectedIds.includes(a.id)||selectedIds.includes(String(a.id)))?'checked':'';
+    return'<label style="display:flex;align-items:center;gap:8px;padding:7px 10px;border:1px solid #eee;border-radius:7px;margin-bottom:5px;font-size:13px;background:#fff;cursor:pointer"><input type="checkbox" value="'+a.id+'" '+chk+'><span>'+(a.nom||'')+(a.date?' — '+fd(a.date):'')+(a.places?' ('+a.places+' places)':'')+'</span></label>';
+  }).join('');
+}
+
+function campGetSelectedActivites(){
+  return Array.from(document.querySelectorAll('#camp-activites-checkboxes input:checked')).map(function(el){return parseInt(el.value);});
+}
+
+function campOpenCreate(){
+  campEditId=null;
+  if(activites&&activites.length)campActivitesDispo=activites;
+  campRenderActivitesCheckboxes([]);
+  document.getElementById('camp-create-title').textContent='Nouvelle campagne';
+  document.getElementById('camp-c-del-btn').style.display='none';
+  document.getElementById('cc-titre').value='';
+  document.getElementById('cc-type').value='inscription';
+  document.getElementById('cc-periode').value='';
+  document.getElementById('cc-deadline').value='';
+  document.getElementById('cc-message').value='';
+  document.getElementById('camp-preview-link').textContent='https://fritimegruyere.ch/inscription?id=XXX';
+  document.getElementById('mCampCreate').style.display='flex';
+}
+
+function campOpenEdit(id){
+  campEditId=id;
+  var c=campaigns.find(function(x){return x.id===id;});if(!c)return;
+  if(activites&&activites.length)campActivitesDispo=activites;
+  document.getElementById('camp-create-title').textContent='Modifier la campagne';
+  document.getElementById('camp-c-del-btn').style.display='inline-block';
+  document.getElementById('cc-titre').value=c.titre||'';
+  document.getElementById('cc-type').value=c.type||'inscription';
+  document.getElementById('cc-periode').value=c.periode||'';
+  document.getElementById('cc-deadline').value=c.deadline||'';
+  document.getElementById('cc-message').value=c.message||'';
+  document.getElementById('camp-preview-link').textContent='https://fritimegruyere.ch/inscription?id='+id;
+  campRenderActivitesCheckboxes(c.activites||[]);
+  document.getElementById('mCampCreate').style.display='flex';
+}
+
+function campCloseMCreate(){document.getElementById('mCampCreate').style.display='none';}
+
+async function campSaveCampaign(statut){
+  var titre=document.getElementById('cc-titre').value.trim();
+  if(!titre){alert('Le titre est obligatoire');return;}
+  var data={titre:titre,type:document.getElementById('cc-type').value,periode:document.getElementById('cc-periode').value.trim(),deadline:document.getElementById('cc-deadline').value,message:document.getElementById('cc-message').value.trim(),activites:campGetSelectedActivites(),statut:statut};
+  if(campEditId){
+    campaigns=campaigns.map(function(c){return c.id===campEditId?Object.assign({},c,data):c;});
+    if(typeof FriDB!=='undefined')try{await FriDB.quickSave('campagnes',Object.assign({id:campEditId},data));}catch(e){console.warn(e);}
+  }else{
+    var newC=Object.assign({id:campNid++},data,{dateEnvoi:null,reponses:[]});
+    if(typeof FriDB!=='undefined'){try{var _r=await FriDB.quickSave('campagnes',newC);if(_r&&_r[0]&&_r[0].id)newC.id=_r[0].id;}catch(e){console.warn(e);}}
+    campaigns.push(newC);
+  }
+  campCloseMCreate();campRenderAll();
+}
+
+async function campDeleteCampaign(){
+  if(confirm('Supprimer cette campagne ?')){
+    var _id=campEditId;
+    campaigns=campaigns.filter(function(c){return String(c.id)!==String(_id);});
+    campCloseMCreate();campRenderAll();
+    if(typeof FriDB!=='undefined')FriDB.query('campagnes','DELETE',null,'?id=eq.'+_id).catch(function(e){console.warn(e);});
+  }
+}
+
+function campCopyLink(){var t=document.getElementById('camp-preview-link').textContent;navigator.clipboard.writeText(t).then(function(){alert('Lien copié !');}).catch(function(){alert('Lien : '+t);});}
+function campCopyFormLink(id){var t='https://fritimegruyere.ch/inscription?id='+id;navigator.clipboard.writeText(t).then(function(){alert('Lien copié !');}).catch(function(){alert('Lien : '+t);});}
+
+function campOpenEnvoi(id){campEnvoiTargetId=id;document.getElementById('mCampEnvoi').style.display='flex';}
+function campCloseMEnvoi(){document.getElementById('mCampEnvoi').style.display='none';}
+
+async function campConfirmEnvoi(){
+  var campaign=campaigns.find(function(c){return c.id===campEnvoiTargetId;});if(!campaign)return;
+  var emailVal=document.getElementById('camp-envoi-email').value.trim();
+  if(!emailVal){alert('Veuillez saisir l\'adresse email de l\'école.');return;}
+  var messageEcole=document.getElementById('camp-envoi-message').value.trim();
+  var inscriptionLink='https://fritime-intyamon-1t2w.vercel.app/fritime_inscription_publique.html?id='+campaign.id;
+  campaign._messageEcole=messageEcole;campaign._inscriptionLink=inscriptionLink;
+  var btn=document.querySelector('#mCampEnvoi .btn-primary');
+  if(btn){btn.textContent='Envoi en cours…';btn.disabled=true;}
+  try{
+    if(typeof FriBrevo!=='undefined'){
+      var results=await FriBrevo.sendCampagne(campaign,[{email:emailVal,nom:'École'}]);
+      var ok=results.filter(function(r){return r.success;}).length,ko=results.filter(function(r){return !r.success;}).length;
+      campaigns=campaigns.map(function(c){return c.id===campEnvoiTargetId?Object.assign({},c,{statut:'envoye',dateEnvoi:new Date().toISOString().split('T')[0]}):c;});
+      if(typeof FriDB!=='undefined')FriDB.query('campagnes','PATCH',{statut:'envoye',date_envoi:new Date().toISOString().split('T')[0]},'?id=eq.'+campEnvoiTargetId).catch(function(e){console.warn(e);});
+      campCloseMEnvoi();campRenderAll();
+      alert('✓ '+ok+' email(s) envoyé(s)'+(ko?' — ⚠ '+ko+' échec(s)':'')+' .');
+    }else{
+      campaigns=campaigns.map(function(c){return c.id===campEnvoiTargetId?Object.assign({},c,{statut:'envoye',dateEnvoi:new Date().toISOString().split('T')[0]}):c;});
+      campCloseMEnvoi();campRenderAll();alert('Brevo non disponible — campagne marquée comme envoyée.');
+    }
+  }catch(e){alert('Erreur lors de l\'envoi : '+e.message);}
+  finally{if(btn){btn.textContent='Confirmer l\'envoi';btn.disabled=false;}}
+}
+
+function campOpenDetail(id){
+  var c=campaigns.find(function(x){return x.id===id;});if(!c)return;
+  var liste=campActivitesDispo.length?campActivitesDispo:activites;
+  var acts=(c.activites||[]).map(function(aid){
+    var a=liste.find(function(x){return x.id===aid;});
+    var demandes=(c.reponses||[]).filter(function(r){return r.prefs.includes(aid);}).length;
+    return a?'<tr><td style="padding:8px 12px;font-size:13px">'+esc(a.nom)+'</td><td style="padding:8px 12px;font-size:13px">'+fd(a.date)+'</td><td style="padding:8px 12px;font-size:13px;font-weight:600">'+demandes+'</td><td style="padding:8px 12px;font-size:13px">'+a.places+'</td></tr>':'';
+  }).join('');
+  document.getElementById('camp-detail-content').innerHTML=
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem">'
+    +'<div><div style="font-size:16px;font-weight:600">'+esc(c.titre)+'</div><div style="font-size:12px;color:#888;margin-top:3px">'+(CAMP_TYPE_LABELS[c.type]||c.type||'')+(c.periode?' · '+c.periode:'')+'</div></div>'
+    +'<button class="btn btn-sm" onclick="campCloseMDetail()">✕</button></div>'
+    +((c.reponses||[]).length?'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1.25rem">'
+    +'<div style="background:#f5f5f3;border-radius:8px;padding:8px 10px;text-align:center"><div style="font-size:16px;font-weight:700">'+c.reponses.length+'</div><div style="font-size:10px;color:#888;margin-top:1px">Inscriptions totales</div></div>'
+    +'<div style="background:#f5f5f3;border-radius:8px;padding:8px 10px;text-align:center"><div style="font-size:16px;font-weight:700">'+[...new Set(c.reponses.map(function(r){return r.commune;}))].length+'</div><div style="font-size:10px;color:#888;margin-top:1px">Communes représentées</div></div>'
+    +'<div style="background:#f5f5f3;border-radius:8px;padding:8px 10px;text-align:center"><div style="font-size:16px;font-weight:700">'+(fd(c.deadline)||'—')+'</div><div style="font-size:10px;color:#888;margin-top:1px">Date limite</div></div></div>':'')
+    +(acts?'<div style="font-size:12px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Activités & demandes</div>'
+    +'<div style="background:#f5f5f3;border-radius:8px;overflow:hidden;margin-bottom:1.25rem"><table style="width:100%;border-collapse:collapse"><thead><tr style="background:#eee">'
+    +'<th style="padding:8px 12px;text-align:left;font-size:11px;color:#888">Activité</th><th style="padding:8px 12px;text-align:left;font-size:11px;color:#888">Date</th><th style="padding:8px 12px;text-align:left;font-size:11px;color:#888">Demandes</th><th style="padding:8px 12px;text-align:left;font-size:11px;color:#888">Places</th>'
+    +'</tr></thead><tbody>'+acts+'</tbody></table></div>':'')
+    +'<div style="margin-top:1rem;padding-top:1rem;border-top:1px solid #eee"><div style="font-size:12px;color:#888;margin-bottom:6px">Lien du formulaire</div>'
+    +'<div style="background:#f5f5f3;border-radius:8px;padding:10px 12px;font-size:12px;font-family:monospace;display:flex;align-items:center;justify-content:space-between;gap:8px;word-break:break-all">'
+    +'<span>https://fritimegruyere.ch/inscription?id='+c.id+'</span><button class="btn btn-sm" onclick="campCopyFormLink('+c.id+')">📋 Copier</button></div></div>'
+    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-top:1.25rem;padding-top:1rem;border-top:1px solid #eee">'
+    +'<div style="display:flex;gap:8px"><button class="btn btn-sm" onclick="campCloseMDetail();campOpenEdit('+c.id+')">✏️ Modifier</button><button class="btn btn-sm" style="color:#c0392b;border-color:#c0392b" onclick="campCloseMDetail();campConfirmDeleteCampaign('+c.id+')">🗑️ Supprimer</button></div>'
+    +'<button class="btn btn-primary btn-sm" onclick="campCloseMDetail()">Fermer</button></div>';
+  document.getElementById('mCampDetail').style.display='flex';
+}
+
+function campConfirmDeleteCampaign(id){
+  if(confirm('Supprimer cette campagne définitivement ?')){
+    campaigns=campaigns.filter(function(c){return String(c.id)!==String(id);});
+    campRenderAll();
+    if(typeof FriDB!=='undefined')FriDB.query('campagnes','DELETE',null,'?id=eq.'+id).catch(function(e){console.warn(e);});
+  }
+}
+function campCloseMDetail(){document.getElementById('mCampDetail').style.display='none';}
+
+function campRenderAll(){campRenderMetrics();campRenderCampaigns();}
+
+async function loadCampagnesData(){
+  try{
+    var db=await FriDB.getCampagnes();
+    if(db&&db.length){
+      campaigns=db.map(function(c){
+        var p=Object.assign({reponses:[],dateEnvoi:c.date_envoi||null},c);
+        if(typeof p.activites==='string'){try{p.activites=JSON.parse(p.activites);}catch(e){p.activites=[];}}
+        if(!p.activites)p.activites=[];
+        return p;
+      });
+    }
+    if(activites&&activites.length)campActivitesDispo=activites;
+    campRenderAll();
+  }catch(e){console.warn('[Campagnes] loadCampagnesData:',e);}
+}
+
 // ═══ HASH NAV + INIT ═══
-(function(){var h=location.hash.replace('#','');switchModuleTab(h==='planning'?'planning':'activites');})();
+(function(){var h=location.hash.replace('#','');switchModuleTab(h==='planning'?'planning':h==='campagnes'?'campagnes':'activites');})();
 loadAllData();
 </script>
 </body>
