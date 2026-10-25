@@ -589,6 +589,12 @@ function ageE(e){return calcAgeFrom(e.ddn)??e.age;}
 function getEnfant(id){return enfants.find(function(e){return e.id==id;});}
 function getAct(id){return activites.find(function(a){return a.id==id;});}
 function getInscForAct(actId){return inscriptions.filter(function(i){return i.activiteId==actId;});}
+function pickBestActId(){
+  if(!activites.length){selectedActId=null;return;}
+  var withInscs=activites.find(function(a){return getInscForAct(a.id).length>0;});
+  if(withInscs){selectedActId=withInscs.id;return;}
+  if(!selectedActId)selectedActId=activites[0].id;
+}
 
 // ---- Navigation modules ----
 function switchModuleTab(name, btn){
@@ -1178,7 +1184,7 @@ async function loadAllData(){
     if(c_act)activites=c_act;
     if(c_enf)enfants=c_enf;
     if(c_ins)inscriptions=c_ins.map(mapInscription);
-    if(activites.length&&!selectedActId)selectedActId=activites[0].id;
+    pickBestActId();
     calcPartsFromInscriptions();renderEnfants();renderAll();return;
   }
   try{
@@ -1186,7 +1192,7 @@ async function loadAllData(){
     if(results[0]&&results[0].length){activites=results[0];await friCacheSet('activites',activites);}
     if(results[1]&&results[1].length){enfants=results[1];await friCacheSet('enfants',enfants);}
     if(results[2]&&results[2].length){inscriptions=results[2].map(mapInscription);await friCacheSet('inscriptions',results[2]);}
-    if(activites.length&&!selectedActId)selectedActId=activites[0].id;
+    pickBestActId();
     calcPartsFromInscriptions();renderEnfants();renderAll();
   }catch(e){
     console.warn('[Load] erreur, fallback cache:',e);
@@ -1194,7 +1200,7 @@ async function loadAllData(){
     if(c2_act)activites=c2_act;
     if(c2_enf)enfants=c2_enf;
     if(c2_ins)inscriptions=c2_ins.map(mapInscription);
-    if(activites.length&&!selectedActId)selectedActId=activites[0].id;
+    pickBestActId();
     calcPartsFromInscriptions();renderEnfants();renderAll();
   }
 }
