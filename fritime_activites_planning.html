@@ -26,12 +26,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .ft-nav-ico{font-size:18px;width:24px;text-align:center}
 /* ── desktop sidebar ── */
 .ft-sb{display:none}
-@media(min-width:900px){
-  .ft-sb{display:block;position:fixed;top:52px;left:0;width:220px;height:calc(100vh - 52px);background:#fff;border-right:1px solid #e5e5e5;overflow-y:auto;padding:1rem 0;z-index:100}
-  .ft-sb a{display:block;padding:8px 1rem;font-size:13px;color:#444;text-decoration:none;border-radius:6px;margin:1px 8px}
-  .ft-sb a:hover{background:#f0f0f0;color:#1a1a1a}
-  .ft-sb .sb-section{padding:1rem 1rem .25rem;font-size:11px;font-weight:600;color:#aaa;text-transform:uppercase;letter-spacing:.5px}
-  .main-wrap{margin-left:220px}
+.ft-sb-sec{padding:6px 16px 2px;font-size:10px;font-weight:700;color:#bbb;text-transform:uppercase;letter-spacing:.08em;margin-top:8px}
+@media(min-width:769px){
+  .ft-sb{display:block;position:fixed;top:52px;left:0;width:180px;height:calc(100vh - 52px);background:#fff;border-right:1px solid #eee;overflow-y:auto;padding:12px 0;z-index:100}
+  .ft-sb a{display:block;padding:6px 16px;font-size:13px;color:#444;text-decoration:none;border-radius:6px;margin:1px 6px}
+  .ft-sb a:hover{background:#f5f5f3}
+  .ft-sb a.on{background:#f5f5f3;color:#1a1a1a;font-weight:600}
+  .main-wrap{margin-left:180px}
 }
 .main-wrap{margin-top:52px}
 /* ── offline bar ── */
@@ -197,33 +198,51 @@ textarea{resize:vertical;min-height:80px}
 <div class="ft-overlay" id="ft-overlay" onclick="closeSidebar()"></div>
 <div class="ft-sidebar" id="ft-sidebar">
   <div class="ft-sidebar-head">
-    <span class="ft-sidebar-title">🏔 FriTime</span>
+    <span class="ft-sidebar-title">Fri-Time Intyamon</span>
     <button class="ft-close" onclick="closeSidebar()">✕</button>
   </div>
-  <div class="ft-nav-section">Navigation</div>
-  <a class="ft-nav-item" href="index.html" data-page="index"><span class="ft-nav-ico">🏠</span> Accueil</a>
-  <a class="ft-nav-item" href="fritime_membres.html" data-page="membres"><span class="ft-nav-ico">👥</span> Membres</a>
+  <div class="ft-nav-section">Principal</div>
+  <a class="ft-nav-item" href="fritime_dashboard.html" data-page="dashboard"><span class="ft-nav-ico">🏠</span> Tableau de bord</a>
   <a class="ft-nav-item active" href="fritime_activites_planning.html" data-page="activites_planning"><span class="ft-nav-ico">🎯</span> Activités &amp; Planning</a>
-  <a class="ft-nav-item" href="fritime_finance.html" data-page="finance"><span class="ft-nav-ico">💰</span> Finance</a>
-  <a class="ft-nav-item" href="fritime_dons.html" data-page="dons"><span class="ft-nav-ico">🎁</span> Dons</a>
-  <a class="ft-nav-item" href="fritime_benevoles.html" data-page="benevoles"><span class="ft-nav-ico">🤝</span> Bénévoles</a>
-  <a class="ft-nav-item" href="fritime_partenaires.html" data-page="partenaires"><span class="ft-nav-ico">🏢</span> Partenaires</a>
-  <a class="ft-nav-item" href="fritime_documents.html" data-page="documents"><span class="ft-nav-ico">📄</span> Documents</a>
-  <a class="ft-nav-item" href="fritime_parametres.html" data-page="parametres"><span class="ft-nav-ico">⚙️</span> Paramètres</a>
+  <a class="ft-nav-item" href="fritime_enfants_inscriptions.html" data-page="enfants"><span class="ft-nav-ico">👦</span> Enfants &amp; Inscriptions</a>
+  <div class="ft-nav-section">Organisation</div>
+  <a class="ft-nav-item" href="fritime_taches.html" data-page="taches"><span class="ft-nav-ico">✅</span> Tâches</a>
+  <a class="ft-nav-item" href="fritime_comite.html" data-page="comite"><span class="ft-nav-ico">👥</span> Comité</a>
+  <a class="ft-nav-item" href="fritime_campagnes.html" data-page="campagnes"><span class="ft-nav-ico">📧</span> Campagnes</a>
+  <a class="ft-nav-item" href="fritime_sondages.html" data-page="sondages"><span class="ft-nav-ico">⭐</span> Sondages</a>
+  <div class="ft-nav-section">Finances &amp; Partenaires</div>
+  <a class="ft-nav-item" href="fritime_budget.html" data-page="budget"><span class="ft-nav-ico">💰</span> Budget</a>
+  <a class="ft-nav-item" href="fritime_prestataires.html" data-page="prestataires"><span class="ft-nav-ico">🤝</span> Prestataires</a>
+  <div class="ft-nav-section">Contenu</div>
+  <a class="ft-nav-item" href="fritime_idees.html" data-page="idees"><span class="ft-nav-ico">🏷️</span> Catégories &amp; Idées</a>
+  <a class="ft-nav-item" href="fritime_documents.html" data-page="documents"><span class="ft-nav-ico">📁</span> Documents</a>
+  <div class="ft-nav-section">Sécurité</div>
+  <a class="ft-nav-item" href="fritime_incidents.html" data-page="incidents"><span class="ft-nav-ico">⚠️</span> Incidents</a>
+  <a class="ft-nav-item" href="fritime_urgences.html" data-page="urgences"><span class="ft-nav-ico">🚨</span> Urgences</a>
+  <a class="ft-nav-item" href="fritime_modifications.html" data-page="modifications"><span class="ft-nav-ico">🔄</span> Demandes</a>
 </div>
 
 <!-- desktop sidebar -->
-<div class="ft-sb">
-  <div class="sb-section">Navigation</div>
-  <a href="index.html">🏠 Accueil</a>
-  <a href="fritime_membres.html">👥 Membres</a>
-  <a href="fritime_activites_planning.html" style="font-weight:600;color:#3a7bd5">🎯 Activités &amp; Planning</a>
-  <a href="fritime_finance.html">💰 Finance</a>
-  <a href="fritime_dons.html">🎁 Dons</a>
-  <a href="fritime_benevoles.html">🤝 Bénévoles</a>
-  <a href="fritime_partenaires.html">🏢 Partenaires</a>
-  <a href="fritime_documents.html">📄 Documents</a>
-  <a href="fritime_parametres.html">⚙️ Paramètres</a>
+<div class="ft-sb" id="ft-sb">
+  <div class="ft-sb-sec">Principal</div>
+  <a href="fritime_dashboard.html">🏠 Tableau de bord</a>
+  <a href="fritime_activites_planning.html" class="on">🎯 Activités &amp; Planning</a>
+  <a href="fritime_enfants_inscriptions.html">👦 Enfants &amp; Inscriptions</a>
+  <div class="ft-sb-sec">Organisation</div>
+  <a href="fritime_taches.html">✅ Tâches</a>
+  <a href="fritime_comite.html">👥 Comité</a>
+  <a href="fritime_campagnes.html">📧 Campagnes</a>
+  <a href="fritime_sondages.html">⭐ Sondages</a>
+  <div class="ft-sb-sec">Finances &amp; Partenaires</div>
+  <a href="fritime_budget.html">💰 Budget</a>
+  <a href="fritime_prestataires.html">🤝 Prestataires</a>
+  <div class="ft-sb-sec">Contenu</div>
+  <a href="fritime_idees.html">🏷️ Catégories &amp; Idées</a>
+  <a href="fritime_documents.html">📁 Documents</a>
+  <div class="ft-sb-sec">Sécurité</div>
+  <a href="fritime_incidents.html">⚠️ Incidents</a>
+  <a href="fritime_urgences.html">🚨 Urgences</a>
+  <a href="fritime_modifications.html">🔄 Demandes</a>
 </div>
 
 <div class="main-wrap">
@@ -442,17 +461,17 @@ function renderGrid(){
     var insc=inscriptions.filter(i=>i.activite_id===a.id).length;
     return `<div class="card" onclick="openDetail(${a.id})">
       <div class="card-head">
-        <div class="card-title">${esc(a.titre)}</div>
+        <div class="card-title">${esc(a.nom)}</div>
         <span class="card-status badge-${a.statut}">${a.statut}</span>
       </div>
       <div class="card-meta">
         <span>📅 ${fd(a.date)}${a.heure_debut?' · '+fh(a.heure_debut)+(a.heure_fin?' → '+fh(a.heure_fin):''):''}</span>
         ${a.lieu?`<span>📍 ${esc(a.lieu)}</span>`:''}
-        ${a.responsable?`<span>👤 ${esc(a.responsable)}</span>`:''}
+        ${a.responsable_nom?`<span>👤 ${esc(a.responsable_nom)}</span>`:''}
       </div>
       <div class="card-footer">
         <span class="card-cat">${esc(a.categorie||'—')}</span>
-        <span class="card-insc">👥 ${insc}${a.places_max?' / '+a.places_max:''}</span>
+        <span class="card-insc">👥 ${insc}</span>
       </div>
     </div>`;
   }).join('');
@@ -470,19 +489,19 @@ function openCreate(editing){
   if(actEditId){
     var a=activites.find(x=>x.id===actEditId);
     if(a){
-      document.getElementById('f-titre').value=a.titre||'';
+      document.getElementById('f-titre').value=a.nom||'';
       document.getElementById('f-date').value=a.date||'';
       document.getElementById('f-hdeb').value=a.heure_debut||'';
       document.getElementById('f-hfin').value=a.heure_fin||'';
       document.getElementById('f-lieu').value=a.lieu||'';
-      document.getElementById('f-resp').value=a.responsable||'';
+      document.getElementById('f-resp').value=a.responsable_nom||'';
       document.getElementById('f-desc').value=a.description||'';
-      document.getElementById('f-lien').value=a.lien_inscription||'';
-      document.getElementById('f-photo').value=a.photo||'';
-      document.getElementById('f-places').value=a.places_max||'';
-      document.getElementById('f-cout').value=a.cout||'';
+      document.getElementById('f-lien').value='';
+      document.getElementById('f-photo').value=a.image||'';
+      document.getElementById('f-places').value='';
+      document.getElementById('f-cout').value='';
       document.getElementById('f-cout-facture').value=a.cout_facture||'commune';
-      _publique=a.publique||false;
+      _publique=a.t_public||false;
       _currentStatut=a.statut||'brouillon';
       previewPhoto(a.photo||'');
       fillCatSelect();
@@ -548,45 +567,38 @@ function previewPhoto(url){
 }
 
 async function saveActivite(){
-  var titre=document.getElementById('f-titre').value.trim();
+  var nom=document.getElementById('f-titre').value.trim();
   var date=document.getElementById('f-date').value;
-  if(!titre||!date){alert('Titre et date requis');return;}
+  if(!nom||!date){alert('Titre et date requis');return;}
   var data={
-    titre,date,
+    nom:nom,date:date,
     heure_debut:document.getElementById('f-hdeb').value||null,
     heure_fin:document.getElementById('f-hfin').value||null,
     lieu:document.getElementById('f-lieu').value.trim()||null,
     categorie:document.getElementById('f-cat').value||null,
     sous_categorie:document.getElementById('f-souscat').value||null,
     statut:_currentStatut,
-    places_max:parseInt(document.getElementById('f-places').value)||0,
-    cout:parseFloat(document.getElementById('f-cout').value)||0,
-    cout_facture:document.getElementById('f-cout-facture').value,
-    prestataire_id:document.getElementById('f-prest').value||null,
-    responsable:document.getElementById('f-resp').value.trim()||null,
+    cout_facture:document.getElementById('f-cout-facture').value||'commune',
+    responsable_nom:document.getElementById('f-resp').value.trim()||null,
     description:document.getElementById('f-desc').value.trim()||null,
-    lien_inscription:document.getElementById('f-lien').value.trim()||null,
-    photo:document.getElementById('f-photo').value.trim()||null,
-    publique:_publique
+    image:document.getElementById('f-photo').value.trim()||null,
+    t_public:_publique
   };
   try {
     if(actEditId){
-      await FriDB.update('activites',actEditId,data);
-      var idx=activites.findIndex(a=>a.id===actEditId);
-      if(idx>=0)activites[idx]={...activites[idx],...data};
+      data.id=actEditId;
+      await FriDB.saveActivite(data);
+      var idx=activites.findIndex(function(a){return a.id===actEditId;});
+      if(idx>=0)activites[idx]=Object.assign({},activites[idx],data);
     } else {
-      var res=await FriDB.insert('activites',data);
+      var res=await FriDB.saveActivite(data);
       if(res&&res[0])activites.push(res[0]);
-    }
-    // Auto-billing
-    if(data.cout>0&&data.cout_facture!=='commune'){
-      try{await FriDB.insert('factures',{activite_id:actEditId||data.id,montant:data.cout,type:data.cout_facture,date_creation:new Date().toISOString().split('T')[0]});}catch(e){}
+      else{data.id=nextId++;activites.push(data);}
     }
   } catch(e){
-    console.error(e);
-    friOfflineQueueAdd('activites',actEditId?'update':'insert',data,actEditId);
+    console.warn('saveActivite erreur:',e);
     if(!actEditId){data.id=nextId++;activites.push(data);}
-    else{var idx=activites.findIndex(a=>a.id===actEditId);if(idx>=0)activites[idx]={...activites[idx],...data};}
+    else{var idx=activites.findIndex(function(a){return a.id===actEditId;});if(idx>=0)activites[idx]=Object.assign({},activites[idx],data);}
   }
   closeCreate();
 }
@@ -598,16 +610,14 @@ function openDetail(id){
   var insc=inscriptions.filter(i=>i.activite_id===id);
   document.getElementById('det').innerHTML=`
     <div class="mf">
-      <div class="dl">Titre</div><div class="dv">${esc(a.titre)}</div>
+      <div class="dl">Titre</div><div class="dv">${esc(a.nom)}</div>
       <div class="dl">Date</div><div class="dv">${fd(a.date)}${a.heure_debut?' · '+fh(a.heure_debut)+(a.heure_fin?' → '+fh(a.heure_fin):''):''}</div>
       ${a.lieu?`<div class="dl">Lieu</div><div class="dv">${esc(a.lieu)}</div>`:''}
       <div class="dl">Statut</div><div class="dv"><span class="card-status badge-${a.statut}">${a.statut}</span></div>
       ${a.categorie?`<div class="dl">Catégorie</div><div class="dv">${esc(a.categorie)}${a.sous_categorie?' › '+esc(a.sous_categorie):''}</div>`:''}
-      ${a.responsable?`<div class="dl">Responsable</div><div class="dv">${esc(a.responsable)} <button class="btn btn-outline btn-sm" style="margin-left:.5rem" onclick="openModifResponsable(${id})">Modifier</button></div>`:''}
-      ${a.cout?`<div class="dl">Coût</div><div class="dv">${a.cout} CHF (${a.cout_facture||'commune'})</div>`:''}
-      <div class="dl">Inscriptions</div><div class="dv">${insc.length}${a.places_max?' / '+a.places_max:''}</div>
+      ${a.responsable_nom?`<div class="dl">Responsable</div><div class="dv">${esc(a.responsable_nom)} <button class="btn btn-outline btn-sm" style="margin-left:.5rem" onclick="openModifResponsable(${id})">Modifier</button></div>`:''}
+      <div class="dl">Inscriptions</div><div class="dv">${insc.length}</div>
       ${a.description?`<div class="dl">Description</div><div class="dv">${esc(a.description)}</div>`:''}
-      ${a.lien_inscription?`<div class="dl">Lien</div><div class="dv"><a href="${esc(a.lien_inscription)}" target="_blank">Ouvrir ↗</a></div>`:''}
     </div>
     <div style="margin-top:1rem;display:flex;gap:.5rem;flex-wrap:wrap">
       <button class="btn btn-outline btn-sm" onclick="changeStatut(${id},'publie')">📢 Publier</button>
@@ -622,33 +632,33 @@ function closeDetail(){closeOverlay('mDetail');}
 async function deleteActivite(){
   if(!actEditId)return;
   if(!confirm('Supprimer cette activité ?'))return;
-  try{await FriDB.delete('activites',actEditId);}catch(e){console.error(e);}
-  activites=activites.filter(a=>a.id!==actEditId);
+  try{await FriDB.query('activites','DELETE',null,'?id=eq.'+actEditId);}catch(e){console.warn(e);}
+  activites=activites.filter(function(a){return a.id!==actEditId;});
   actEditId=null;actSelId=null;
   closeOverlay('mDetail');closeOverlay('mCreate');
   renderAct();
 }
 
 async function changeStatut(id,statut){
-  try{await FriDB.update('activites',id,{statut});}catch(e){console.error(e);}
-  var idx=activites.findIndex(a=>a.id===id);
+  try{await FriDB.query('activites','PATCH',{statut:statut},'?id=eq.'+id);}catch(e){console.warn(e);}
+  var idx=activites.findIndex(function(a){return a.id===id;});
   if(idx>=0)activites[idx].statut=statut;
   closeDetail();renderAct();
 }
 
 function openModifResponsable(id){
   modifRespActId=id;
-  var a=activites.find(x=>x.id===id);
-  document.getElementById('resp-input').value=a?a.responsable||'':'';
+  var a=activites.find(function(x){return x.id===id;});
+  document.getElementById('resp-input').value=a?a.responsable_nom||'':'';
   openOverlay('mResponsable');
 }
 
 async function confirmerModifResponsable(){
   var val=document.getElementById('resp-input').value.trim();
   if(!modifRespActId)return;
-  try{await FriDB.update('activites',modifRespActId,{responsable:val});}catch(e){console.error(e);}
-  var idx=activites.findIndex(a=>a.id===modifRespActId);
-  if(idx>=0)activites[idx].responsable=val;
+  try{await FriDB.query('activites','PATCH',{responsable_nom:val},'?id=eq.'+modifRespActId);}catch(e){console.warn(e);}
+  var idx=activites.findIndex(function(a){return a.id===modifRespActId;});
+  if(idx>=0)activites[idx].responsable_nom=val;
   closeOverlay('mResponsable');closeDetail();
   renderAct();
 }
@@ -688,9 +698,9 @@ function switchPlanTab(tab){
 
 function getPlanList(){
   var archiveStatuts=['realise','annule'];
-  var list=activites.filter(a=>currentTab==='archives'?archiveStatuts.includes(a.statut):!archiveStatuts.includes(a.statut));
-  if(searchVal){var sv=searchVal.toLowerCase();list=list.filter(a=>(a.titre||'').toLowerCase().includes(sv)||(a.lieu||'').toLowerCase().includes(sv));}
-  return list.sort((a,b)=>a.date>b.date?1:-1);
+  var list=activites.filter(function(a){return currentTab==='archives'?archiveStatuts.includes(a.statut):!archiveStatuts.includes(a.statut);});
+  if(searchVal){var sv=searchVal.toLowerCase();list=list.filter(function(a){return (a.nom||'').toLowerCase().includes(sv)||(a.lieu||'').toLowerCase().includes(sv);});}
+  return list.sort(function(a,b){return a.date>b.date?1:-1;});
 }
 
 function renderPlanList(){
@@ -702,14 +712,14 @@ function renderPlanList(){
     var insc=inscriptions.filter(i=>i.activite_id===a.id).length;
     return `<div class="plan-item${currentActId===a.id?' active':''}" onclick="openPlanDetail(${a.id})">
       <div class="pi-top">
-        <div class="pi-title">${esc(a.titre)}</div>
+        <div class="pi-title">${esc(a.nom)}</div>
         <div class="pi-date">${fd(a.date)}</div>
       </div>
       <div class="pi-sub">${a.lieu?esc(a.lieu):'—'}</div>
       <div class="pi-badges">
         <span class="pi-badge ${isArch?'arch':'enc'}">${a.statut}</span>
         ${a.categorie?`<span class="pi-badge">${esc(a.categorie)}</span>`:''}
-        <span class="pi-badge">👥 ${insc}${a.places_max?' / '+a.places_max:''}</span>
+        <span class="pi-badge">👥 ${insc}</span>
       </div>
     </div>`;
   }).join('');
@@ -725,7 +735,7 @@ function openPlanDetail(id){
   var isArch=archiveStatuts.includes(a.statut);
   var html=`<div class="plan-detail">
     <div class="pd-header">
-      <div class="pd-title">${esc(a.titre)}</div>
+      <div class="pd-title">${esc(a.nom)}</div>
       <div class="pd-meta">
         <span class="pd-badge ${isArch?'arch':'enc'}">${a.statut}</span>
         ${a.categorie?`<span class="pd-badge cat">${esc(a.categorie)}</span>`:''}
@@ -737,12 +747,11 @@ function openPlanDetail(id){
         <div class="pd-field"><div class="pd-label">Date</div><div class="pd-val">${fd(a.date)}</div></div>
         ${a.heure_debut?`<div class="pd-field"><div class="pd-label">Horaire</div><div class="pd-val">${fh(a.heure_debut)}${a.heure_fin?' → '+fh(a.heure_fin):''}</div></div>`:''}
         ${a.lieu?`<div class="pd-field"><div class="pd-label">Lieu</div><div class="pd-val">${esc(a.lieu)}</div></div>`:''}
-        ${a.responsable?`<div class="pd-field"><div class="pd-label">Responsable</div><div class="pd-val">${esc(a.responsable)}</div></div>`:''}
-        ${a.cout?`<div class="pd-field"><div class="pd-label">Coût</div><div class="pd-val">${a.cout} CHF</div></div>`:''}
-        ${a.places_max?`<div class="pd-field"><div class="pd-label">Places</div><div class="pd-val">${insc.length} / ${a.places_max}</div></div>`:''}
+        ${a.responsable_nom?`<div class="pd-field"><div class="pd-label">Responsable</div><div class="pd-val">${esc(a.responsable_nom)}</div></div>`:''}
+        ${a.cout_facture?`<div class="pd-field"><div class="pd-label">Facturation</div><div class="pd-val">${esc(a.cout_facture)}</div></div>`:''}
+        <div class="pd-field"><div class="pd-label">Inscriptions</div><div class="pd-val">${insc.length}</div></div>
       </div>
       ${a.description?`<div class="pd-field" style="margin-top:.75rem"><div class="pd-label">Description</div><div class="pd-val">${esc(a.description)}</div></div>`:''}
-      ${a.lien_inscription?`<div style="margin-top:.75rem"><a href="${esc(a.lien_inscription)}" class="btn btn-outline btn-sm" target="_blank">🔗 Lien inscription</a></div>`:''}
     </div>`;
   if(insc.length){
     html+=`<div class="pd-section"><h3>Inscriptions (${insc.length})</h3><table class="insc-table"><thead><tr><th>Enfant</th><th>Statut</th></tr></thead><tbody>`;
@@ -808,9 +817,9 @@ async function friSyncQueue(){
   var items=await friOfflineQueueGetAll();
   for(var item of items){
     try{
-      if(item.op==='insert')await FriDB.insert(item.table,item.data);
-      else if(item.op==='update')await FriDB.update(item.table,item.record_id,item.data);
-      else if(item.op==='delete')await FriDB.delete(item.table,item.record_id);
+      if(item.op==='insert')await FriDB.saveActivite(item.data);
+      else if(item.op==='update')await FriDB.query(item.table,'PATCH',item.data,'?id=eq.'+item.record_id);
+      else if(item.op==='delete')await FriDB.query(item.table,'DELETE',null,'?id=eq.'+item.record_id);
       friOfflineQueueDelete(item.id);
     }catch(e){console.warn('Sync failed',e);break;}
   }
@@ -824,14 +833,14 @@ window.addEventListener('offline',()=>updateOfflineBar());
 async function loadAllData(){
   await friOfflineInit();
   updateOfflineBar();
+  var attempts=0;
+  while(typeof FriDB==='undefined'&&attempts<30){await new Promise(function(r){setTimeout(r,100);});attempts++;}
+  if(typeof FriDB==='undefined'){console.warn('FriDB non disponible');return;}
   try {
-    var [actRes,inscRes,enfRes,prestRes,membRes]=await Promise.all([
-      FriDB.select('activites','*').catch(()=>[]),
-      FriDB.select('inscriptions','*').catch(()=>[]),
-      FriDB.select('enfants','*').catch(()=>[]),
-      FriDB.select('prestataires','*').catch(()=>[]),
-      FriDB.select('membres','*').catch(()=>[])
-    ]);
+    var actRes=await FriDB.getActivites().catch(function(){return[];});
+    var inscRes=await FriDB.getInscriptions().catch(function(){return[];});
+    var enfRes=await FriDB.getEnfants().catch(function(){return[];});
+    var prestRes=await FriDB.getPrestataires().catch(function(){return[];});
     activites=actRes||[];
     inscriptions=inscRes||[];
     enfants=enfRes||[];
