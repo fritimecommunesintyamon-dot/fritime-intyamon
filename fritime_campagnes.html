@@ -687,5 +687,15 @@ async function loadCampagnesDB(){
 }
 loadCampagnesDB();
 </script>
+<script>
+// Masquer nav et topbar si chargé en iframe
+(function(){
+  if(window.self!==window.top){
+    var style=document.createElement('style');
+    style.textContent='.ft-topbar{display:none!important}.ft-sidebar-desktop{display:none!important}.ft-sidebar{display:none!important}.ft-sidebar-overlay{display:none!important}.ft-layout{display:block!important}.ft-content{padding-top:0!important}';
+    document.head.appendChild(style);
+  }
+})();
+</script>
 </body>
 </html>

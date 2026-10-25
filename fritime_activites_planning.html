@@ -252,6 +252,7 @@ textarea{resize:vertical;min-height:80px}
   <div class="mod-tabs">
     <button class="mod-tab active" id="mtab-activites" onclick="switchModuleTab('activites')">🎯 Activités</button>
     <button class="mod-tab" id="mtab-planning" onclick="switchModuleTab('planning')">📅 Planning / Fiches</button>
+    <button class="mod-tab" id="mtab-campagnes" onclick="switchModuleTab('campagnes')">📧 Campagnes</button>
   </div>
 
   <!-- ═══════════════ MODULE ACTIVITÉS ═══════════════ -->
@@ -265,6 +266,11 @@ textarea{resize:vertical;min-height:80px}
       <div class="filters" id="act-filters"></div>
       <div class="grid" id="act-grid"></div>
     </div>
+  </div>
+
+  <!-- ═══════════════ MODULE CAMPAGNES ═══════════════ -->
+  <div id="mod-campagnes" style="display:none;height:calc(100vh - 100px)">
+    <iframe id="iframe-campagnes" src="" style="width:100%;height:100%;border:none;display:block" allowfullscreen></iframe>
   </div>
 
   <!-- ═══════════════ MODULE PLANNING ═══════════════ -->
@@ -497,8 +503,16 @@ function closeSidebar(){document.getElementById('ft-sidebar').classList.remove('
 function switchModuleTab(name){
   document.getElementById('mod-activites').style.display=name==='activites'?'block':'none';
   document.getElementById('mod-planning').style.display=name==='planning'?'block':'none';
+  document.getElementById('mod-campagnes').style.display=name==='campagnes'?'block':'none';
   document.getElementById('mtab-activites').className='mod-tab'+(name==='activites'?' active':'');
   document.getElementById('mtab-planning').className='mod-tab'+(name==='planning'?' active':'');
+  document.getElementById('mtab-campagnes').className='mod-tab'+(name==='campagnes'?' active':'');
+  if(name==='campagnes'){
+    var iframe=document.getElementById('iframe-campagnes');
+    if(!iframe.src||iframe.src==='about:blank'||iframe.src===''){
+      iframe.src='fritime_campagnes.html';
+    }
+  }
   location.hash=name;
 }
 
