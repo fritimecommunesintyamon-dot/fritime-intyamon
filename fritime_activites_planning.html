@@ -671,7 +671,7 @@ const CHECKLIST=[
 
 function openChecklist(id){
   var a=activites.find(x=>x.id===id);
-  document.getElementById('mChecklistTitle').textContent='Checklist – '+(a?a.titre:'');
+  document.getElementById('mChecklistTitle').textContent='Checklist – '+(a?a.nom:'');
   var html='';
   CHECKLIST.forEach(g=>{
     html+=`<div class="checklist-group"><h4>${g.group}</h4>`;
