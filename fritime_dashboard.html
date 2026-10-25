@@ -773,8 +773,10 @@ async function refreshDashboard(){
 }
 
 refreshDashboard();
-// Auto-refresh toutes les 60 secondes
-setInterval(refreshDashboard, 60000);
+// Auto-refresh toutes les 30 secondes
+setInterval(refreshDashboard, 30000);
+// Refresh immédiat quand l'onglet redevient visible
+document.addEventListener('visibilitychange',function(){if(!document.hidden)refreshDashboard();});
 </script>
 </div>
 </div>
