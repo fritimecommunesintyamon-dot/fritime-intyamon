@@ -379,12 +379,7 @@ textarea{resize:vertical;min-height:80px}
     <input style="width:100%;padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit" id="camp-envoi-email" placeholder="secretariat@ecole-bulle.ch">
   </div>
   <div style="margin-bottom:.75rem"><label style="font-size:12px;color:#666;margin-bottom:4px;display:block">Message d'accompagnement</label>
-    <textarea style="width:100%;padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit;resize:vertical;min-height:80px" id="camp-envoi-message" rows="3">Bonjour,
-
-Veuillez transmettre ce lien aux familles de vos élèves pour les inscriptions aux activités Fri-Time.
-
-Merci de votre collaboration,
-Le comité Fri-Time</textarea>
+    <textarea style="width:100%;padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit;resize:vertical;min-height:120px" id="camp-envoi-message" rows="6"></textarea>
   </div>
   <div style="display:flex;justify-content:space-between;align-items:center;margin-top:1.25rem;padding-top:1rem;border-top:1px solid #eee">
     <button class="btn" onclick="campCloseMEnvoi()">Annuler</button>
@@ -1476,7 +1471,18 @@ async function campDeleteCampaign(){
 function campCopyLink(){var t=document.getElementById('camp-preview-link').textContent;navigator.clipboard.writeText(t).then(function(){alert('Lien copié !');}).catch(function(){alert('Lien : '+t);});}
 function campCopyFormLink(id){var t='https://fritime-intyamon-1t2w.vercel.app/fritime_inscription_publique.html?id='+id;navigator.clipboard.writeText(t).then(function(){alert('Lien copié !');}).catch(function(){alert('Lien : '+t);});}
 
-function campOpenEnvoi(id){campEnvoiTargetId=id;document.getElementById('mCampEnvoi').classList.add('open');}
+function campOpenEnvoi(id){
+  campEnvoiTargetId=id;
+  var lien='https://fritime-intyamon-1t2w.vercel.app/fritime_inscription_publique.html?id='+id;
+  document.getElementById('camp-envoi-message').value=
+    'Bonjour,\n\n'+
+    'Nous avons le plaisir de vous transmettre le lien vers notre formulaire d\'inscription aux activités Fri-Time.\n\n'+
+    lien+'\n\n'+
+    'Nous vous serions reconnaissants de bien vouloir le faire suivre aux familles de vos élèves.\n\n'+
+    'En vous remerciant chaleureusement pour votre soutien,\n'+
+    'Le comité Fri-Time Intyamon';
+  document.getElementById('mCampEnvoi').classList.add('open');
+}
 function campCloseMEnvoi(){document.getElementById('mCampEnvoi').classList.remove('open');}
 
 async function campConfirmEnvoi(){
