@@ -452,6 +452,25 @@ function renderDet(){
       <div style="font-size:12px;color:#888;margin-top:2px">${e.pe||'—'} · ${e.pt||'—'}</div>
     </div>
     ${e.notes?`<div class="note-box">${e.notes}</div>`:''}
+    ${(function(){
+      var inscs=inscriptions.filter(function(i){return i.enfant_id==e.id && i.statut!=='annule';});
+      if(!inscs.length) return '<div style="font-size:12px;color:#aaa;margin-bottom:12px">Aucune inscription en cours.</div>';
+      var statutLabel={'attente':'En attente','confirme':'Confirmé','liste_attente':'Liste d\'attente','refuse':'Refusé','present':'Présent','absent':'Absent'};
+      var statutColor={'attente':'#888','confirme':'#275a0a','liste_attente':'#b07c00','refuse':'#791f1f','present':'#275a0a','absent':'#791f1f'};
+      var rows=inscs.map(function(i){
+        var act=activitesList.find(function(a){return a.id==i.activite_id;});
+        var nomAct=act?act.nom:'Activité #'+i.activite_id;
+        var dateAct=act&&act.date?act.date.split('-').reverse().join('.'):'';
+        var st=i.statut||'attente';
+        var col=statutColor[st]||'#888';
+        var lbl=statutLabel[st]||st;
+        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f0f0f0;font-size:13px">'
+          +'<div><span style="font-weight:500">'+nomAct+'</span>'+(dateAct?' <span style="color:#aaa;font-size:11px">'+dateAct+'</span>':'')+'</div>'
+          +'<span style="font-size:11px;font-weight:700;color:'+col+'">'+lbl+'</span>'
+          +'</div>';
+      }).join('');
+      return '<div style="margin-bottom:12px"><div class="dl" style="margin-bottom:6px">Inscriptions en cours</div>'+rows+'</div>';
+    })()}
     <div class="mf" style="flex-wrap:wrap;gap:8px">
       <div style="display:flex;gap:8px">
         ${e.statut==='actif'?`<button class="btn btn-sm btn-danger" onclick="openBan(${e.id})">Bannir</button>`:`<button class="btn btn-sm" onclick="debannir(${e.id})">Réactiver</button>`}

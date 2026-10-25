@@ -513,103 +513,109 @@ function nextStep(){
       return;
     }
     document.getElementById("err-cond-consent").classList.remove("on");
+
+    // Désactiver le bouton pendant la vérification
+    var btnNext=document.getElementById("btn-next");
+    if(btnNext){btnNext.disabled=true;btnNext.textContent="Vérification…";}
+
     const email=document.getElementById("p-email").value.trim();
     const prenom=document.getElementById("e-prenom").value.trim();
     const nom=document.getElementById("e-nom").value.trim();
-    const ref="FT-2026-"+Math.floor(1000+Math.random()*9000);
-    document.getElementById("success-email").textContent=email;
-    document.getElementById("ref-numero").textContent="Référence : "+ref;
-    showStep(6);
+    const ddnValCheck=document.getElementById("e-ddn").value||null;
 
-    // Save enfant and inscriptions to Supabase
-    (async function() {
-      try {
-        const headers = {
-          "Content-Type": "application/json",
-          "apikey": "sb_publishable_ZV04eYw85SDFQi43SwZJTg_igofPU8X",
-          "Authorization": "Bearer sb_publishable_ZV04eYw85SDFQi43SwZJTg_igofPU8X",
-          "Prefer": "return=representation"
+    (async function(){
+      try{
+        const headers={
+          "Content-Type":"application/json",
+          "apikey":"sb_publishable_ZV04eYw85SDFQi43SwZJTg_igofPU8X",
+          "Authorization":"Bearer sb_publishable_ZV04eYw85SDFQi43SwZJTg_igofPU8X",
+          "Prefer":"return=representation"
         };
-        
-        // 1. Vérifier si l'enfant existe déjà (même prénom + nom + ddn)
-        const ddnVal = document.getElementById("e-ddn").value || null;
-        let enfantId = null;
 
-        // Recherche dans Supabase par prénom + nom + ddn
-        let searchUrl = 'https://pixktldfpjtnimngvgqz.supabase.co/rest/v1/enfants?select=id,prenom,nom,ddn'
-          + '&prenom=eq.' + encodeURIComponent(prenom)
-          + '&nom=eq.' + encodeURIComponent(nom);
-        if (ddnVal) searchUrl += '&ddn=eq.' + encodeURIComponent(ddnVal);
+        // 1. Chercher l'enfant existant
+        var searchUrl='https://pixktldfpjtnimngvgqz.supabase.co/rest/v1/enfants?select=id,prenom,nom,ddn'
+          +'&prenom=eq.'+encodeURIComponent(prenom)
+          +'&nom=eq.'+encodeURIComponent(nom);
+        if(ddnValCheck) searchUrl+='&ddn=eq.'+encodeURIComponent(ddnValCheck);
 
-        const searchRes = await fetch(searchUrl, { headers: headers });
-        if (searchRes.ok) {
-          const existing = await searchRes.json();
-          if (existing && existing.length > 0) {
-            // Enfant déjà existant : on réutilise son ID
-            enfantId = existing[0].id;
-            console.log("Enfant déjà existant, réutilisation id:", enfantId);
+        var searchRes=await fetch(searchUrl,{headers:headers});
+        var enfantId=null;
+        if(searchRes.ok){
+          var existing=await searchRes.json();
+          if(existing&&existing.length>0) enfantId=existing[0].id;
+        }
+
+        // 2. Si enfant connu, vérifier les inscriptions en cours sur les mêmes activités
+        if(enfantId){
+          var prefs2=prefOrder.length?prefOrder:selIds;
+          var inUrl='https://pixktldfpjtnimngvgqz.supabase.co/rest/v1/inscriptions?select=activite_id,statut'
+            +'&enfant_id=eq.'+enfantId
+            +'&statut=neq.annule';
+          var inRes=await fetch(inUrl,{headers:headers});
+          if(inRes.ok){
+            var existingInscs=await inRes.json();
+            var existingActIds=(existingInscs||[]).map(function(i){return i.activite_id;});
+            var doublons=prefs2.filter(function(id){return existingActIds.indexOf(id)>=0;});
+            if(doublons.length>0){
+              var noms=doublons.map(function(id){var a=ACTS.find(function(x){return x.id===id;});return a?'"'+a.nom+'"':'#'+id;}).join(', ');
+              // Afficher l'erreur dans l'étape 5
+              var errBox=document.getElementById("err-doublon-insc");
+              if(!errBox){
+                errBox=document.createElement('div');
+                errBox.id='err-doublon-insc';
+                errBox.style.cssText='background:#fdf0f0;border:2px solid #f4c0c0;border-radius:8px;padding:12px 16px;font-size:13px;color:#7a1f1f;margin-top:1rem;line-height:1.6';
+                var step5el=document.getElementById("panel-5");
+                if(step5el) step5el.appendChild(errBox);
+              }
+              errBox.innerHTML='⚠️ <strong>'+prenom+' '+nom+' est déjà inscrit(e)</strong> aux activités suivantes pour cette campagne :<br>'
+                +'<ul style="margin:.5rem 0 0 1rem;padding:0">'+doublons.map(function(id){var a=ACTS.find(function(x){return x.id===id;});return'<li>'+(a?a.nom:'#'+id)+'</li>';}).join('')+'</ul>'
+                +'<br>Il n\'est pas possible d\'inscrire un enfant deux fois à la même activité.';
+              errBox.style.display='block';
+              errBox.scrollIntoView({behavior:'smooth',block:'center'});
+              if(btnNext){btnNext.disabled=false;btnNext.textContent="Confirmer l'inscription";}
+              return;
+            }
           }
         }
 
-        if (!enfantId) {
-          // Enfant nouveau : on le crée
-          const enfantData = {
-            prenom: prenom,
-            nom: nom,
-            ddn: ddnVal,
-            age: parseInt(document.getElementById("e-age").value) || 0,
-            commune: document.getElementById("e-commune") ? document.getElementById("e-commune").value.trim() : "",
-            pp: document.getElementById("p-prenom").value.trim(),
-            pn: document.getElementById("p-nom").value.trim(),
-            pe: email,
-            pt: document.getElementById("p-tel").value.trim(),
-            notes: document.getElementById("e-notes") ? document.getElementById("e-notes").value.trim() : "",
-            statut: "actif",
-            parts: 0
+        // 3. Pas de doublon : on peut procéder
+        var ref="FT-2026-"+Math.floor(1000+Math.random()*9000);
+        document.getElementById("success-email").textContent=email;
+        document.getElementById("ref-numero").textContent="Référence : "+ref;
+        showStep(6);
+
+        // 4. Créer ou réutiliser l'enfant, puis créer les inscriptions
+        var ddnVal=ddnValCheck;
+        if(!enfantId){
+          var enfantData={
+            prenom:prenom,nom:nom,ddn:ddnVal,
+            age:parseInt(document.getElementById("e-age").value)||0,
+            commune:document.getElementById("e-commune")?document.getElementById("e-commune").value.trim():"",
+            pp:document.getElementById("p-prenom").value.trim(),
+            pn:document.getElementById("p-nom").value.trim(),
+            pe:email,
+            pt:document.getElementById("p-tel").value.trim(),
+            notes:document.getElementById("e-notes")?document.getElementById("e-notes").value.trim():"",
+            statut:"actif",parts:0
           };
-
-          const enfantRes = await fetch('https://pixktldfpjtnimngvgqz.supabase.co/rest/v1/enfants', {
-            method: "POST",
-            headers: headers,
-            body: JSON.stringify(enfantData)
-          });
-
-          if (!enfantRes.ok) {
-            console.warn("Erreur création enfant:", enfantRes.status, await enfantRes.text());
-            return;
-          }
-
-          const enfantCreated = await enfantRes.json();
-          enfantId = enfantCreated[0] && enfantCreated[0].id;
-          console.log("Enfant créé Supabase ✓ id:", enfantId);
+          var enfantRes=await fetch('https://pixktldfpjtnimngvgqz.supabase.co/rest/v1/enfants',{method:"POST",headers:headers,body:JSON.stringify(enfantData)});
+          if(!enfantRes.ok){console.warn("Erreur création enfant:",enfantRes.status,await enfantRes.text());return;}
+          var enfantCreated=await enfantRes.json();
+          enfantId=enfantCreated[0]&&enfantCreated[0].id;
         }
+        if(!enfantId) return;
 
-        if (!enfantId) return;
-        
-        // 2. Create one inscription per activity
-        const prefs = prefOrder.length ? prefOrder : selIds;
-        for (let i = 0; i < prefs.length; i++) {
-          const actId = prefs[i];
-          const inscData = {
-            enfant_id: enfantId,
-            activite_id: actId,
-            statut: "attente",
-            pref: i + 1,
-            notes: "Inscrit via formulaire public — Réf: " + ref
-          };
-          const inscRes = await fetch('https://pixktldfpjtnimngvgqz.supabase.co/rest/v1/inscriptions', {
-            method: "POST",
-            headers: headers,
-            body: JSON.stringify(inscData)
-          });
-          if (inscRes.ok) {
-            console.log("Inscription créée ✓ activite_id:", actId);
-          } else {
-            console.warn("Erreur inscription activite", actId, inscRes.status);
-          }
+        var prefs=prefOrder.length?prefOrder:selIds;
+        for(var i=0;i<prefs.length;i++){
+          var actId=prefs[i];
+          var inscData={enfant_id:enfantId,activite_id:actId,statut:"attente",pref:i+1,notes:"Inscrit via formulaire public — Réf: "+ref};
+          var inscRes=await fetch('https://pixktldfpjtnimngvgqz.supabase.co/rest/v1/inscriptions',{method:"POST",headers:headers,body:JSON.stringify(inscData)});
+          if(inscRes.ok){console.log("Inscription créée ✓ activite_id:",actId);}
+          else{console.warn("Erreur inscription activite",actId,inscRes.status);}
         }
-      } catch(e) {
-        console.warn("Erreur save:", e);
+      }catch(e){
+        console.warn("Erreur save:",e);
+        if(btnNext){btnNext.disabled=false;btnNext.textContent="Confirmer l'inscription";}
       }
     })();
         // Send confirmation email
@@ -649,7 +655,7 @@ function nextStep(){
     }).catch(function(e){console.warn("Email confirmation erreur:",e);});
   }
 }
-function prevStep(){showStep(step-1);}
+function prevStep(){var eb=document.getElementById('err-doublon-insc');if(eb)eb.style.display='none';showStep(step-1);}
 
 function chk(fid,eid){
   const v=document.getElementById(fid).value.trim(),ok=!!v;
