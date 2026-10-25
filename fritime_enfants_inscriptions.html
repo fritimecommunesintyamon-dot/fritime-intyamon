@@ -610,8 +610,17 @@ function calcEnfEditAge(){var a=calcAgeFrom(document.getElementById('ed').value)
 
 function calcPartsFromInscriptions(){
   enfants=enfants.map(function(e){
-    var count=inscriptions.filter(function(i){return i.enfant_id==e.id||i.enfantId==e.id;}).filter(function(i){return i.presence===true||i.statut==="present";}).length;
-    return Object.assign({},e,{parts:count});
+    var inscsE=inscriptions.filter(function(i){return i.enfant_id==e.id||i.enfantId==e.id;});
+    var count=inscsE.filter(function(i){return i.presence===true||i.statut==="present";}).length;
+    var aConf=inscsE
+      .filter(function(i){return ["inscrit","selectionne","confirme","present"].includes(i.statut);})
+      .map(function(i){
+        var aid=i.activiteId||i.activite_id;
+        var a=activites.find(function(x){return x.id==aid;});
+        return a?a.nom:null;
+      })
+      .filter(Boolean);
+    return Object.assign({},e,{parts:count,activitesConfirmees:aConf});
   });
 }
 
@@ -862,7 +871,7 @@ function renderListe(){
   p.innerHTML='<div class="table-wrap"><table>'+
     '<thead><tr><th>Enfant</th><th>Âge</th><th>Parent / contact</th><th>Préférence</th><th>Statut</th><th>Actions</th></tr></thead>'+
     '<tbody>'+sorted.map(function(i){
-      var e=getEnfant(i.enfantId);if(!e)return"";
+      var e=getEnfant(i.enfantId);if(!e)return'<tr style="opacity:.5"><td colspan="6" style="font-size:12px;color:#888;padding:8px">Enfant introuvable (id:'+i.enfantId+')</td></tr>';
       return '<tr>'+
         '<td><div style="display:flex;align-items:center;gap:8px"><div class="avatar">'+ini((e.prenom||"")+" "+(e.nom||""))+'</div>'+
         '<div><div style="font-weight:500;display:flex;align-items:center;gap:6px">'+(e.prenom||"")+' '+(e.nom||"")+
@@ -890,7 +899,7 @@ function renderAttente(){
     '<div class="table-wrap"><table>'+
     '<thead><tr><th>Rang</th><th>Enfant</th><th>Âge</th><th>Parent / contact</th><th>Préférence</th><th>Actions</th></tr></thead>'+
     '<tbody>'+[...inscs].sort(function(a,b){return (a.pref||99)-(b.pref||99);}).map(function(i,idx){
-      var e=getEnfant(i.enfantId);if(!e)return"";
+      var e=getEnfant(i.enfantId);if(!e)return'<tr style="opacity:.5"><td colspan="6" style="font-size:12px;color:#888;padding:8px">Enfant introuvable (id:'+i.enfantId+')</td></tr>';
       return '<tr>'+
         '<td><span style="font-size:16px;font-weight:700;color:#633806">'+(idx+1)+'</span></td>'+
         '<td><div style="display:flex;align-items:center;gap:8px"><div class="avatar">'+ini((e.prenom||"")+" "+(e.nom||""))+'</div>'+
