@@ -261,6 +261,9 @@ textarea{resize:vertical;min-height:80px}
         <button class="btn btn-primary" onclick="openCreate()">+ Nouvelle activité</button>
       </div>
       <div class="metrics" id="act-metrics"></div>
+      <div id="saison-bar" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:.5rem">
+        <span style="font-size:11px;color:#888;margin-right:2px">Saison :</span>
+      </div>
       <div class="filters" id="act-filters"></div>
       <div class="grid" id="act-grid"></div>
     </div>
@@ -274,7 +277,7 @@ textarea{resize:vertical;min-height:80px}
         <button class="btn btn-primary" onclick="campOpenCreate()">+ Nouvelle campagne</button>
       </div>
       <div style="background:#e6f1fb;color:#0c447c;border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:1rem;line-height:1.5">
-        Le lien généré pour chaque campagne est transmis par l'école à tous les élèves (~470). Les familles remplissent le formulaire directement en ligne. Les inscriptions arrivent automatiquement dans le module Inscriptions.
+        Le lien généré pour chaque campagne est transmis par l'école via l'app Klapp à tous les élèves. Les familles remplissent le formulaire directement en ligne. Les inscriptions arrivent automatiquement dans le module Inscriptions.
       </div>
       <div id="camp-metrics" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.5rem"></div>
       <div id="camp-campaigns-list"></div>
@@ -288,6 +291,7 @@ textarea{resize:vertical;min-height:80px}
         <div class="plan-list-head">
           <h2>📅 Planning</h2>
           <input class="plan-search" type="text" placeholder="Rechercher…" id="plan-search" oninput="searchVal=this.value;renderPlanList()">
+          <div id="plan-saison-bar" style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:.4rem"></div>
           <div class="plan-tabs">
             <button class="plan-tab active" id="ptab-encours" onclick="switchPlanTab('encours')">En cours</button>
             <button class="plan-tab" id="ptab-archives" onclick="switchPlanTab('archives')">Archives</button>
@@ -599,6 +603,98 @@ function renderMetrics(){
     <div class="metric"><div class="metric-val">${real}</div><div class="metric-lbl">Réalisées</div></div>`;
 }
 
+// ═══ SAISONS ═══
+// Format: [{nom, emoji, debut:'MM-DD', fin:'MM-DD'}]
+// debut/fin peuvent enjamber le 31 déc (ex: début 09-01, fin 12-31)
+var saisons=[
+  {nom:'Automne', emoji:'🍂', debut:'09-01', fin:'12-31'},
+  {nom:'Hiver',   emoji:'❄️', debut:'01-01', fin:'03-31'},
+  {nom:'Printemps',emoji:'🌸',debut:'04-01', fin:'06-30'},
+  {nom:'Été',     emoji:'☀️', debut:'07-01', fin:'08-31'}
+];
+var saisonActive='toutes'; // 'toutes' ou index 0-3
+
+function getSaisonStorage(){try{var v=localStorage.getItem('fritime_saisons');return v?JSON.parse(v):null;}catch(e){return null;}}
+function saveSaisonStorage(){try{localStorage.setItem('fritime_saisons',JSON.stringify(saisons));}catch(e){}}
+
+function dateInSaison(dateStr, s){
+  if(!dateStr)return false;
+  var md=dateStr.substring(5); // 'MM-DD'
+  if(s.debut<=s.fin) return md>=s.debut && md<=s.fin;
+  // enjambe l'année (ex: 11-01 → 02-28)
+  return md>=s.debut || md<=s.fin;
+}
+
+function detectSaisonCourante(){
+  var today=new Date();
+  var md=(String(today.getMonth()+1).padStart(2,'0'))+'-'+(String(today.getDate()).padStart(2,'0'));
+  for(var i=0;i<saisons.length;i++){
+    var s=saisons[i];
+    var inS=s.debut<=s.fin?(md>=s.debut&&md<=s.fin):(md>=s.debut||md<=s.fin);
+    if(inS)return i;
+  }
+  return 'toutes';
+}
+
+function filterBySaison(list){
+  if(saisonActive==='toutes')return list;
+  var s=saisons[saisonActive];
+  return list.filter(function(a){return a.date&&dateInSaison(a.date,s);});
+}
+
+function renderSaisonBar(){
+  var btns=saisons.map(function(s,i){
+    return '<button class="filter-btn'+(saisonActive===i?' active':'')+'" onclick="setSaison('+i+')">'+s.emoji+' '+s.nom+'</button>';
+  }).join('');
+  btns='<button class="filter-btn'+(saisonActive==='toutes'?' active':'')+'" onclick="setSaison(\'toutes\')">Toutes</button>'+btns;
+  btns+='<button title="Paramétrer les saisons" onclick="openSaisonConfig()" style="background:none;border:none;cursor:pointer;font-size:14px;padding:4px 6px;color:#888">⚙️</button>';
+  var bar=document.getElementById('saison-bar');
+  if(bar){
+    var label=bar.querySelector('span');
+    bar.innerHTML='<span style="font-size:11px;color:#888;margin-right:2px">Saison :</span>'+btns;
+  }
+  var planBar=document.getElementById('plan-saison-bar');
+  if(planBar){
+    planBar.innerHTML=saisons.map(function(s,i){
+      return '<button class="plan-tab'+(saisonActive===i?' active':'')+'" onclick="setSaison('+i+')">'+s.emoji+' '+s.nom+'</button>';
+    }).join('')+'<button class="plan-tab'+(saisonActive==='toutes'?' active':'')+'" onclick="setSaison(\'toutes\')">Toutes</button>'
+    +'<button title="Paramétrer" onclick="openSaisonConfig()" style="background:none;border:none;cursor:pointer;font-size:13px;padding:4px 5px;color:#888">⚙️</button>';
+  }
+}
+
+function setSaison(v){saisonActive=v;renderSaisonBar();renderAct();renderPlanList();}
+
+function openSaisonConfig(){
+  var html='<div style="position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9900;display:flex;align-items:center;justify-content:center" id="mSaisonConfig">'
+    +'<div style="background:#fff;border-radius:14px;padding:1.5rem;width:min(420px,92vw);max-height:90vh;overflow-y:auto">'
+    +'<div style="font-size:16px;font-weight:600;margin-bottom:1rem">⚙️ Paramétrer les saisons</div>'
+    +'<div style="font-size:12px;color:#888;margin-bottom:1rem">Définir les dates de début et fin de chaque saison (format MM-JJ).</div>'
+    +saisons.map(function(s,i){
+      return '<div style="margin-bottom:.75rem;display:grid;grid-template-columns:120px 1fr 1fr;gap:8px;align-items:center">'
+        +'<div style="font-size:13px;font-weight:500">'+s.emoji+' '+s.nom+'</div>'
+        +'<div><label style="font-size:11px;color:#888">Début</label><input id="sc-deb-'+i+'" value="'+s.debut+'" style="width:100%;padding:5px 8px;border:1px solid #ddd;border-radius:6px;font-size:13px" placeholder="MM-JJ"></div>'
+        +'<div><label style="font-size:11px;color:#888">Fin</label><input id="sc-fin-'+i+'" value="'+s.fin+'" style="width:100%;padding:5px 8px;border:1px solid #ddd;border-radius:6px;font-size:13px" placeholder="MM-JJ"></div>'
+        +'</div>';
+    }).join('')
+    +'<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:1rem">'
+    +'<button class="btn btn-outline btn-sm" onclick="document.getElementById(\'mSaisonConfig\').remove()">Annuler</button>'
+    +'<button class="btn btn-primary btn-sm" onclick="saveSaisonConfig()">Enregistrer</button>'
+    +'</div></div></div>';
+  document.body.insertAdjacentHTML('beforeend',html);
+}
+
+function saveSaisonConfig(){
+  for(var i=0;i<saisons.length;i++){
+    var deb=document.getElementById('sc-deb-'+i).value.trim();
+    var fin=document.getElementById('sc-fin-'+i).value.trim();
+    if(/^\d{2}-\d{2}$/.test(deb))saisons[i].debut=deb;
+    if(/^\d{2}-\d{2}$/.test(fin))saisons[i].fin=fin;
+  }
+  saveSaisonStorage();
+  var m=document.getElementById('mSaisonConfig');if(m)m.remove();
+  renderSaisonBar();renderAct();renderPlanList();
+}
+
 function setFilter(f){actFilter=f;renderFilters();renderGrid();}
 
 function renderFilters(){
@@ -608,6 +704,7 @@ function renderFilters(){
 
 function renderGrid(){
   var list=actFilter==='tous'?activites:activites.filter(a=>a.categorie===actFilter);
+  list=filterBySaison(list);
   if(!list.length){document.getElementById('act-grid').innerHTML='<div class="empty">Aucune activité</div>';return;}
   document.getElementById('act-grid').innerHTML=list.map(a=>{
     var allInsc=inscriptions.filter(i=>(i.activiteId||i.activite_id)===a.id);
@@ -1074,6 +1171,7 @@ function switchPlanTab(tab){
 function getPlanList(){
   var archiveStatuts=['realise','annule'];
   var list=activites.filter(function(a){return currentTab==='archives'?archiveStatuts.includes(a.statut):!archiveStatuts.includes(a.statut);});
+  list=filterBySaison(list);
   if(searchVal){var sv=searchVal.toLowerCase();list=list.filter(function(a){return (a.nom||'').toLowerCase().includes(sv)||(a.lieu||'').toLowerCase().includes(sv);});}
   return list.sort(function(a,b){return a.date>b.date?1:-1;});
 }
@@ -1242,6 +1340,9 @@ async function loadAllData(){
   }
   if(typeof FriCats!=='undefined'&&typeof FriCats.loadAndFill==='function')await FriCats.loadAndFill('f-cat','f-souscat');
   autoUpdateStatuts();
+  var stored=getSaisonStorage();if(stored&&stored.length===saisons.length)saisons=stored;
+  saisonActive=detectSaisonCourante();
+  renderSaisonBar();
   renderAct();
   renderPlanList();
 }
