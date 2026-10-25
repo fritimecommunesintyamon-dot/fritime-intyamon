@@ -324,20 +324,66 @@ var CAMP_ID = null;
 
 async function loadActivitesFromSupabase() {
   // Get campaign ID from URL
-  const urlParams = new URLSearchParams(window.location.search);
+  var urlParams = new URLSearchParams(window.location.search);
   CAMP_ID = urlParams.get('id');
-  
-  try {
-    // Load all activites from Supabase
-    const res = await fetch('https://pixktldfpjtnimngvgqz.supabase.co/rest/v1/activites?order=date', {
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': 'sb_publishable_ZV04eYw85SDFQi43SwZJTg_igofPU8X',
-        'Authorization': 'Bearer sb_publishable_ZV04eYw85SDFQi43SwZJTg_igofPU8X'
+
+  var headers = {
+    'Content-Type': 'application/json',
+    'apikey': 'sb_publishable_ZV04eYw85SDFQi43SwZJTg_igofPU8X',
+    'Authorization': 'Bearer sb_publishable_ZV04eYw85SDFQi43SwZJTg_igofPU8X'
+  };
+
+  var campActIds = null; // null = pas de filtre, sinon tableau d'IDs
+
+  // 1. Charger la campagne pour récupérer les activités sélectionnées
+  if (CAMP_ID) {
+    try {
+      var campRes = await fetch('https://pixktldfpjtnimngvgqz.supabase.co/rest/v1/campagnes?id=eq.' + encodeURIComponent(CAMP_ID) + '&select=id,nom,description,activites', {
+        headers: headers
+      });
+      if (campRes.ok) {
+        var campData = await campRes.json();
+        if (campData && campData.length > 0) {
+          var camp = campData[0];
+          // Mettre à jour le titre avec le nom de la campagne
+          if (camp.nom) {
+            var heroTitle = document.querySelector('.hero-title');
+            if (heroTitle) heroTitle.textContent = camp.nom;
+          }
+          if (camp.description) {
+            var heroSub = document.querySelector('.hero-sub');
+            if (heroSub) heroSub.textContent = camp.description;
+          }
+          // Récupérer les IDs d'activités de la campagne
+          if (camp.activites) {
+            try {
+              var parsed = typeof camp.activites === 'string' ? JSON.parse(camp.activites) : camp.activites;
+              if (Array.isArray(parsed) && parsed.length > 0) {
+                campActIds = parsed.map(function(x){ return parseInt(x, 10) || x; });
+              }
+            } catch(e) {
+              console.warn('[Inscription] Erreur parsing activites campagne:', e);
+            }
+          }
+          console.log('[Inscription] Campagne chargée:', camp.nom, '— activités filtrées:', campActIds);
+        } else {
+          console.warn('[Inscription] Campagne introuvable pour id:', CAMP_ID);
+        }
       }
-    });
-    console.log('[Inscription] Supabase status:', res.status);
-    const data = await res.json();
+    } catch(e) {
+      console.warn('[Inscription] Erreur chargement campagne:', e);
+    }
+  }
+
+  // 2. Charger les activités (filtrées par IDs si campagne trouvée)
+  try {
+    var actsUrl = 'https://pixktldfpjtnimngvgqz.supabase.co/rest/v1/activites?order=date';
+    if (campActIds && campActIds.length > 0) {
+      actsUrl += '&id=in.(' + campActIds.join(',') + ')';
+    }
+    var res = await fetch(actsUrl, { headers: headers });
+    console.log('[Inscription] Supabase activites status:', res.status);
+    var data = await res.json();
     console.log('[Inscription] activites reçues:', data ? data.length : 0, data);
     if (data && data.length) {
       ACTS = data.map(function(a) {
