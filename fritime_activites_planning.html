@@ -812,7 +812,7 @@ function openAddPrest(){
   document.getElementById('np-tel').value='';
   document.getElementById('np-save-btn').disabled=false;
   document.getElementById('np-save-btn').textContent='Créer';
-  document.getElementById('mAddPrest').style.display='flex';
+  document.getElementById('mAddPrest').classList.add('open');
 }
 
 async function confirmerAddPrest(){
