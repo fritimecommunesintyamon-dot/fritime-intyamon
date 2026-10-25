@@ -254,6 +254,88 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
 </div>
 
+<!-- MODAL EDIT MEMBRE -->
+<div class="overlay" id="mMembre">
+  <div class="modal">
+    <div class="modal-title">
+      <span>Modifier le membre</span>
+      <button class="modal-close" onclick="closeModal('mMembre')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="mMembreErr" class="msg-err" style="display:none"></div>
+      <div class="form-2col">
+        <div class="form-row">
+          <label>Prénom</label>
+          <input type="text" id="mPrenom" placeholder="Prénom">
+        </div>
+        <div class="form-row">
+          <label>Nom <span style="color:#e53935">*</span></label>
+          <input type="text" id="mNom" placeholder="Nom">
+        </div>
+      </div>
+      <div class="form-row">
+        <label>Rôle</label>
+        <input type="text" id="mRole" placeholder="ex. Présidente, Trésorier…">
+      </div>
+      <div class="form-2col">
+        <div class="form-row">
+          <label>Email</label>
+          <input type="email" id="mEmail" placeholder="email@exemple.ch">
+        </div>
+        <div class="form-row">
+          <label>Téléphone</label>
+          <input type="tel" id="mTel" placeholder="+41 79 000 00 00">
+        </div>
+      </div>
+      <p style="font-size:12px;color:#aaa;margin-top:.25rem">Les autres informations du membre (commune, dates…) sont modifiables dans le module <a href="fritime_comite.html" style="color:#3a7bd5">Comité</a>.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('mMembre')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveMembre()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EDIT PRESTATAIRE -->
+<div class="overlay" id="mPrest">
+  <div class="modal">
+    <div class="modal-title">
+      <span>Modifier le prestataire</span>
+      <button class="modal-close" onclick="closeModal('mPrest')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="mPrestErr" class="msg-err" style="display:none"></div>
+      <div class="form-row">
+        <label>Nom / Organisation <span style="color:#e53935">*</span></label>
+        <input type="text" id="pNom" placeholder="Nom de l'organisation ou de la personne">
+      </div>
+      <div class="form-row">
+        <label>Personne de contact</label>
+        <input type="text" id="pContact" placeholder="Prénom et nom du contact">
+      </div>
+      <div class="form-row">
+        <label>Type / Rôle</label>
+        <input type="text" id="pType" placeholder="ex. Moniteur, Association, Indépendant…">
+      </div>
+      <div class="form-2col">
+        <div class="form-row">
+          <label>Email</label>
+          <input type="email" id="pEmail" placeholder="email@exemple.ch">
+        </div>
+        <div class="form-row">
+          <label>Téléphone</label>
+          <input type="tel" id="pTel" placeholder="+41 79 000 00 00">
+        </div>
+      </div>
+      <p style="font-size:12px;color:#aaa;margin-top:.25rem">Les autres informations (tarifs, catégorie…) sont modifiables dans le module <a href="fritime_prestataires.html" style="color:#3a7bd5">Prestataires</a>.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('mPrest')">Annuler</button>
+      <button class="btn btn-primary" onclick="savePrestataire()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
 <script src="fritime_supabase.js"></script>
 <script>
 var dbPrestataires = [];
@@ -262,6 +344,8 @@ var dbContacts = [];
 var currentFilter = 'tous';
 var editContactId = null;
 var deleteContactId = null;
+var editMembreId = null;
+var editPrestId = null;
 
 function closeSidebar(){
   document.getElementById('sidebar').classList.remove('open');
@@ -388,9 +472,9 @@ function renderContacts(){
       editBtn = '<button class="cc-btn" title="Modifier" onclick="openEditContact(\''+c._sourceId+'\')">✏️</button>';
       deleteBtn = '<button class="cc-btn" title="Supprimer" onclick="openDeleteContact(\''+c._sourceId+'\')">🗑️</button>';
     } else if(c._type === 'membre'){
-      editBtn = '<a class="cc-btn" title="Voir dans Comité" href="fritime_comite.html">↗</a>';
+      editBtn = '<button class="cc-btn" title="Modifier" onclick="openEditMembre(\''+c._sourceId+'\')">✏️</button>';
     } else if(c._type === 'prestataire'){
-      editBtn = '<a class="cc-btn" title="Voir dans Prestataires" href="fritime_prestataires.html">↗</a>';
+      editBtn = '<button class="cc-btn" title="Modifier" onclick="openEditPrestataire(\''+c._sourceId+'\')">✏️</button>';
     }
     html += '<div class="contact-card">'+
       '<div class="cc-head">'+
@@ -486,6 +570,84 @@ function confirmDelete(){
     loadData();
   }).catch(function(e){
     alert('Erreur lors de la suppression : '+e.message);
+  });
+}
+
+function openEditMembre(id){
+  var m = dbMembres.find(function(x){ return String(x.id)===String(id); });
+  if(!m) return;
+  editMembreId = id;
+  document.getElementById('mPrenom').value = m.prenom||'';
+  document.getElementById('mNom').value = m.nom||'';
+  document.getElementById('mRole').value = m.role||'';
+  document.getElementById('mEmail').value = m.email||'';
+  document.getElementById('mTel').value = m.tel||'';
+  document.getElementById('mMembreErr').style.display = 'none';
+  document.getElementById('mMembre').classList.add('open');
+}
+
+function saveMembre(){
+  var nom = document.getElementById('mNom').value.trim();
+  if(!nom){
+    var e = document.getElementById('mMembreErr');
+    e.innerHTML = 'Le <strong>nom</strong> est obligatoire.';
+    e.style.display = 'block';
+    return;
+  }
+  var obj = {
+    id: editMembreId,
+    prenom: document.getElementById('mPrenom').value.trim()||null,
+    nom: nom,
+    role: document.getElementById('mRole').value.trim()||null,
+    email: document.getElementById('mEmail').value.trim()||null,
+    tel: document.getElementById('mTel').value.trim()||null
+  };
+  FriDB.saveMembre(obj).then(function(){
+    closeModal('mMembre');
+    loadData();
+  }).catch(function(err){
+    var e = document.getElementById('mMembreErr');
+    e.textContent = 'Erreur : '+err.message;
+    e.style.display = 'block';
+  });
+}
+
+function openEditPrestataire(id){
+  var p = dbPrestataires.find(function(x){ return String(x.id)===String(id); });
+  if(!p) return;
+  editPrestId = id;
+  document.getElementById('pNom').value = p.nom||'';
+  document.getElementById('pContact').value = p.cp||'';
+  document.getElementById('pType').value = p.type||'';
+  document.getElementById('pEmail').value = p.email||'';
+  document.getElementById('pTel').value = p.tel||'';
+  document.getElementById('mPrestErr').style.display = 'none';
+  document.getElementById('mPrest').classList.add('open');
+}
+
+function savePrestataire(){
+  var nom = document.getElementById('pNom').value.trim();
+  if(!nom){
+    var e = document.getElementById('mPrestErr');
+    e.innerHTML = 'Le <strong>nom</strong> est obligatoire.';
+    e.style.display = 'block';
+    return;
+  }
+  var obj = {
+    id: editPrestId,
+    nom: nom,
+    cp: document.getElementById('pContact').value.trim()||null,
+    type: document.getElementById('pType').value.trim()||null,
+    email: document.getElementById('pEmail').value.trim()||null,
+    tel: document.getElementById('pTel').value.trim()||null
+  };
+  FriDB.savePrestataire(obj).then(function(){
+    closeModal('mPrest');
+    loadData();
+  }).catch(function(err){
+    var e = document.getElementById('mPrestErr');
+    e.textContent = 'Erreur : '+err.message;
+    e.style.display = 'block';
   });
 }
 
