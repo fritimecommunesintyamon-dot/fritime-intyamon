@@ -340,6 +340,14 @@ textarea{resize:vertical;min-height:80px}
         <div class="sec"><label>Nb places max</label><input type="number" id="f-places" placeholder="0 = illimité"></div>
         <div class="sec"><label>Coût comité (CHF)</label><input type="number" id="f-cout" placeholder="0"></div>
       </div>
+      <div class="sec"><label>Pris en charge par</label>
+        <select id="f-cout-facture">
+          <option value="commune">Commune</option>
+          <option value="prestataire">Prestataire</option>
+          <option value="association">Association</option>
+          <option value="autre">Autre</option>
+        </select>
+      </div>
       <div class="sec"><label>Participation enfants (CHF)</label><input type="number" id="f-cout-participant" placeholder="0 = gratuit"></div>
       <div class="sec"><label>Prestataire</label><select id="f-prest"><option value="">Aucun</option></select></div>
       <div class="sec"><label>Responsable</label><input id="f-resp" placeholder="Nom du responsable"></div>
@@ -511,6 +519,7 @@ function openCreate(editing){
       document.getElementById('f-photo').value=a.image||'';
       document.getElementById('f-places').value=a.places||'';
       document.getElementById('f-cout').value=a.cout||'';
+      document.getElementById('f-cout-facture').value=a.coutFacture||'commune';
       document.getElementById('f-cout-participant').value=a.coutType||'';
       document.getElementById('f-age-min').value=a.ageMin||'';
       document.getElementById('f-age-max').value=a.ageMax||'';
@@ -541,6 +550,7 @@ function openCreate(editing){
     document.getElementById('f-photo').value='';
     document.getElementById('f-places').value='';
     document.getElementById('f-cout').value='';
+    document.getElementById('f-cout-facture').value='commune';
     document.getElementById('f-cout-participant').value='';
     document.getElementById('f-age-min').value='';
     document.getElementById('f-age-max').value='';
@@ -608,6 +618,7 @@ async function saveActivite(){
     statut:_currentStatut,
     t_meteo:_tMeteo,
     cout:document.getElementById('f-cout').value?parseFloat(document.getElementById('f-cout').value)||null:null,
+    cout_facture:document.getElementById('f-cout-facture').value||'commune',
     cout_type:document.getElementById('f-cout-participant').value?parseFloat(document.getElementById('f-cout-participant').value)||null:null,
     responsable_nom:document.getElementById('f-resp').value.trim()||null,
     description:document.getElementById('f-desc').value.trim()||null,
@@ -655,7 +666,7 @@ function openDetail(id){
       ${(a.ageMin||a.ageMax)?`<div class="dl">Tranche d'âge</div><div class="dv">${a.ageMin||'?'} – ${a.ageMax||'?'} ans</div>`:''}
       ${prest?`<div class="dl">Prestataire</div><div class="dv">${esc(prest.nom)}</div>`:''}
       <div class="dl">Responsable</div><div class="dv">${a.responsable_nom?esc(a.responsable_nom):'—'} <button class="btn btn-outline btn-sm" style="margin-left:.5rem" onclick="openModifResponsable(${id})">Modifier</button></div>
-      ${a.cout!=null?`<div class="dl">Coût comité</div><div class="dv">${a.cout} CHF</div>`:''}
+      ${a.cout!=null?`<div class="dl">Coût comité</div><div class="dv">${a.cout} CHF${a.coutFacture?' ('+a.coutFacture+')':''}</div>`:''}
       ${a.coutType!=null?`<div class="dl">Participation enfants</div><div class="dv">${a.coutType===0?'Gratuit':a.coutType+' CHF/enfant'}</div>`:''}
       <div class="dl">Inscriptions</div><div class="dv">${insc.length}</div>
       ${a.desc?`<div class="dl">Description</div><div class="dv">${esc(a.desc)}</div>`:''}
@@ -872,7 +883,7 @@ function openPlanDetail(id){
         ${a.lieu?`<div class="pd-field"><div class="pd-label">Lieu</div><div class="pd-val">${esc(a.lieu)}</div></div>`:''}
         ${a.responsable_nom?`<div class="pd-field"><div class="pd-label">Responsable</div><div class="pd-val">${esc(a.responsable_nom)}</div></div>`:''}
         ${(a.ageMin||a.ageMax)?`<div class="pd-field"><div class="pd-label">Tranche d'âge</div><div class="pd-val">${a.ageMin||'?'} – ${a.ageMax||'?'} ans</div></div>`:''}
-        ${(a.cout!=null)?`<div class="pd-field"><div class="pd-label">Coût comité</div><div class="pd-val">${a.cout} CHF</div></div>`:''}
+        ${(a.cout!=null)?`<div class="pd-field"><div class="pd-label">Coût comité</div><div class="pd-val">${a.cout} CHF${(a.coutFacture||a.cout_facture)?' ('+esc(a.coutFacture||a.cout_facture)+')':''}</div></div>`:''}
         ${(a.coutType!=null)?`<div class="pd-field"><div class="pd-label">Participation enfants</div><div class="pd-val">${a.coutType===0?'Gratuit':a.coutType+' CHF/enfant'}</div></div>`:''}
         <div class="pd-field"><div class="pd-label">Inscriptions</div><div class="pd-val">${insc.length}</div></div>
       </div>
