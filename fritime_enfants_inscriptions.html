@@ -1188,8 +1188,9 @@ function mapInscription(item){
 function dbg(msg){var el=document.getElementById("debug-log");if(el)el.innerHTML=(el.innerHTML?el.innerHTML+"<br>":"")+msg;}
 
 async function loadAllData(){
-  await friOfflineInit();
-  updateOfflineBar();
+  dbg("▶ loadAllData démarré");
+  try{await friOfflineInit();}catch(ex){dbg("⚠ friOfflineInit erreur: "+ex.message);}
+  try{updateOfflineBar();}catch(ex){dbg("⚠ updateOfflineBar erreur: "+ex.message);}
   var a=0;
   while(typeof FriDB==='undefined'&&a<30){await new Promise(function(r){setTimeout(r,100);});a++;}
   dbg("FriDB défini: "+(typeof FriDB!=='undefined')+" | En ligne: "+navigator.onLine+" | Attente: "+a+"×100ms");
