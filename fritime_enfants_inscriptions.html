@@ -349,7 +349,8 @@ function doLogout(){sessionStorage.removeItem("ft_user");window.location.href="f
 <div class="module-section" id="section-inscriptions">
 
 <!-- DEBUG TEMPORAIRE — à supprimer après diagnostic -->
-<div id="debug-bar" style="background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:8px 12px;font-size:12px;color:#856404;margin-bottom:10px"></div>
+<div id="debug-log" style="background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:8px 12px;font-size:12px;color:#856404;margin-bottom:4px"></div>
+<div id="debug-bar" style="background:#fff8e1;border:1px solid #ffc107;border-radius:8px;padding:8px 12px;font-size:12px;color:#856404;margin-bottom:10px"></div>
 
 <!-- Boutons actions inscriptions -->
 <div style="display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap">
@@ -1184,7 +1185,7 @@ function mapInscription(item){
   return m;
 }
 
-function dbg(msg){var el=document.getElementById("debug-bar");if(el)el.innerHTML=(el.innerHTML?el.innerHTML+"<br>":"")+msg;}
+function dbg(msg){var el=document.getElementById("debug-log");if(el)el.innerHTML=(el.innerHTML?el.innerHTML+"<br>":"")+msg;}
 
 async function loadAllData(){
   await friOfflineInit();
