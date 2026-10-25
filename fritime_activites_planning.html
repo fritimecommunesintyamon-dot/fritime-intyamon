@@ -161,6 +161,8 @@ textarea{resize:vertical;min-height:80px}
 .status-select{display:flex;gap:.5rem;flex-wrap:wrap}
 .status-btn{padding:6px 14px;border-radius:8px;border:2px solid #ddd;background:#fff;font-size:12px;font-weight:500;cursor:pointer;transition:all .15s}
 .status-btn.selected{border-color:#1a1a1a;background:#1a1a1a;color:#fff}
+.meteo-btn{border-color:#a0b8d0;color:#0c447c}
+.meteo-btn.selected{border-color:#0c447c;background:#0c447c;color:#fff}
 .select-with-add{display:flex;gap:.5rem;align-items:flex-start}
 .select-with-add select{flex:1}
 .new-inline{display:none;margin-top:.5rem;gap:.5rem}
@@ -325,19 +327,20 @@ textarea{resize:vertical;min-height:80px}
           <button class="status-btn" onclick="selectStatut('complet')">Complet</button>
           <button class="status-btn" onclick="selectStatut('realise')">Réalisé</button>
           <button class="status-btn" onclick="selectStatut('annule')">Annulé</button>
+          <button class="status-btn meteo-btn" onclick="selectStatutMeteo()">🌧️ Annulé météo</button>
+        </div>
+      </div>
+      <div class="sec" id="f-meteo-sec">
+        <div class="toggle-row">
+          <span style="font-size:13px">🌧️ Annulation possible si mauvais temps</span>
+          <div class="toggle" id="f-meteo-toggle" onclick="toggleMeteo()"></div>
         </div>
       </div>
       <div class="fg">
         <div class="sec"><label>Nb places max</label><input type="number" id="f-places" placeholder="0 = illimité"></div>
-        <div class="sec"><label>Coût (CHF)</label><input type="number" id="f-cout" placeholder="0"></div>
+        <div class="sec"><label>Coût comité (CHF)</label><input type="number" id="f-cout" placeholder="0"></div>
       </div>
-      <div class="sec"><label>Facturation coût</label>
-        <select id="f-cout-facture">
-          <option value="commune">Commune</option>
-          <option value="participant">Participant</option>
-          <option value="prestataire">Prestataire</option>
-        </select>
-      </div>
+      <div class="sec"><label>Participation enfants (CHF)</label><input type="number" id="f-cout-participant" placeholder="0 = gratuit"></div>
       <div class="sec"><label>Prestataire</label><select id="f-prest"><option value="">Aucun</option></select></div>
       <div class="sec"><label>Responsable</label><input id="f-resp" placeholder="Nom du responsable"></div>
       <div class="fg">
@@ -423,7 +426,7 @@ var nextId=4, nextPrestId=100, categories=[], sousCategories=[];
 var actSelId=null, actEditId=null, actFilter='tous';
 var currentActId=null, currentTab='encours', searchVal='';
 var modifRespActId=null;
-var _publique=false, _currentStatut='brouillon';
+var _publique=false, _currentStatut='brouillon', _tMeteo=false;
 
 // ═══ UTILS ═══
 function fd(d){if(!d)return"—";var p=d.split("-");return p[2]+"."+p[1]+"."+p[0];}
@@ -507,8 +510,8 @@ function openCreate(editing){
       document.getElementById('f-lien').value='';
       document.getElementById('f-photo').value=a.image||'';
       document.getElementById('f-places').value=a.places||'';
-      document.getElementById('f-cout').value='';
-      document.getElementById('f-cout-facture').value=a.coutFacture||'commune';
+      document.getElementById('f-cout').value=a.cout||'';
+      document.getElementById('f-cout-participant').value=a.coutType||'';
       document.getElementById('f-age-min').value=a.ageMin||'';
       document.getElementById('f-age-max').value=a.ageMax||'';
       document.getElementById('f-notes').value=a.notes||'';
@@ -516,6 +519,7 @@ function openCreate(editing){
       if(fprest&&a.prestId)setTimeout(function(){fprest.value=a.prestId;},200);
       _publique=a.tPublic||false;
       _currentStatut=a.statut||'brouillon';
+      _tMeteo=a.tMeteo||false;
       previewPhoto(a.image||'');
       fillCatSelect();
       setTimeout(()=>{
@@ -537,15 +541,17 @@ function openCreate(editing){
     document.getElementById('f-photo').value='';
     document.getElementById('f-places').value='';
     document.getElementById('f-cout').value='';
-    document.getElementById('f-cout-facture').value='commune';
+    document.getElementById('f-cout-participant').value='';
     document.getElementById('f-age-min').value='';
     document.getElementById('f-age-max').value='';
     _publique=false;
     _currentStatut='brouillon';
+    _tMeteo=false;
     previewPhoto('');
     fillCatSelect();
   }
   updateToggleUI();
+  updateMeteoUI();
   updateStatutBtns();
   fillPrestSelect();
   closeOverlay('mDetail');
@@ -562,20 +568,26 @@ function fillPrestSelect(){
   s.innerHTML='<option value="">Aucun</option>'+prestataires.map(p=>`<option value="${p.id}">${esc(p.nom)}</option>`).join('');
 }
 
-function selectStatut(s){_currentStatut=s;updateStatutBtns();}
+function selectStatut(s){_currentStatut=s;_tMeteo=false;updateStatutBtns();updateMeteoUI();}
+function selectStatutMeteo(){_currentStatut='annule';_tMeteo=true;updateStatutBtns();updateMeteoUI();}
 function updateStatutBtns(){
   document.querySelectorAll('#f-statut .status-btn').forEach(b=>{
-    b.classList.toggle('selected',b.textContent.toLowerCase()===_currentStatut||
-      (b.textContent==='Publié'&&_currentStatut==='publie')||
-      (b.textContent==='Réalisé'&&_currentStatut==='realise')||
-      (b.textContent==='Annulé'&&_currentStatut==='annule')||
-      (b.textContent==='Complet'&&_currentStatut==='complet')||
-      (b.textContent==='Brouillon'&&_currentStatut==='brouillon'));
+    var txt=b.textContent.trim();
+    var sel=false;
+    if(txt==='Brouillon'&&_currentStatut==='brouillon'&&!_tMeteo)sel=true;
+    if(txt==='Publié'&&_currentStatut==='publie'&&!_tMeteo)sel=true;
+    if(txt==='Complet'&&_currentStatut==='complet'&&!_tMeteo)sel=true;
+    if(txt==='Réalisé'&&_currentStatut==='realise'&&!_tMeteo)sel=true;
+    if(txt==='Annulé'&&_currentStatut==='annule'&&!_tMeteo)sel=true;
+    if(txt==='🌧️ Annulé météo'&&_currentStatut==='annule'&&_tMeteo)sel=true;
+    b.classList.toggle('selected',sel);
   });
 }
 
 function togglePublique(){_publique=!_publique;updateToggleUI();}
 function updateToggleUI(){document.getElementById('f-publique-toggle').className='toggle'+(_publique?' on':'');}
+function toggleMeteo(){_tMeteo=!_tMeteo;updateMeteoUI();}
+function updateMeteoUI(){document.getElementById('f-meteo-toggle').className='toggle'+(_tMeteo?' on':'');}
 
 function previewPhoto(url){
   var img=document.getElementById('f-photo-prev');
@@ -594,7 +606,9 @@ async function saveActivite(){
     categorie:document.getElementById('f-cat').value||null,
     sous_categorie:document.getElementById('f-souscat').value||null,
     statut:_currentStatut,
-    cout_facture:document.getElementById('f-cout-facture').value||'commune',
+    t_meteo:_tMeteo,
+    cout:document.getElementById('f-cout').value?parseFloat(document.getElementById('f-cout').value)||null:null,
+    cout_type:document.getElementById('f-cout-participant').value?parseFloat(document.getElementById('f-cout-participant').value)||null:null,
     responsable_nom:document.getElementById('f-resp').value.trim()||null,
     description:document.getElementById('f-desc').value.trim()||null,
     notes:document.getElementById('f-notes').value.trim()||null,
@@ -641,7 +655,8 @@ function openDetail(id){
       ${(a.ageMin||a.ageMax)?`<div class="dl">Tranche d'âge</div><div class="dv">${a.ageMin||'?'} – ${a.ageMax||'?'} ans</div>`:''}
       ${prest?`<div class="dl">Prestataire</div><div class="dv">${esc(prest.nom)}</div>`:''}
       <div class="dl">Responsable</div><div class="dv">${a.responsable_nom?esc(a.responsable_nom):'—'} <button class="btn btn-outline btn-sm" style="margin-left:.5rem" onclick="openModifResponsable(${id})">Modifier</button></div>
-      ${a.coutFacture?`<div class="dl">Facturation</div><div class="dv">${esc(a.coutFacture)}</div>`:''}
+      ${a.cout!=null?`<div class="dl">Coût comité</div><div class="dv">${a.cout} CHF</div>`:''}
+      ${a.coutType!=null?`<div class="dl">Participation enfants</div><div class="dv">${a.coutType===0?'Gratuit':a.coutType+' CHF/enfant'}</div>`:''}
       <div class="dl">Inscriptions</div><div class="dv">${insc.length}</div>
       ${a.desc?`<div class="dl">Description</div><div class="dv">${esc(a.desc)}</div>`:''}
       ${a.notes?`<div class="dl">Notes internes</div><div class="dv">${esc(a.notes)}</div>`:''}
@@ -680,7 +695,32 @@ async function changeStatutMeteo(id){
   try{await FriDB.query('activites','PATCH',{statut:'annule',t_meteo:true},'?id=eq.'+id);}catch(e){console.warn(e);}
   var idx=activites.findIndex(function(a){return a.id===id;});
   if(idx>=0){activites[idx].statut='annule';activites[idx].tMeteo=true;}
+  await sendMeteoMails(id);
   closeDetail();renderAct();
+}
+async function sendMeteoMails(actId){
+  var a=activites.find(function(x){return x.id===actId;});
+  if(!a)return;
+  var confirmes=inscriptions.filter(function(i){
+    return String(i.activiteId||i.activite_id)===String(actId)&&i.statut==='confirme';
+  });
+  if(!confirmes.length)return;
+  var dateStr=a.date?a.date.split('-').reverse().join('.'):'';
+  for(var ci=0;ci<confirmes.length;ci++){
+    var insc=confirmes[ci];
+    var eid=insc.enfantId||insc.enfant_id;
+    var enf=enfants.find(function(e){return e.id===eid;});
+    if(!enf||!enf.pe)continue;
+    var html='<p>Bonjour '+(enf.pp||'')+(enf.pn?' '+enf.pn:'')+'</p>'
+      +'<p>Nous vous informons que l\'activité <strong>'+esc(a.nom)+'</strong>'
+      +(dateStr?' du '+dateStr:'')
+      +' est <strong>annulée en raison du mauvais temps</strong>.</p>'
+      +'<p>Nous espérons vous revoir bientôt pour d\'autres activités.</p>'
+      +'<p>L\'équipe Fri-Time Intyamon</p>';
+    try{
+      await FriBrevo.sendEmail(enf.pe,'Activité annulée – mauvais temps : '+a.nom,html);
+    }catch(e){console.warn('sendMeteoMail erreur:',e);}
+  }
 }
 function autoUpdateStatuts(){
   var today=new Date().toISOString().split('T')[0];
@@ -814,7 +854,8 @@ function openPlanDetail(id){
         ${a.lieu?`<div class="pd-field"><div class="pd-label">Lieu</div><div class="pd-val">${esc(a.lieu)}</div></div>`:''}
         ${a.responsable_nom?`<div class="pd-field"><div class="pd-label">Responsable</div><div class="pd-val">${esc(a.responsable_nom)}</div></div>`:''}
         ${(a.ageMin||a.ageMax)?`<div class="pd-field"><div class="pd-label">Tranche d'âge</div><div class="pd-val">${a.ageMin||'?'} – ${a.ageMax||'?'} ans</div></div>`:''}
-        ${(a.coutFacture||a.cout_facture)?`<div class="pd-field"><div class="pd-label">Facturation</div><div class="pd-val">${esc(a.coutFacture||a.cout_facture)}</div></div>`:''}
+        ${(a.cout!=null)?`<div class="pd-field"><div class="pd-label">Coût comité</div><div class="pd-val">${a.cout} CHF</div></div>`:''}
+        ${(a.coutType!=null)?`<div class="pd-field"><div class="pd-label">Participation enfants</div><div class="pd-val">${a.coutType===0?'Gratuit':a.coutType+' CHF/enfant'}</div></div>`:''}
         <div class="pd-field"><div class="pd-label">Inscriptions</div><div class="pd-val">${insc.length}</div></div>
       </div>
       ${(a.desc||a.description)?`<div class="pd-field" style="margin-top:.75rem"><div class="pd-label">Description</div><div class="pd-val">${esc(a.desc||a.description)}</div></div>`:''}
