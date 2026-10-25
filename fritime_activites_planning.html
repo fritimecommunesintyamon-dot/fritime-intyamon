@@ -527,12 +527,13 @@ function renderGrid(){
     var nbConfirmes=allInsc.filter(i=>i.statut==='confirme').length;
     var nbTotal=allInsc.length;
     var places=a.places?parseInt(a.places):0;
-    var plein=(places>0&&nbConfirmes>=places);
-    var presque=(places>0&&nbConfirmes>=Math.ceil(places*0.8)&&!plein);
-    var inscColor=plein?'#dc3545':presque?'#fd7e14':'#3a7bd5';
+    var plein=(places>0&&nbTotal>=places);
+    var presque=(places>0&&nbTotal>=Math.ceil(places*0.8)&&!plein);
+    var depasse=(places>0&&nbTotal>places);
+    var inscColor=depasse?'#dc3545':plein?'#dc3545':presque?'#fd7e14':'#3a7bd5';
     var inscLabel=places>0
-      ? (plein?'🔴':'🟢')+' '+nbConfirmes+' / '+places+' places'+(nbConfirmes!==nbTotal?' ('+nbTotal+' dont '+nbConfirmes+' conf.)':'')
-      : '👥 '+nbTotal+(nbTotal!==nbConfirmes?' ('+nbConfirmes+' conf.)':'');
+      ? (depasse||plein?'🔴':'🟢')+' '+nbTotal+' / '+places+' places'+(nbTotal!==nbConfirmes?' · '+nbConfirmes+' conf.':'')
+      : '👥 '+nbTotal+(nbTotal!==nbConfirmes?' · '+nbConfirmes+' conf.':'');
     return `<div class="card" onclick="openDetail(${a.id})">
       ${a.image?`<img src="${esc(a.image)}" style="width:100%;height:140px;object-fit:cover;border-radius:8px 8px 0 0;display:block">`:''}
       <div class="card-head">
