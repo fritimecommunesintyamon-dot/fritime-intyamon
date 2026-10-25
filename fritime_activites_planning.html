@@ -935,18 +935,6 @@ async function saveActivite(){
   var erreurs=[];
   if(!nom) erreurs.push('Le <strong>titre</strong> est obligatoire.');
   if(!date) erreurs.push('La <strong>date</strong> est obligatoire.');
-  if(!hdeb) erreurs.push('L\'<strong>heure de début</strong> est obligatoire.');
-  if(!hfin) erreurs.push('L\'<strong>heure de fin</strong> est obligatoire.');
-  if(!lieu) erreurs.push('Le <strong>lieu</strong> est obligatoire.');
-  if(!cat) erreurs.push('La <strong>catégorie</strong> est obligatoire.');
-  if(places===''||places===null) erreurs.push('Le <strong>nombre de places</strong> est obligatoire (mettre 0 si illimité).');
-  if(cout===''||cout===null) erreurs.push('Le <strong>coût comité</strong> est obligatoire (mettre 0 si gratuit).');
-  if(coutParticipant===''||coutParticipant===null) erreurs.push('La <strong>participation enfants</strong> est obligatoire (mettre 0 si gratuit).');
-  if(!resp) erreurs.push('Le <strong>responsable</strong> est obligatoire.');
-  if(ageMin===''||ageMin===null) erreurs.push('L\'<strong>âge minimum</strong> est obligatoire.');
-  if(ageMax===''||ageMax===null) erreurs.push('L\'<strong>âge maximum</strong> est obligatoire.');
-  if(!desc) erreurs.push('La <strong>description</strong> est obligatoire.');
-  if(!photo) erreurs.push('La <strong>photo</strong> est obligatoire (uploader ou saisir un lien).');
   var errBox=document.getElementById('act-form-error');
   if(erreurs.length){
     errBox.innerHTML='⚠️ Merci de compléter les champs suivants :<ul style="margin:.5rem 0 0 1rem;padding:0">'+erreurs.map(function(e){return'<li>'+e+'</li>';}).join('')+'</ul>';
@@ -1448,10 +1436,12 @@ async function campSaveCampaign(statut){
   var actsSelected=campGetSelectedActivites();
   var erreurs=[];
   if(!titre)erreurs.push('Le <strong>titre</strong> est obligatoire.');
-  if(!periode)erreurs.push('La <strong>période</strong> est obligatoire (ex : Automne 2025).');
-  if(!deadline)erreurs.push('La <strong>date limite</strong> d\'inscription est obligatoire.');
-  if(!message)erreurs.push('Le <strong>message</strong> pour les familles est obligatoire.');
-  if(!actsSelected.length)erreurs.push('Sélectionne au moins <strong>une activité</strong>.');
+  if(statut==='pret'){
+    if(!periode)erreurs.push('La <strong>période</strong> est obligatoire.');
+    if(!deadline)erreurs.push('La <strong>date limite</strong> d\'inscription est obligatoire.');
+    if(!message)erreurs.push('Le <strong>message</strong> pour les familles est obligatoire.');
+    if(!actsSelected.length)erreurs.push('Sélectionne au moins <strong>une activité</strong>.');
+  }
   var errBox=document.getElementById('camp-form-error');
   if(erreurs.length){
     errBox.innerHTML='⚠️ Merci de compléter les champs suivants :<ul style="margin:.5rem 0 0 1rem;padding:0">'+erreurs.map(function(e){return'<li>'+e+'</li>';}).join('')+'</ul>';
