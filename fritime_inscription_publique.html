@@ -338,7 +338,7 @@ async function loadActivitesFromSupabase() {
   // 1. Charger la campagne pour récupérer les activités sélectionnées
   if (CAMP_ID) {
     try {
-      var campRes = await fetch('https://pixktldfpjtnimngvgqz.supabase.co/rest/v1/campagnes?id=eq.' + encodeURIComponent(CAMP_ID) + '&select=id,nom,description,activites', {
+      var campRes = await fetch('https://pixktldfpjtnimngvgqz.supabase.co/rest/v1/campagnes?id=eq.' + encodeURIComponent(CAMP_ID) + '&select=id,titre,activites', {
         headers: headers
       });
       if (campRes.ok) {
@@ -346,13 +346,9 @@ async function loadActivitesFromSupabase() {
         if (campData && campData.length > 0) {
           var camp = campData[0];
           // Mettre à jour le titre avec le nom de la campagne
-          if (camp.nom) {
+          if (camp.titre) {
             var heroTitle = document.querySelector('.hero-title');
-            if (heroTitle) heroTitle.textContent = camp.nom;
-          }
-          if (camp.description) {
-            var heroSub = document.querySelector('.hero-sub');
-            if (heroSub) heroSub.textContent = camp.description;
+            if (heroTitle) heroTitle.textContent = camp.titre;
           }
           // Récupérer les IDs d'activités de la campagne
           if (camp.activites) {
