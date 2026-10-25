@@ -276,6 +276,23 @@ const FriDB = {
     return await this.query('campagnes', 'DELETE', null, `?id=eq.${id}`);
   },
 
+  // ─── CONTACTS ────────────────────────────────
+  async getContacts() {
+    return await this.query('contacts', 'GET', null, '?order=nom');
+  },
+  async saveContact(c) {
+    var allowed = ['nom','prenom','role','organisation','email','tel','notes'];
+    var clean = {};
+    allowed.forEach(function(k){ if(k in c && c[k] !== undefined && c[k] !== null) clean[k] = c[k]; });
+    if (c.id) {
+      return await this.query('contacts', 'PATCH', clean, '?id=eq.'+c.id);
+    }
+    return await this.query('contacts', 'POST', clean);
+  },
+  async deleteContact(id) {
+    return await this.query('contacts', 'DELETE', null, '?id=eq.'+id);
+  },
+
   // ─── COMPTES ─────────────────────────────────
   async getComptes() {
     return await this.query('comptes', 'GET', null, '?order=id');
@@ -333,6 +350,7 @@ FriDB.COLUMNS = {
   reponses_sondage: ['id','sondage_id','nom','email','note','refaire','comment'],
   campagnes: ['id','titre','type','periode','deadline','message','activites','statut','date_envoi'],
   comptes: ['id','prenom','nom','email','role','actif'],
+  contacts: ['id','nom','prenom','role','organisation','email','tel','notes'],
 };
 
 FriDB.stripUnknown = function(table, obj) {
@@ -434,7 +452,7 @@ var SAVE_TABLE_MAP = {
   saveDepense:'depenses_budget', saveIdee:'idees', saveDocument:'documents',
   saveCatDoc:'categories_docs', saveIncident:'incidents', saveSondage:'sondages',
   saveReponse:'reponses_sondage', saveCampagne:'campagnes', saveMembre:'membres',
-  saveCompte:'comptes'
+  saveCompte:'comptes', saveContact:'contacts'
 };
 
 Object.keys(SAVE_TABLE_MAP).forEach(function(fn){
@@ -452,7 +470,7 @@ Object.keys(SAVE_TABLE_MAP).forEach(function(fn){
 // Override get methods to use mapping
 ['getMembres','getActivites','getEnfants','getInscriptions','getTaches',
  'getPrestataires','getEntrees','getDepenses','getIdees','getDocuments',
- 'getCategsDocs','getIncidents','getSondages','getReponses','getCampagnes','getComptes'].forEach(function(fn){
+ 'getCategsDocs','getIncidents','getSondages','getReponses','getCampagnes','getComptes','getContacts'].forEach(function(fn){
   var orig = FriDB[fn].bind(FriDB);
   FriDB[fn] = async function(arg) {
     var result = await orig(arg);

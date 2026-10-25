@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Contacts – Fri-Time</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f5;color:#1a1a1a}
+/* ── topbar ── */
+.ft-top{position:fixed;top:0;left:0;right:0;height:52px;background:#fff;border-bottom:1px solid #e5e5e5;display:flex;align-items:center;padding:0 1rem;gap:12px;z-index:200}
+.ft-hamburger{background:none;border:none;font-size:22px;cursor:pointer;padding:4px 8px;border-radius:6px}
+.ft-hamburger:hover{background:#f0f0f0}
+.ft-logo{font-size:16px;font-weight:700;color:#1a1a1a;text-decoration:none}
+/* ── mobile sidebar ── */
+.ft-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:300}
+.ft-overlay.open{display:block}
+.ft-sidebar{position:fixed;top:0;left:-280px;width:280px;height:100%;background:#fff;z-index:400;transition:left .25s;overflow-y:auto;padding-bottom:2rem}
+.ft-sidebar.open{left:0}
+.ft-sidebar-head{padding:1rem 1rem .5rem;display:flex;align-items:center;justify-content:space-between}
+.ft-sidebar-title{font-size:15px;font-weight:700}
+.ft-close{background:none;border:none;font-size:22px;cursor:pointer;padding:4px 8px}
+.ft-nav-section{padding:.5rem 1rem .25rem;font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.5px}
+.ft-nav-item{display:flex;align-items:center;gap:10px;padding:10px 1rem;font-size:14px;color:#1a1a1a;text-decoration:none;border-radius:8px;margin:1px 8px;transition:background .15s}
+.ft-nav-item:hover,.ft-nav-item.active{background:#f0f0f0}
+.ft-nav-ico{font-size:18px;width:24px;text-align:center}
+/* ── desktop sidebar ── */
+.ft-sb{display:none}
+.ft-sb-sec{padding:6px 16px 2px;font-size:10px;font-weight:700;color:#bbb;text-transform:uppercase;letter-spacing:.08em;margin-top:8px}
+@media(min-width:769px){
+  .ft-sb{display:block;position:fixed;top:52px;left:0;width:180px;height:calc(100vh - 52px);background:#fff;border-right:1px solid #eee;overflow-y:auto;padding:12px 0;z-index:100}
+  .ft-sb a{display:block;padding:6px 16px;font-size:13px;color:#444;text-decoration:none;border-radius:6px;margin:1px 6px}
+  .ft-sb a:hover{background:#f5f5f3}
+  .ft-sb a.on{background:#f5f5f3;color:#1a1a1a;font-weight:600}
+  .main-wrap{margin-left:180px}
+}
+.main-wrap{margin-top:52px}
+/* ── contenu ── */
+.page-head{background:#fff;border-bottom:1px solid #eee;padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+.page-head h1{font-size:18px;font-weight:700}
+.head-actions{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:none;transition:background .15s}
+.btn-primary{background:#1a1a1a;color:#fff}
+.btn-primary:hover{background:#333}
+.btn-outline{background:#fff;color:#1a1a1a;border:1px solid #ddd}
+.btn-outline:hover{background:#f5f5f5}
+.btn-danger{background:#dc3545;color:#fff}
+.btn-danger:hover{background:#c82333}
+/* ── search + filtres ── */
+.contacts-toolbar{padding:1rem 1.5rem;background:#fff;border-bottom:1px solid #eee;display:flex;gap:.75rem;align-items:center;flex-wrap:wrap}
+.search-input{flex:1;min-width:180px;padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px;outline:none}
+.search-input:focus{border-color:#1a1a1a}
+.filter-tabs{display:flex;gap:4px}
+.filter-tab{padding:6px 12px;font-size:12px;font-weight:500;border:1px solid #ddd;border-radius:6px;background:#f5f5f5;cursor:pointer;color:#666;white-space:nowrap}
+.filter-tab.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+/* ── liste ── */
+.contacts-body{padding:1.5rem}
+.contacts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem}
+.contact-card{background:#fff;border-radius:12px;padding:1.25rem;box-shadow:0 1px 3px rgba(0,0,0,.06);display:flex;flex-direction:column;gap:.5rem}
+.contact-card:hover{box-shadow:0 2px 8px rgba(0,0,0,.1)}
+.cc-head{display:flex;align-items:flex-start;justify-content:space-between;gap:.5rem}
+.cc-avatar{width:40px;height:40px;border-radius:50%;background:#e8eaf6;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#3949ab;flex-shrink:0;font-family:sans-serif}
+.cc-info{flex:1;min-width:0}
+.cc-name{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cc-role{font-size:12px;color:#888;margin-top:1px}
+.cc-org{font-size:12px;color:#666;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cc-actions{display:flex;gap:4px}
+.cc-btn{background:none;border:none;cursor:pointer;padding:4px 6px;border-radius:6px;font-size:14px;color:#888}
+.cc-btn:hover{background:#f0f0f0;color:#1a1a1a}
+.cc-contacts{display:flex;flex-direction:column;gap:4px;margin-top:.25rem}
+.cc-line{display:flex;align-items:center;gap:6px;font-size:12px;color:#444}
+.cc-line a{color:#3a7bd5;text-decoration:none}
+.cc-line a:hover{text-decoration:underline}
+.cc-ico{font-size:13px;width:16px;text-align:center;flex-shrink:0}
+.cc-tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500;margin-top:.25rem}
+.cc-tag.prestataire{background:#e3f2fd;color:#1565c0}
+.cc-tag.membre{background:#e8f5e9;color:#2e7d32}
+.cc-tag.ecole{background:#fff3e0;color:#e65100}
+.cc-tag.autre{background:#f3e5f5;color:#6a1b9a}
+.cc-tag.contact{background:#fce4ec;color:#880e4f}
+/* ── section titre ── */
+.section-head{font-size:11px;font-weight:700;color:#bbb;text-transform:uppercase;letter-spacing:.08em;padding:.25rem 0 .75rem;margin-top:.5rem}
+/* ── empty ── */
+.empty-state{text-align:center;padding:3rem 1rem;color:#aaa}
+.empty-ico{font-size:40px;margin-bottom:.75rem}
+/* ── overlay modal ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1000;align-items:center;justify-content:center;padding:1rem}
+.overlay.open{display:flex}
+.modal{background:#fff;border-radius:16px;width:100%;max-width:480px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.modal-title{padding:1.25rem 1.5rem;border-bottom:1px solid #f0f0f0;font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:space-between}
+.modal-body{padding:1.5rem;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:1rem}
+.modal-footer{padding:1rem 1.5rem;border-top:1px solid #f0f0f0;display:flex;gap:.75rem;justify-content:flex-end}
+.modal-close{background:none;border:none;font-size:22px;cursor:pointer;color:#888;line-height:1}
+.form-row{display:flex;flex-direction:column;gap:5px}
+.form-row label{font-size:12px;font-weight:600;color:#555}
+.form-row input,.form-row select,.form-row textarea{width:100%;padding:9px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit;outline:none}
+.form-row input:focus,.form-row select:focus,.form-row textarea:focus{border-color:#1a1a1a}
+.form-2col{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.msg-err{background:#ffeaea;border:1px solid #f5c2c7;border-radius:8px;padding:.75rem 1rem;font-size:13px;color:#842029}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="ft-top">
+  <button class="ft-hamburger" onclick="document.getElementById('sidebar').classList.add('open');document.getElementById('sidebarOverlay').classList.add('open')">☰</button>
+  <a class="ft-logo" href="fritime_dashboard.html">🎯 Fri-Time</a>
+</div>
+
+<!-- MOBILE SIDEBAR -->
+<div class="ft-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+<div class="ft-sidebar" id="sidebar">
+  <div class="ft-sidebar-head">
+    <span class="ft-sidebar-title">🎯 Fri-Time</span>
+    <button class="ft-close" onclick="closeSidebar()">✕</button>
+  </div>
+  <div class="ft-nav-section">Principal</div>
+  <a class="ft-nav-item" href="fritime_dashboard.html"><span class="ft-nav-ico">🏠</span> Tableau de bord</a>
+  <a class="ft-nav-item" href="fritime_activites_planning.html"><span class="ft-nav-ico">🎯</span> Activités</a>
+  <a class="ft-nav-item" href="fritime_enfants_inscriptions.html"><span class="ft-nav-ico">👦</span> Inscriptions</a>
+  <div class="ft-nav-section">Organisation</div>
+  <a class="ft-nav-item" href="fritime_taches.html"><span class="ft-nav-ico">✅</span> Tâches</a>
+  <a class="ft-nav-item" href="fritime_comite.html"><span class="ft-nav-ico">👥</span> Comité</a>
+  <a class="ft-nav-item" href="fritime_sondages.html"><span class="ft-nav-ico">⭐</span> Sondages</a>
+  <a class="ft-nav-item active" href="fritime_contacts.html"><span class="ft-nav-ico">📇</span> Contacts</a>
+  <div class="ft-nav-section">Finances &amp; Partenaires</div>
+  <a class="ft-nav-item" href="fritime_budget.html"><span class="ft-nav-ico">💰</span> Budget</a>
+  <a class="ft-nav-item" href="fritime_prestataires.html"><span class="ft-nav-ico">🤝</span> Prestataires</a>
+  <div class="ft-nav-section">Contenu</div>
+  <a class="ft-nav-item" href="fritime_idees.html"><span class="ft-nav-ico">🏷️</span> Catégories &amp; Idées</a>
+  <a class="ft-nav-item" href="fritime_documents.html"><span class="ft-nav-ico">📁</span> Documents</a>
+  <div class="ft-nav-section">Sécurité</div>
+  <a class="ft-nav-item" href="fritime_incidents.html"><span class="ft-nav-ico">⚠️</span> Incidents</a>
+  <a class="ft-nav-item" href="fritime_urgences.html"><span class="ft-nav-ico">🚨</span> Urgences</a>
+  <a class="ft-nav-item" href="fritime_modifications.html"><span class="ft-nav-ico">🔄</span> Demandes</a>
+</div>
+
+<!-- DESKTOP SIDEBAR -->
+<div class="ft-sb" id="ft-sb">
+  <div class="ft-sb-sec">Principal</div>
+  <a href="fritime_dashboard.html">🏠 Tableau de bord</a>
+  <a href="fritime_activites_planning.html">🎯 Activités</a>
+  <a href="fritime_enfants_inscriptions.html">👦 Inscriptions</a>
+  <div class="ft-sb-sec">Organisation</div>
+  <a href="fritime_taches.html">✅ Tâches</a>
+  <a href="fritime_comite.html">👥 Comité</a>
+  <a href="fritime_sondages.html">⭐ Sondages</a>
+  <a href="fritime_contacts.html" class="on">📇 Contacts</a>
+  <div class="ft-sb-sec">Finances &amp; Partenaires</div>
+  <a href="fritime_budget.html">💰 Budget</a>
+  <a href="fritime_prestataires.html">🤝 Prestataires</a>
+  <div class="ft-sb-sec">Contenu</div>
+  <a href="fritime_idees.html">🏷️ Catégories &amp; Idées</a>
+  <a href="fritime_documents.html">📁 Documents</a>
+  <div class="ft-sb-sec">Sécurité</div>
+  <a href="fritime_incidents.html">⚠️ Incidents</a>
+  <a href="fritime_urgences.html">🚨 Urgences</a>
+  <a href="fritime_modifications.html">🔄 Demandes</a>
+</div>
+
+<!-- MAIN -->
+<div class="main-wrap">
+  <div class="page-head">
+    <h1>📇 Contacts</h1>
+    <div class="head-actions">
+      <button class="btn btn-primary" onclick="openAddContact()">+ Nouveau contact</button>
+    </div>
+  </div>
+  <div class="contacts-toolbar">
+    <input class="search-input" type="text" id="search" placeholder="Rechercher un nom, rôle, email…" oninput="renderContacts()">
+    <div class="filter-tabs">
+      <button class="filter-tab active" data-filter="tous" onclick="setFilter('tous',this)">Tous</button>
+      <button class="filter-tab" data-filter="membre" onclick="setFilter('membre',this)">Comité</button>
+      <button class="filter-tab" data-filter="prestataire" onclick="setFilter('prestataire',this)">Prestataires</button>
+      <button class="filter-tab" data-filter="ecole" onclick="setFilter('ecole',this)">École</button>
+      <button class="filter-tab" data-filter="autre" onclick="setFilter('autre',this)">Autres</button>
+    </div>
+  </div>
+  <div class="contacts-body">
+    <div id="contacts-list" class="contacts-grid"></div>
+  </div>
+</div>
+
+<!-- MODAL AJOUT/EDIT CONTACT MANUEL -->
+<div class="overlay" id="mContact">
+  <div class="modal">
+    <div class="modal-title">
+      <span id="mContactTitle">Nouveau contact</span>
+      <button class="modal-close" onclick="closeModal('mContact')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="mContactErr" class="msg-err" style="display:none"></div>
+      <div class="form-2col">
+        <div class="form-row">
+          <label>Prénom</label>
+          <input type="text" id="cPrenom" placeholder="Prénom">
+        </div>
+        <div class="form-row">
+          <label>Nom <span style="color:#e53935">*</span></label>
+          <input type="text" id="cNom" placeholder="Nom de famille">
+        </div>
+      </div>
+      <div class="form-row">
+        <label>Rôle / Fonction</label>
+        <input type="text" id="cRole" placeholder="ex. Directrice, Responsable, Parent…">
+      </div>
+      <div class="form-row">
+        <label>Organisation / École</label>
+        <input type="text" id="cOrg" placeholder="ex. École de Gruyères, Mairie…">
+      </div>
+      <div class="form-row">
+        <label>Catégorie</label>
+        <select id="cCat">
+          <option value="ecole">École</option>
+          <option value="autre">Autre</option>
+        </select>
+      </div>
+      <div class="form-2col">
+        <div class="form-row">
+          <label>Email</label>
+          <input type="email" id="cEmail" placeholder="contact@exemple.ch">
+        </div>
+        <div class="form-row">
+          <label>Téléphone</label>
+          <input type="tel" id="cTel" placeholder="+41 79 000 00 00">
+        </div>
+      </div>
+      <div class="form-row">
+        <label>Notes</label>
+        <textarea id="cNotes" rows="3" placeholder="Informations complémentaires…" style="resize:vertical"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('mContact')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveContact()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CONFIRM DELETE -->
+<div class="overlay" id="mDelete">
+  <div class="modal" style="max-width:360px">
+    <div class="modal-title">
+      <span>Supprimer le contact</span>
+      <button class="modal-close" onclick="closeModal('mDelete')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:14px;color:#444">Voulez-vous supprimer ce contact ? Cette action est irréversible.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('mDelete')">Annuler</button>
+      <button class="btn btn-danger" onclick="confirmDelete()">Supprimer</button>
+    </div>
+  </div>
+</div>
+
+<script src="fritime_supabase.js"></script>
+<script>
+var dbPrestataires = [];
+var dbMembres = [];
+var dbContacts = [];
+var currentFilter = 'tous';
+var editContactId = null;
+var deleteContactId = null;
+
+function closeSidebar(){
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('open');
+}
+function closeModal(id){
+  document.getElementById(id).classList.remove('open');
+}
+
+function setFilter(f, btn){
+  currentFilter = f;
+  document.querySelectorAll('.filter-tab').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+  renderContacts();
+}
+
+function initials(prenom, nom){
+  var p = (prenom||'').trim();
+  var n = (nom||'').trim();
+  var ini = '';
+  if(p) ini += p[0].toUpperCase();
+  if(n) ini += n[0].toUpperCase();
+  if(!ini && nom) ini = nom[0].toUpperCase();
+  return ini || '?';
+}
+
+function avatarColor(str){
+  var colors = ['#3949ab','#e53935','#43a047','#fb8c00','#8e24aa','#00897b','#1e88e5'];
+  var h = 0;
+  for(var i=0;i<str.length;i++) h = str.charCodeAt(i) + ((h<<5)-h);
+  return colors[Math.abs(h)%colors.length];
+}
+
+function getAllContacts(){
+  var all = [];
+
+  // Membres du comité
+  dbMembres.forEach(function(m){
+    if(m.statut === 'inactif') return;
+    all.push({
+      _type: 'membre',
+      _id: 'membre_'+m.id,
+      _sourceId: m.id,
+      nom: m.nom||'',
+      prenom: m.prenom||'',
+      role: m.role||'Membre comité',
+      organisation: 'Comité Fri-Time',
+      email: m.email||'',
+      tel: m.tel||'',
+      notes: m.notes||''
+    });
+  });
+
+  // Prestataires
+  dbPrestataires.forEach(function(p){
+    if(p.statut === 'inactif') return;
+    all.push({
+      _type: 'prestataire',
+      _id: 'prest_'+p.id,
+      _sourceId: p.id,
+      nom: p.nom||'',
+      prenom: p.cp||'',
+      role: p.type||'Prestataire',
+      organisation: p.nom||'',
+      email: p.email||'',
+      tel: p.tel||'',
+      notes: p.notes||''
+    });
+  });
+
+  // Contacts manuels (école + autres)
+  dbContacts.forEach(function(c){
+    all.push({
+      _type: c.role === 'ecole' ? 'ecole' : (c.organisation && c.organisation.toLowerCase().indexOf('école')>=0 ? 'ecole' : 'autre'),
+      _id: 'contact_'+c.id,
+      _sourceId: c.id,
+      _manual: true,
+      nom: c.nom||'',
+      prenom: c.prenom||'',
+      role: c.role||'',
+      organisation: c.organisation||'',
+      email: c.email||'',
+      tel: c.tel||'',
+      notes: c.notes||''
+    });
+  });
+
+  return all;
+}
+
+function renderContacts(){
+  var q = (document.getElementById('search').value||'').toLowerCase().trim();
+  var all = getAllContacts();
+
+  // Filtre catégorie
+  if(currentFilter !== 'tous'){
+    all = all.filter(function(c){ return c._type === currentFilter; });
+  }
+
+  // Filtre recherche
+  if(q){
+    all = all.filter(function(c){
+      return (c.nom+' '+c.prenom+' '+c.role+' '+c.organisation+' '+c.email+' '+c.tel).toLowerCase().indexOf(q) >= 0;
+    });
+  }
+
+  var el = document.getElementById('contacts-list');
+  if(!all.length){
+    el.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="empty-ico">📭</div><div>Aucun contact trouvé</div></div>';
+    return;
+  }
+
+  var html = '';
+  all.forEach(function(c){
+    var ini = initials(c.prenom, c.nom);
+    var col = avatarColor((c.prenom||'')+c.nom);
+    var fullName = [c.prenom, c.nom].filter(Boolean).join(' ');
+    var tagLabel = {membre:'Comité',prestataire:'Prestataire',ecole:'École',autre:'Autre'}[c._type]||'Contact';
+    var emailLine = c.email ? '<div class="cc-line"><span class="cc-ico">✉️</span><a href="mailto:'+c.email+'">'+c.email+'</a></div>' : '';
+    var telLine = c.tel ? '<div class="cc-line"><span class="cc-ico">📞</span><a href="tel:'+c.tel+'">'+c.tel+'</a></div>' : '';
+    var editBtn = '';
+    var deleteBtn = '';
+    if(c._manual){
+      editBtn = '<button class="cc-btn" title="Modifier" onclick="openEditContact(\''+c._sourceId+'\')">✏️</button>';
+      deleteBtn = '<button class="cc-btn" title="Supprimer" onclick="openDeleteContact(\''+c._sourceId+'\')">🗑️</button>';
+    } else if(c._type === 'membre'){
+      editBtn = '<a class="cc-btn" title="Voir dans Comité" href="fritime_comite.html">↗</a>';
+    } else if(c._type === 'prestataire'){
+      editBtn = '<a class="cc-btn" title="Voir dans Prestataires" href="fritime_prestataires.html">↗</a>';
+    }
+    html += '<div class="contact-card">'+
+      '<div class="cc-head">'+
+        '<div style="display:flex;gap:.75rem;align-items:flex-start;flex:1;min-width:0">'+
+          '<div class="cc-avatar" style="background:'+col+'20;color:'+col+'">'+ini+'</div>'+
+          '<div class="cc-info">'+
+            '<div class="cc-name">'+fullName+'</div>'+
+            (c.role?'<div class="cc-role">'+c.role+'</div>':'')+
+            (c.organisation&&c.organisation!==fullName?'<div class="cc-org">'+c.organisation+'</div>':'')+
+          '</div>'+
+        '</div>'+
+        '<div class="cc-actions">'+editBtn+deleteBtn+'</div>'+
+      '</div>'+
+      '<div class="cc-contacts">'+emailLine+telLine+'</div>'+
+      '<span class="cc-tag '+c._type+'">'+tagLabel+'</span>'+
+    '</div>';
+  });
+  el.innerHTML = html;
+}
+
+function openAddContact(){
+  editContactId = null;
+  document.getElementById('mContactTitle').textContent = 'Nouveau contact';
+  document.getElementById('cPrenom').value = '';
+  document.getElementById('cNom').value = '';
+  document.getElementById('cRole').value = '';
+  document.getElementById('cOrg').value = '';
+  document.getElementById('cCat').value = 'ecole';
+  document.getElementById('cEmail').value = '';
+  document.getElementById('cTel').value = '';
+  document.getElementById('cNotes').value = '';
+  document.getElementById('mContactErr').style.display = 'none';
+  document.getElementById('mContact').classList.add('open');
+}
+
+function openEditContact(id){
+  var c = dbContacts.find(function(x){ return String(x.id)===String(id); });
+  if(!c) return;
+  editContactId = id;
+  document.getElementById('mContactTitle').textContent = 'Modifier le contact';
+  document.getElementById('cPrenom').value = c.prenom||'';
+  document.getElementById('cNom').value = c.nom||'';
+  document.getElementById('cRole').value = c.role||'';
+  document.getElementById('cOrg').value = c.organisation||'';
+  // Detect category from organisation name or role
+  var isEcole = (c.organisation||'').toLowerCase().indexOf('école')>=0 || (c.organisation||'').toLowerCase().indexOf('ecole')>=0;
+  document.getElementById('cCat').value = isEcole ? 'ecole' : 'autre';
+  document.getElementById('cEmail').value = c.email||'';
+  document.getElementById('cTel').value = c.tel||'';
+  document.getElementById('cNotes').value = c.notes||'';
+  document.getElementById('mContactErr').style.display = 'none';
+  document.getElementById('mContact').classList.add('open');
+}
+
+function openDeleteContact(id){
+  deleteContactId = id;
+  document.getElementById('mDelete').classList.add('open');
+}
+
+function saveContact(){
+  var nom = document.getElementById('cNom').value.trim();
+  if(!nom){
+    var errEl = document.getElementById('mContactErr');
+    errEl.innerHTML = 'Le <strong>nom</strong> est obligatoire.';
+    errEl.style.display = 'block';
+    return;
+  }
+  var obj = {
+    nom: nom,
+    prenom: document.getElementById('cPrenom').value.trim()||null,
+    role: document.getElementById('cRole').value.trim()||null,
+    organisation: document.getElementById('cOrg').value.trim()||null,
+    email: document.getElementById('cEmail').value.trim()||null,
+    tel: document.getElementById('cTel').value.trim()||null,
+    notes: document.getElementById('cNotes').value.trim()||null
+  };
+  if(editContactId) obj.id = editContactId;
+  FriDB.saveContact(obj).then(function(){
+    closeModal('mContact');
+    loadData();
+  }).catch(function(e){
+    var errEl = document.getElementById('mContactErr');
+    errEl.textContent = 'Erreur : '+e.message;
+    errEl.style.display = 'block';
+  });
+}
+
+function confirmDelete(){
+  if(!deleteContactId) return;
+  FriDB.deleteContact(deleteContactId).then(function(){
+    deleteContactId = null;
+    closeModal('mDelete');
+    loadData();
+  }).catch(function(e){
+    alert('Erreur lors de la suppression : '+e.message);
+  });
+}
+
+function loadData(){
+  Promise.all([
+    FriDB.getPrestataires(),
+    FriDB.getMembres(),
+    FriDB.getContacts()
+  ]).then(function(results){
+    dbPrestataires = results[0]||[];
+    dbMembres = results[1]||[];
+    dbContacts = results[2]||[];
+    renderContacts();
+  }).catch(function(e){
+    console.error('Erreur chargement contacts:', e);
+    document.getElementById('contacts-list').innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="empty-ico">⚠️</div><div>Erreur de chargement. Vérifiez la connexion.</div></div>';
+  });
+}
+
+loadData();
+</script>
+</body>
+</html>
