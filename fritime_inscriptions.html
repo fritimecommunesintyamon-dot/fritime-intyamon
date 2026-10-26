@@ -99,7 +99,8 @@ tr:hover td{background:#fafaf8}
 
 }
 </style>
-  <script src="fritime_data.js"></script>
+  <script src="fritime_data.js">function toggleHelp(id){var el=document.getElementById(id);if(el)el.style.display=el.style.display==='none'?'block':'none';}
+</script>
   <script src="fritime_sync.js"></script>
   <script src="fritime_auth.js"></script>
   <script src="fritime_supabase.js"></script>
@@ -299,6 +300,7 @@ function doLogout(){
 <div class="header">
   <div><h1>Inscriptions</h1><div class="subtitle">Suivi des participants par activité — Fri-Time</div></div>
   <div style="display:flex;gap:8px">
+  <button class="btn btn-outline btn-sm" onclick="toggleHelp('help-inscriptions')" style="font-size:12px">&#x2753; Aide</button>
   <button class="btn btn-primary" onclick="openAddInscription()">+ Inscrire un enfant</button>
   <button class="btn" style="background:#eaf3de;color:#275a0a;border-color:#c0dd97;font-weight:600" onclick="ouvrirSelectionModal()">🎯 Lancer la sélection</button>
 </div>

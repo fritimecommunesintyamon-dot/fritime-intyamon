@@ -85,7 +85,8 @@ h1{font-size:20px;font-weight:600}
 }
 
 </style>
-  <script src="fritime_data.js"></script>
+  <script src="fritime_data.js">function toggleHelp(id){var el=document.getElementById(id);if(el)el.style.display=el.style.display==='none'?'block':'none';}
+</script>
   <script src="fritime_sync.js"></script>
   <script src="fritime_auth.js"></script>
   <script src="fritime_supabase.js"></script>
@@ -273,8 +274,11 @@ function doLogout(){
 
 <div class="header">
   <div>
-    <h1>Procédures d'urgence</h1>
-    <div class="subtitle">Guide complet en cas de problème ou accident lors d'une activité</div>
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:.5rem">
+      <div><h1>Procédures d'urgence</h1><div class="subtitle">Guide complet en cas de problème ou accident lors d'une activité</div></div>
+      <button class="btn btn-outline btn-sm" onclick="toggleHelp('help-urgences')" style="font-size:12px">&#x2753; Aide</button>
+    </div>
+    <div id="help-urgences" style="display:none;background:#f0f7ff;border:1px solid #bfdbfe;border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.25rem;font-size:13px;line-height:1.7"><div style="font-weight:700;margin-bottom:.5rem;font-size:14px">&#x1F6A8; Module Urgences &#x2014; Guide</div><div style="display:grid;gap:.3rem"><div style="padding:2px 0">&#x1F4CC; <strong>A quoi &ccedil;a sert ?</strong> : guide &agrave; consulter en cas d'accident, probl&egrave;me m&eacute;dical ou conflit.</div><div style="padding:2px 0">&#x1F4CB; <strong>Proc&eacute;dures</strong> : chaque urgence a sa proc&eacute;dure pas &agrave; pas. Lisez calmement et suivez dans l'ordre.</div><div style="padding:2px 0">&#x1F4DE; <strong>Num&eacute;ros</strong> : 112 (Europe), 117 (police CH), 144 (ambulance), 1414 (Rega h&eacute;licopt&egrave;re).</div><div style="padding:2px 0">&#x26A0;&#xFE0F; <strong>Rapport</strong> : apr&egrave;s toute urgence, cr&eacute;ez un rapport dans le module <em>Incidents</em>.</div><div style="padding:2px 0">&#x1F516; <strong>Conseil</strong> : lisez ces proc&eacute;dures <u>avant</u> une activit&eacute;, pas pendant.</div></div></div>
   </div>
   <button class="btn" onclick="window.location.href='fritime_incidents.html'">📋 Rapports d'incident</button>
 </div>

@@ -85,7 +85,8 @@ textarea.fi{resize:vertical;min-height:70px}
 
 }
 </style>
-  <script src="fritime_data.js"></script>
+  <script src="fritime_data.js">function toggleHelp(id){var el=document.getElementById(id);if(el)el.style.display=el.style.display==='none'?'block':'none';}
+</script>
   <script src="fritime_sync.js"></script>
   <script src="fritime_auth.js"></script>
   <script src="fritime_supabase.js"></script>
@@ -273,7 +274,10 @@ function doLogout(){
 
 <div class="header">
   <div><h1>Rapports d'incident</h1><div class="subtitle">Suivi des incidents lors des activités — Fri-Time</div></div>
-  <button class="btn btn-primary" onclick="openCreate()">+ Nouveau rapport</button>
+  <div style="display:flex;gap:.5rem"><button class="btn btn-outline btn-sm" onclick="toggleHelp('help-incidents')" style="font-size:12px">&#x2753; Aide</button><button class="btn btn-primary" onclick="openCreate()">+ Nouveau rapport</button></div>
+</div>
+<div id="help-incidents" style="display:none;background:#f0f7ff;border:1px solid #bfdbfe;border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.25rem;font-size:13px;line-height:1.7"><div style="font-weight:700;margin-bottom:.5rem;font-size:14px">&#x26A0;&#xFE0F; Module Incidents &#x2014; Guide</div><div style="display:grid;gap:.3rem"><div style="padding:2px 0">&#x1F4CC; <strong>A quoi &ccedil;a sert ?</strong> : consigner tout incident lors d'une activit&eacute; (chute, conflit, probl&egrave;me m&eacute;dical).</div><div style="padding:2px 0">&#x2795; <strong>Cr&eacute;er</strong> : d&egrave;s que possible apr&egrave;s l'incident &mdash; date, lieu, enfants impliqu&eacute;s, description pr&eacute;cise.</div><div style="padding:2px 0">&#x1F4CB; <strong>Statuts</strong> : ouvert &rarr; en traitement &rarr; cl&ocirc;tur&eacute;.</div><div style="padding:2px 0">&#x2696;&#xFE0F; <strong>Important</strong> : peut &ecirc;tre demand&eacute; par les assurances ou autorit&eacute;s &mdash; soyez factuel.</div><div style="padding:2px 0">&#x1F6A8; <strong>Urgence ?</strong> : consultez le module <em>Urgences</em> si intervention imm&eacute;diate n&eacute;cessaire.</div></div></div>
+<div style="display:none"
 </div>
 
 <div id="alerte-critique"></div>
