@@ -1185,13 +1185,14 @@ async function sendAnnulationMails(actId,cause){
     var enf=enfants.find(function(e){return e.id===eid;});
     if(!enf||!enf.pe)continue;
     var html='<p>Bonjour '+(enf.pp||'')+(enf.pn?' '+enf.pn:'')+'</p>'
-      +'<p>Nous vous informons que l\'activité <strong>'+esc(a.nom)+'</strong>'
-      +(dateStr?' du '+dateStr:'')
-      +' est <strong>annulée</strong>.</p>'
+      +'<p>Nous vous contactons au sujet de l\'activité <strong>'+esc(a.nom)+'</strong>'
+      +(dateStr?' prévue le '+dateStr:'')
+      +'. Nous sommes dans le regret de vous informer qu\'elle est <strong>annulée</strong>.</p>'
       +'<p><strong>Raison de l\'annulation :</strong><br>'
       +cause.replace(/\n/g,'<br>')+'</p>'
-      +'<p>Nous vous prions de nous excuser pour ce désagrément et espérons vous retrouver prochainement pour d\'autres activités.</p>'
-      +'<p>L\'équipe Fri-Time Intyamon</p>';
+      +'<p>Nous nous excusons sincèrement pour ce contretemps. Dans la mesure du possible, nous ferons tout notre possible pour proposer une nouvelle date pour cette activité et vous en informerons dès que celle-ci sera confirmée.</p>'
+      +'<p>Merci de votre compréhension et de votre soutien envers Fri-Time Intyamon.</p>'
+      +'<p>Cordialement,<br>L\'équipe Fri-Time Intyamon</p>';
     try{
       await FriBrevo.sendEmail(enf.pe,'Activité annulée : '+a.nom,html);
     }catch(e){console.warn('sendAnnulationMail erreur:',e);}
