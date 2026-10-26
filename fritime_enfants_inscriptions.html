@@ -1317,6 +1317,7 @@ function reglesAjouter(){
 }
 
 async function reglesSauvegarder(){
+  if(!confirm('Enregistrer les modifications des règles ? Le formulaire d\'inscription public sera mis à jour immédiatement.'))return;
   var btn=document.getElementById('regles-save-btn');
   var okEl=document.getElementById('regles-save-ok');
   var errEl=document.getElementById('regles-save-err');
@@ -1390,6 +1391,7 @@ function conditionsAjouter(){
 }
 
 async function conditionsSauvegarder(){
+  if(!confirm('Enregistrer les modifications des conditions ? Le formulaire d\'inscription public sera mis à jour immédiatement.'))return;
   var btn=document.getElementById('cond-save-btn');
   var okEl=document.getElementById('cond-save-ok');
   var errEl=document.getElementById('cond-save-err');
