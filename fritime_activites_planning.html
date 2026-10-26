@@ -339,14 +339,14 @@ textarea{resize:vertical;min-height:80px}
     </select>
   </div>
   <div style="margin-bottom:.75rem"><label style="font-size:12px;color:#666;margin-bottom:4px;display:block">Durée du calendrier *</label>
-    <div style="display:flex;flex-direction:column;gap:6px" id="cc-duree-wrap">
-      <label id="cc-duree-sem-lbl" style="display:flex;align-items:center;gap:10px;padding:9px 12px;border:2px solid #1a1a1a;border-radius:8px;cursor:pointer;background:#f5f5f3">
-        <input type="radio" name="cc-duree" value="semestriel" checked onchange="campUpdateDureeUI()" style="flex-shrink:0;accent-color:#1a1a1a">
-        <div><span style="font-size:13px;font-weight:600">Semestriel</span><span style="font-size:12px;color:#666;margin-left:8px">6 mois · 6 activités minimum</span></div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap" id="cc-duree-wrap">
+      <label id="cc-duree-sem-lbl" style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px">
+        <input type="radio" name="cc-duree" value="semestriel" checked onchange="campUpdateDureeUI()" style="accent-color:#1a1a1a">
+        <span style="font-weight:600">Semestriel</span><span style="color:#888;font-size:12px">(6 activités min.)</span>
       </label>
-      <label id="cc-duree-ann-lbl" style="display:flex;align-items:center;gap:10px;padding:9px 12px;border:2px solid #eee;border-radius:8px;cursor:pointer;background:#fff">
-        <input type="radio" name="cc-duree" value="annuel" onchange="campUpdateDureeUI()" style="flex-shrink:0;accent-color:#1a1a1a">
-        <div><span style="font-size:13px;font-weight:600">Annuel</span><span style="font-size:12px;color:#666;margin-left:8px">12 mois · 12 activités minimum</span></div>
+      <label id="cc-duree-ann-lbl" style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px">
+        <input type="radio" name="cc-duree" value="annuel" onchange="campUpdateDureeUI()" style="accent-color:#1a1a1a">
+        <span style="font-weight:600">Annuel</span><span style="color:#888;font-size:12px">(12 activités min.)</span>
       </label>
     </div>
   </div>
@@ -1415,13 +1415,7 @@ function campSetDuree(val){
   document.querySelectorAll('input[name="cc-duree"]').forEach(function(r){r.checked=r.value===val;});
   campUpdateDureeUI();
 }
-function campUpdateDureeUI(){
-  var v=campGetDuree();
-  document.getElementById('cc-duree-sem-lbl').style.borderColor=v==='semestriel'?'#1a1a1a':'#eee';
-  document.getElementById('cc-duree-sem-lbl').style.background=v==='semestriel'?'#f5f5f3':'#fff';
-  document.getElementById('cc-duree-ann-lbl').style.borderColor=v==='annuel'?'#1a1a1a':'#eee';
-  document.getElementById('cc-duree-ann-lbl').style.background=v==='annuel'?'#f5f5f3':'#fff';
-}
+function campUpdateDureeUI(){}
 function campMinActivites(){return campGetDuree()==='annuel'?12:6;}
 
 function campOpenCreate(){
