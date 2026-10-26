@@ -11,7 +11,7 @@ body{font-family:system-ui,sans-serif;background:#f5f5f3;color:#1a1a1a;font-size
 .top-logo{font-size:16px;font-weight:700;letter-spacing:.05em}
 .top-sub{font-size:12px;opacity:.6;margin-top:2px}
 
-/* Règles importantes - fond rouge clair, texte rouge foncé */
+/* Règles importantes */
 .rules-band{background:#fdf0f0;border-left:4px solid #c0392b;padding:1.25rem 1.5rem;margin-bottom:0}
 .rules-inner{max-width:680px;margin:0 auto}
 .rules-title{font-size:15px;font-weight:700;margin-bottom:12px;color:#7a1f1f;display:flex;align-items:center;gap:8px}
@@ -36,10 +36,12 @@ body{font-family:system-ui,sans-serif;background:#f5f5f3;color:#1a1a1a;font-size
 .step-label.active{color:#1a1a1a;font-weight:500}
 .step-label.done{color:#275a0a}
 
+/* Indicateur enfant courant */
+.child-indicator{background:#e8f0fe;border-left:4px solid #4a6fa5;padding:10px 14px;font-size:13px;font-weight:600;color:#1a3a6b;margin-bottom:1rem;border-radius:0 8px 8px 0;display:none}
+
 .content{max-width:680px;margin:0 auto;padding:1.5rem}
 .panel{display:none}.panel.active{display:block}
 
-/* Message info important — même couleur que règles */
 .msg-important{background:#fdf0f0;border-left:4px solid #c0392b;border-radius:0 8px 8px 0;padding:12px 14px;font-size:13px;color:#7a1f1f;margin-bottom:1.25rem;line-height:1.5;font-weight:500}
 
 /* Activité cards */
@@ -53,7 +55,6 @@ body{font-family:system-ui,sans-serif;background:#f5f5f3;color:#1a1a1a;font-size
 .act-card.selected .check-ico{background:#1a1a1a;border-color:#1a1a1a;color:#fff}
 .act-title{font-size:16px;font-weight:700;margin-bottom:8px}
 
-/* Badges mis en évidence — plus grande police */
 .badges-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px}
 .badge-hl{font-size:14px;padding:5px 12px;border-radius:20px;font-weight:700;white-space:nowrap}
 .bh-age{background:#e6f1fb;color:#0c447c}
@@ -73,12 +74,10 @@ body{font-family:system-ui,sans-serif;background:#f5f5f3;color:#1a1a1a;font-size
 .act-info-lbl{color:#888;min-width:80px;flex-shrink:0;font-size:12px;margin-top:1px}
 .act-info-val{font-weight:500;color:#1a1a1a;line-height:1.4;flex:1}
 
-/* Matériel et tenue — fond rouge clair */
 .act-info-line.mat, .act-info-line.ten{background:#fdf0f0;border-radius:6px;padding:7px 10px;border-bottom:none;margin-top:2px}
 .act-info-line.mat .act-info-lbl, .act-info-line.ten .act-info-lbl{color:#7a1f1f}
 .act-info-line.mat .act-info-val, .act-info-line.ten .act-info-val{color:#5a1010}
 
-/* Message d'erreur âge */
 .age-error-msg{background:#fcebeb;border-radius:8px;padding:12px 14px;margin-top:8px;font-size:13px;color:#791f1f;line-height:1.6;display:none}
 .age-error-msg.visible{display:block}
 
@@ -103,6 +102,13 @@ body{font-family:system-ui,sans-serif;background:#f5f5f3;color:#1a1a1a;font-size
 .fr{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .err{font-size:11px;color:#791f1f;margin-top:4px;display:none}
 .err.on{display:block}
+
+/* Sélection nb enfants */
+.nb-card{display:flex;gap:12px;flex-wrap:wrap;margin-top:1rem}
+.nb-opt{flex:1;min-width:70px;max-width:120px;border:2px solid #eee;border-radius:12px;padding:16px 8px;text-align:center;cursor:pointer;transition:all .15s;background:#fff;font-size:18px;font-weight:700;color:#555}
+.nb-opt:hover{border-color:#aaa}
+.nb-opt.active{border-color:#1a1a1a;background:#1a1a1a;color:#fff}
+.nb-opt-label{font-size:11px;font-weight:400;margin-top:4px;display:block}
 
 /* Conditions */
 .conditions-box{background:#fdf0f0;border:1px solid #f7c1c1;border-radius:10px;padding:1.25rem;margin-bottom:1rem}
@@ -142,7 +148,7 @@ body{font-family:system-ui,sans-serif;background:#f5f5f3;color:#1a1a1a;font-size
 <body>
 
 <div class="top-bar">
-  <div><div class="top-logo">Fri-Time Intyamon Intyamon</div><div class="top-sub">Association d'activités pour enfants</div></div>
+  <div><div class="top-logo">Fri-Time Intyamon</div><div class="top-sub">Association d'activités pour enfants</div></div>
   <div style="font-size:12px;opacity:.5">Formulaire sécurisé</div>
 </div>
 
@@ -159,35 +165,51 @@ body{font-family:system-ui,sans-serif;background:#f5f5f3;color:#1a1a1a;font-size
 <div class="hero">
   <div class="hero-inner">
     <div class="hero-title">Inscriptions activités printemps 2026</div>
-    <div class="hero-sub">Sélectionnez toutes les activités qui intéressent votre enfant. Vous indiquerez vos préférences à l'étape 4.</div>
+    <div class="hero-sub">Inscrivez un ou plusieurs enfants en quelques étapes. Les coordonnées du parent ne sont saisies qu'une seule fois.</div>
   </div>
 </div>
 
+<!-- Barre de progression : 4 phases fixes -->
 <div class="progress-wrap">
   <div class="progress-inner">
-    <div class="step-item"><div class="step-num active" id="sn1">1</div><div class="step-label active" id="sl1">Activités</div></div>
-    <div class="step-item"><div class="step-num" id="sn2">2</div><div class="step-label" id="sl2">Votre enfant</div></div>
+    <div class="step-item"><div class="step-num active" id="sn1">1</div><div class="step-label active" id="sl1">Enfants</div></div>
+    <div class="step-item"><div class="step-num" id="sn2">2</div><div class="step-label" id="sl2">Activités</div></div>
     <div class="step-item"><div class="step-num" id="sn3">3</div><div class="step-label" id="sl3">Coordonnées</div></div>
-    <div class="step-item"><div class="step-num" id="sn4">4</div><div class="step-label" id="sl4">Préférences</div></div>
-    <div class="step-item"><div class="step-num" id="sn5">5</div><div class="step-label" id="sl5">Validation</div></div>
+    <div class="step-item"><div class="step-num" id="sn4">4</div><div class="step-label" id="sl4">Validation</div></div>
   </div>
 </div>
 
 <div class="content">
 
-  <!-- Étape 1 -->
-  <div class="panel active" id="panel-1">
-    <div class="msg-important">Cochez toutes les activités qui intéressent votre enfant — sans limite. Vous indiquerez vos préférences à l'étape 4.</div>
-    <div id="activites-list"></div>
-    <div id="no-sel-msg" style="display:none" class="msg-important">Veuillez sélectionner au moins une activité pour continuer.</div>
-    <div id="age-errors-global" style="display:none" class="msg-important">Veuillez corriger les erreurs d'âge indiquées avant de continuer.</div>
+  <!-- Étape 0 : Nombre d'enfants -->
+  <div class="panel active" id="panel-0">
+    <div class="form-section">
+      <div class="form-section-title">Combien d'enfants souhaitez-vous inscrire ?</div>
+      <div class="nb-card" id="nb-cards">
+        <div class="nb-opt active" onclick="setNbEnfants(1,this)">1<span class="nb-opt-label">enfant</span></div>
+        <div class="nb-opt" onclick="setNbEnfants(2,this)">2<span class="nb-opt-label">enfants</span></div>
+        <div class="nb-opt" onclick="setNbEnfants(3,this)">3<span class="nb-opt-label">enfants</span></div>
+        <div class="nb-opt" onclick="setNbEnfants(4,this)">4<span class="nb-opt-label">enfants</span></div>
+      </div>
+      <div style="font-size:13px;color:#888;margin-top:1rem;line-height:1.5">Les informations du parent ne seront demandées qu'une seule fois, quelle que soit le nombre d'enfants.</div>
+    </div>
   </div>
 
-  <!-- Étape 2 -->
-  <div class="panel" id="panel-2">
+  <!-- Panel activités (réutilisé par enfant) -->
+  <div class="panel" id="panel-acts">
+    <div class="child-indicator" id="acts-indicator"></div>
+    <div class="msg-important" id="acts-msg">Cochez toutes les activités qui intéressent votre enfant — sans limite. Vous indiquerez vos préférences à l'étape suivante.</div>
+    <div id="activites-list"></div>
+    <div id="no-sel-msg" style="display:none" class="msg-important">Veuillez sélectionner au moins une activité pour continuer.</div>
+    <div id="age-errors-global" style="display:none" class="msg-important"></div>
+  </div>
+
+  <!-- Panel infos enfant (réutilisé par enfant) -->
+  <div class="panel" id="panel-info">
+    <div class="child-indicator" id="info-indicator"></div>
     <div class="req-note">Les champs marqués <span class="req">*</span> sont obligatoires.</div>
     <div class="form-section">
-      <div class="form-section-title">Informations sur l'enfant</div>
+      <div class="form-section-title" id="info-title">Informations sur l'enfant</div>
       <div class="fr">
         <div class="fg"><label class="fl">Prénom <span class="req">*</span></label><input class="fi" id="e-prenom" /><div class="err" id="err-prenom">Obligatoire</div></div>
         <div class="fg"><label class="fl">Nom <span class="req">*</span></label><input class="fi" id="e-nom" /><div class="err" id="err-nom">Obligatoire</div></div>
@@ -219,11 +241,19 @@ body{font-family:system-ui,sans-serif;background:#f5f5f3;color:#1a1a1a;font-size
     </div>
   </div>
 
-  <!-- Étape 3 -->
-  <div class="panel" id="panel-3">
+  <!-- Panel préférences (réutilisé par enfant) -->
+  <div class="panel" id="panel-prefs">
+    <div class="child-indicator" id="prefs-indicator"></div>
+    <div class="msg-important">Classez les activités par ordre de préférence. L'activité n°1 est le premier choix.</div>
+    <div id="pref-list"></div>
+  </div>
+
+  <!-- Panel coordonnées parent (une seule fois) -->
+  <div class="panel" id="panel-parent">
     <div class="req-note">Les champs marqués <span class="req">*</span> sont obligatoires.</div>
     <div class="form-section">
       <div class="form-section-title">Coordonnées du parent / responsable légal</div>
+      <div style="font-size:13px;color:#555;margin-bottom:1rem;background:#f5f5f3;border-radius:8px;padding:10px 14px">Ces coordonnées s'appliquent à tous les enfants inscrits dans ce formulaire.</div>
       <div class="fr">
         <div class="fg"><label class="fl">Prénom du parent <span class="req">*</span></label><input class="fi" id="p-prenom" /><div class="err" id="err-p-prenom">Obligatoire</div></div>
         <div class="fg"><label class="fl">Nom du parent <span class="req">*</span></label><input class="fi" id="p-nom" /><div class="err" id="err-p-nom">Obligatoire</div></div>
@@ -233,22 +263,11 @@ body{font-family:system-ui,sans-serif;background:#f5f5f3;color:#1a1a1a;font-size
     </div>
   </div>
 
-  <!-- Étape 4 -->
-  <div class="panel" id="panel-4">
-    <div class="msg-important">Classez les activités par ordre de préférence avec les flèches. L'activité n°1 est votre premier choix.</div>
-    <div id="pref-list"></div>
-  </div>
-
-  <!-- Étape 5 : Récap + Conditions -->
-  <div class="panel" id="panel-5">
+  <!-- Panel récap + validation -->
+  <div class="panel" id="panel-recap">
     <div style="font-size:14px;font-weight:600;margin-bottom:1rem">Vérifiez vos informations et acceptez les conditions</div>
-
-    <div class="form-section"><div class="form-section-title">Enfant</div><div id="recap-enfant"></div></div>
+    <div id="recap-all-children"></div>
     <div class="form-section"><div class="form-section-title">Parent / responsable</div><div id="recap-parent"></div></div>
-    <div class="form-section">
-      <div class="form-section-title">Activités et préférences</div>
-      <div id="recap-activites"></div>
-    </div>
 
     <!-- Conditions de participation -->
     <div class="conditions-box">
@@ -269,14 +288,14 @@ body{font-family:system-ui,sans-serif;background:#f5f5f3;color:#1a1a1a;font-size
     <div class="email-confirmation">
       <div class="email-conf-title">📧 Confirmation par email</div>
       <div class="email-conf-text">
-        Un email de confirmation vous sera envoyé à <strong id="conf-email-display">—</strong> après validation de ce formulaire.<br><br>
-        <div style="background:#fff3cd;border:2px solid #f0ad4e;border-radius:8px;padding:10px 14px;margin:.25rem 0 1rem;font-size:13.5px;font-weight:600;color:#7a4e00;line-height:1.5">⚠️ Important : Cet email confirme uniquement la réception de votre inscription. Il ne confirme pas la participation de votre enfant.</div>
-        <strong>Critères de sélection :</strong> La sélection est effectuée mécaniquement selon des critères d'équité définis à l'avance : priorité aux enfants n'ayant jamais participé, puis à ceux ayant le moins de participations, puis selon votre ordre de préférence. Le comité ne fait pas de choix personnels — le processus est automatique et impartial.<br><br>
-        Vous recevrez un second email pour vous confirmer si votre enfant est retenu ou placé en liste d'attente.
+        Un email de confirmation vous sera envoyé à <strong id="conf-email-display">—</strong> après validation.<br><br>
+        <div style="background:#fff3cd;border:2px solid #f0ad4e;border-radius:8px;padding:10px 14px;margin:.25rem 0 1rem;font-size:13.5px;font-weight:600;color:#7a4e00;line-height:1.5">⚠️ Important : Cet email confirme uniquement la réception de votre inscription. Il ne confirme pas la participation.</div>
+        <strong>Critères de sélection :</strong> La sélection est effectuée mécaniquement selon des critères d'équité — priorité aux enfants n'ayant jamais participé, puis à ceux ayant le moins de participations, puis selon votre ordre de préférence. Le processus est automatique et impartial.<br><br>
+        Vous recevrez un second email pour confirmer si votre enfant est retenu ou placé en liste d'attente.
       </div>
     </div>
 
-    <div id="age-error-final" style="display:none" class="msg-important"></div>
+    <div id="err-doublon-insc" style="display:none;background:#fdf0f0;border:2px solid #f4c0c0;border-radius:8px;padding:12px 16px;font-size:13px;color:#7a1f1f;margin-top:1rem;line-height:1.6"></div>
   </div>
 
   <!-- Succès -->
@@ -286,8 +305,8 @@ body{font-family:system-ui,sans-serif;background:#f5f5f3;color:#1a1a1a;font-size
       <div style="font-size:22px;font-weight:700;margin-bottom:8px">Inscription reçue !</div>
       <div style="font-size:14px;color:#555;line-height:1.7;margin-bottom:1.25rem">
         Un email de confirmation a été envoyé à <strong id="success-email">—</strong>.<br><br>
-        <strong>Rappel important :</strong> Cet email confirme uniquement la réception de votre demande, pas la participation de votre enfant. La sélection se fait selon les critères d'équité définis — le choix est mécanique et impartial. Vous recevrez un second email avec la décision finale.<br><br>
-        <strong>⚠️ Vérifiez vos spams :</strong> L'email de confirmation risque de s'y trouver. Déplacez-le dans votre boîte de réception afin de recevoir tous les emails concernant la confirmation de participation.
+        <strong>Rappel important :</strong> Cet email confirme uniquement la réception de votre demande. La sélection est mécanique et impartiale. Vous recevrez un second email avec la décision finale.<br><br>
+        <strong>⚠️ Vérifiez vos spams.</strong>
       </div>
       <div style="display:inline-block;background:#f5f5f3;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;color:#888;letter-spacing:.05em" id="ref-numero">Référence : FT-2026-XXXX</div>
       <div style="margin-top:1.5rem;font-size:12px;color:#bbb">Fri-Time Intyamon · fritimecommunesintyamon@gmail.com</div>
@@ -305,489 +324,619 @@ body{font-family:system-ui,sans-serif;background:#f5f5f3;color:#1a1a1a;font-size
 </div>
 
 <script>
+// ═══════════════════════════════════════════════════
+// DONNÉES GLOBALES
+// ═══════════════════════════════════════════════════
 var ACTS = [];
 var CAMP_ID = null;
+var SB_URL = 'https://pixktldfpjtnimngvgqz.supabase.co';
+var SB_KEY = 'sb_publishable_ZV04eYw85SDFQi43SwZJTg_igofPU8X';
+var SB_HDR = {'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY};
 
-async function loadActivitesFromSupabase() {
-  // Get campaign ID from URL
-  var urlParams = new URLSearchParams(window.location.search);
-  CAMP_ID = urlParams.get('id');
+// État multi-enfants
+var nbEnfants = 1;
+var children = []; // [{prenom,nom,ddn,age,commune,notes,selIds,prefOrder}]
+var globalStep = 0;
+// Steps: 0=nb choice | 1..N*3 (par groupe de 3: acts/info/prefs par enfant) | N*3+1=parent | N*3+2=recap
+// Exemples pour N=2: 0 → 1(acts1) → 2(info1) → 3(prefs1) → 4(acts2) → 5(info2) → 6(prefs2) → 7(parent) → 8(recap)
 
-  var headers = {
-    'Content-Type': 'application/json',
-    'apikey': 'sb_publishable_ZV04eYw85SDFQi43SwZJTg_igofPU8X',
-    'Authorization': 'Bearer sb_publishable_ZV04eYw85SDFQi43SwZJTg_igofPU8X'
-  };
+// Contexte enfant courant (mirroir des globals utilisés par renderActs)
+var selIds = [];
+var prefOrder = [];
+var childAge = null;
 
-  var campActIds = null; // null = pas de filtre, sinon tableau d'IDs
+function newChild(){return{prenom:'',nom:'',ddn:'',age:null,commune:'',notes:'',selIds:[],prefOrder:[]};}
+function isChildStep(s){var v=s===undefined?globalStep:s;return v>=1&&v<=nbEnfants*3;}
+function childIdxOf(s){var v=s===undefined?globalStep:s;return Math.floor((v-1)/3);}
+function subStepOf(s){var v=s===undefined?globalStep:s;return(v-1)%3;} // 0=acts 1=info 2=prefs
+function parentStepN(){return nbEnfants*3+1;}
+function recapStepN(){return nbEnfants*3+2;}
 
-  // 1. Charger la campagne pour récupérer les activités sélectionnées
-  if (CAMP_ID) {
-    try {
-      var campRes = await fetch('https://pixktldfpjtnimngvgqz.supabase.co/rest/v1/campagnes?id=eq.' + encodeURIComponent(CAMP_ID) + '&select=id,titre,activites', {
-        headers: headers
-      });
-      if (campRes.ok) {
-        var campData = await campRes.json();
-        if (campData && campData.length > 0) {
-          var camp = campData[0];
-          // Mettre à jour le titre avec le nom de la campagne
-          if (camp.titre) {
-            var heroTitle = document.querySelector('.hero-title');
-            if (heroTitle) heroTitle.textContent = camp.titre;
-          }
-          // Récupérer les IDs d'activités de la campagne
-          if (camp.activites) {
-            try {
-              var parsed = typeof camp.activites === 'string' ? JSON.parse(camp.activites) : camp.activites;
-              if (Array.isArray(parsed) && parsed.length > 0) {
-                campActIds = parsed.map(function(x){ return parseInt(x, 10) || x; });
-              }
-            } catch(e) {
-              console.warn('[Inscription] Erreur parsing activites campagne:', e);
-            }
-          }
-          console.log('[Inscription] Campagne chargée:', camp.nom, '— activités filtrées:', campActIds);
-        } else {
-          console.warn('[Inscription] Campagne introuvable pour id:', CAMP_ID);
-        }
-      }
-    } catch(e) {
-      console.warn('[Inscription] Erreur chargement campagne:', e);
-    }
-  }
-
-  // 2. Charger les activités (filtrées par IDs si campagne trouvée)
-  try {
-    var actsUrl = 'https://pixktldfpjtnimngvgqz.supabase.co/rest/v1/activites?order=date';
-    if (campActIds && campActIds.length > 0) {
-      actsUrl += '&id=in.(' + campActIds.join(',') + ')';
-    }
-    var res = await fetch(actsUrl, { headers: headers });
-    console.log('[Inscription] Supabase activites status:', res.status);
-    var data = await res.json();
-    console.log('[Inscription] activites reçues:', data ? data.length : 0, data);
-    if (data && data.length) {
-      ACTS = data.map(function(a) {
-        return {
-          id: a.id,
-          nom: a.nom,
-          date: a.date,
-          deb: a.heure_debut || '',
-          fin: a.heure_fin || '',
-          deadline: a.date_limite,
-          lieu: a.lieu || '',
-          desc: a.description || '',
-          cout: a.cout || 0,
-          coutParticipant: a.cout_type || 0,
-          places: a.places || 0,
-          ageMin: a.age_min || null,
-          ageMax: a.age_max || null,
-          statut: a.statut || 'ouvert',
-          tenue: a.tenue || '',
-          materiel: a.materiel || '',
-          tMeteo: a.t_meteo || false
-        };
-      });
-    }
-  } catch(e) {
-    console.warn('Erreur chargement activités:', e);
-  }
-  renderActs();
-  showStep(1);
+// ═══════════════════════════════════════════════════
+// SÉLECTION NOMBRE D'ENFANTS
+// ═══════════════════════════════════════════════════
+function setNbEnfants(n,el){
+  nbEnfants=n;
+  document.querySelectorAll('.nb-opt').forEach(function(c){c.classList.remove('active');});
+  el.classList.add('active');
 }
 
-let step=1,selIds=[],prefOrder=[],childAge=null;
+// ═══════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════
+function showStep(s){
+  saveCurrentState();
+  globalStep=s;
+  document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active');});
 
-function fd(d){if(!d)return"";const[y,m,j]=d.split("-");return`${j}.${m}.${y}`;}
+  var panelId;
+  if(s===0){
+    panelId='panel-0';
+  } else if(isChildStep(s)){
+    var sub=subStepOf(s);
+    var ci=childIdxOf(s);
+    loadChildContext(ci);
+    if(sub===0){panelId='panel-acts';enterActsPanel(ci);}
+    else if(sub===1){panelId='panel-info';enterInfoPanel(ci);}
+    else{panelId='panel-prefs';enterPrefsPanel(ci);}
+  } else if(s===parentStepN()){
+    panelId='panel-parent';
+  } else if(s===recapStepN()){
+    panelId='panel-recap';buildRecap();
+  } else {
+    panelId='panel-success';
+    document.getElementById('nav-bar').style.display='none';
+  }
+
+  document.getElementById(panelId).classList.add('active');
+  updateProgress();
+  updateNav();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function saveCurrentState(){
+  if(!isChildStep(globalStep))return;
+  var ci=childIdxOf(globalStep);
+  var sub=subStepOf(globalStep);
+  var ch=children[ci];
+  ch.selIds=selIds.slice();
+  ch.prefOrder=prefOrder.slice();
+  ch.age=childAge;
+  if(sub===1){ // info panel
+    ch.prenom=document.getElementById('e-prenom').value.trim();
+    ch.nom=document.getElementById('e-nom').value.trim();
+    ch.ddn=document.getElementById('e-ddn').value;
+    ch.commune=document.getElementById('e-commune').value;
+    ch.notes=document.getElementById('e-notes').value.trim();
+  }
+}
+
+function loadChildContext(ci){
+  var ch=children[ci];
+  selIds=ch.selIds.slice();
+  prefOrder=ch.prefOrder.slice();
+  childAge=ch.age;
+}
+
+function enterActsPanel(ci){
+  var ind=document.getElementById('acts-indicator');
+  if(nbEnfants>1){ind.textContent='Enfant '+(ci+1)+' sur '+nbEnfants+' — Sélection des activités';ind.style.display='block';}
+  else{ind.style.display='none';}
+  document.getElementById('no-sel-msg').style.display='none';
+  document.getElementById('age-errors-global').style.display='none';
+  renderActs();
+  document.getElementById('nav-info').textContent=selIds.length?selIds.length+' activité'+(selIds.length>1?'s':'')+' sélectionnée'+(selIds.length>1?'s':''):'';
+}
+
+function enterInfoPanel(ci){
+  var ch=children[ci];
+  var ind=document.getElementById('info-indicator');
+  if(nbEnfants>1){ind.textContent='Enfant '+(ci+1)+' sur '+nbEnfants+' — Informations';ind.style.display='block';}
+  else{ind.style.display='none';}
+  document.getElementById('info-title').textContent=nbEnfants>1?'Informations sur l\'enfant '+(ci+1):'Informations sur l\'enfant';
+  document.getElementById('e-prenom').value=ch.prenom||'';
+  document.getElementById('e-nom').value=ch.nom||'';
+  document.getElementById('e-ddn').value=ch.ddn||'';
+  document.getElementById('e-commune').value=ch.commune||'';
+  document.getElementById('e-notes').value=ch.notes||'';
+  // Recalculate age if ddn exists
+  if(ch.ddn){
+    var t=new Date(),b=new Date(ch.ddn);var a=t.getFullYear()-b.getFullYear();
+    if(t.getMonth()-b.getMonth()<0||(t.getMonth()===b.getMonth()&&t.getDate()<b.getDate()))a--;
+    childAge=a>=0?a:null;
+    document.getElementById('e-age').value=childAge!==null?childAge+' ans':'—';
+    children[ci].age=childAge;
+  } else {
+    document.getElementById('e-age').value='';
+    childAge=null;
+  }
+  // Clear errors
+  ['e-prenom','e-nom','e-ddn','e-commune'].forEach(function(id){
+    document.getElementById(id).classList.remove('error');
+  });
+  ['err-prenom','err-nom','err-ddn','err-commune'].forEach(function(id){
+    document.getElementById(id).classList.remove('on');
+  });
+}
+
+function enterPrefsPanel(ci){
+  var ch=children[ci];
+  var ind=document.getElementById('prefs-indicator');
+  if(nbEnfants>1){ind.textContent='Enfant '+(ci+1)+' sur '+nbEnfants+' — Ordre de préférence';ind.style.display='block';}
+  else{ind.style.display='none';}
+  renderPref();
+}
+
+function nextStep(){
+  if(globalStep===0){
+    // Initialiser le tableau children
+    children=[];
+    for(var i=0;i<nbEnfants;i++)children.push(newChild());
+    showStep(1);
+    return;
+  }
+
+  if(isChildStep(globalStep)){
+    var ci=childIdxOf(globalStep);
+    var sub=subStepOf(globalStep);
+
+    if(sub===0){ // acts → info
+      if(!selIds.length){document.getElementById('no-sel-msg').style.display='block';return;}
+      document.getElementById('no-sel-msg').style.display='none';
+      var errs=getAgeErrors();
+      if(errs.length){
+        var el=document.getElementById('age-errors-global');
+        el.style.display='block';
+        el.textContent='Veuillez corriger les erreurs d\'âge indiquées sur les activités concernées.';
+        return;
+      }
+      document.getElementById('age-errors-global').style.display='none';
+      showStep(globalStep+1);
+
+    } else if(sub===1){ // info → prefs
+      if(!v2())return;
+      // Save age to child
+      var ch=children[ci];
+      ch.prenom=document.getElementById('e-prenom').value.trim();
+      ch.nom=document.getElementById('e-nom').value.trim();
+      ch.ddn=document.getElementById('e-ddn').value;
+      ch.age=childAge;
+      ch.commune=document.getElementById('e-commune').value;
+      ch.notes=document.getElementById('e-notes').value.trim();
+      // Re-check age errors
+      var errs2=getAgeErrors();
+      if(errs2.length){
+        var names=errs2.map(function(id){var a=ACTS.find(function(x){return x.id===id;});return a?a.nom:'#'+id;}).join(', ');
+        alert('L\'âge de votre enfant ne correspond pas aux critères de : '+names+'. Veuillez retourner et retirer ces activités.');
+        return;
+      }
+      showStep(globalStep+1);
+
+    } else { // prefs → next child or parent
+      var nextS=globalStep+1;
+      showStep(nextS); // will be next child acts or parent step
+    }
+    return;
+  }
+
+  if(globalStep===parentStepN()){
+    if(!v3())return;
+    showStep(recapStepN());
+    return;
+  }
+
+  if(globalStep===recapStepN()){
+    submitForm();
+  }
+}
+
+function prevStep(){
+  document.getElementById('err-doublon-insc').style.display='none';
+  if(globalStep===0)return;
+  showStep(globalStep-1);
+}
+
+function updateProgress(){
+  // 4 phases: 1=step0, 2=child steps, 3=parent, 4=recap
+  var phase;
+  if(globalStep===0)phase=1;
+  else if(isChildStep(globalStep))phase=2;
+  else if(globalStep===parentStepN())phase=3;
+  else phase=4;
+
+  for(var i=1;i<=4;i++){
+    var n=document.getElementById('sn'+i);
+    var l=document.getElementById('sl'+i);
+    if(i<phase){n.className='step-num done';n.textContent='✓';l.className='step-label done';}
+    else if(i===phase){n.className='step-num active';n.textContent=i;l.className='step-label active';}
+    else{n.className='step-num';n.textContent=i;l.className='step-label';}
+  }
+}
+
+function updateNav(){
+  var btnPrev=document.getElementById('btn-prev');
+  var btnNext=document.getElementById('btn-next');
+  btnPrev.style.display=globalStep>0?'inline-flex':'none';
+  if(globalStep===recapStepN()){
+    btnNext.textContent='✓ Valider les inscriptions';
+    btnNext.style.background='#275a0a';btnNext.style.borderColor='#275a0a';
+  } else {
+    btnNext.textContent='Continuer →';
+    btnNext.style.background='#1a1a1a';btnNext.style.borderColor='#1a1a1a';
+  }
+  btnNext.disabled=false;
+}
+
+// ═══════════════════════════════════════════════════
+// ACTIVITÉS
+// ═══════════════════════════════════════════════════
+function fd(d){if(!d)return'';var p=d.split('-');return p[2]+'.'+p[1]+'.'+p[0];}
 
 function calcAge(){
-  const ddn=document.getElementById("e-ddn").value;
-  if(!ddn){document.getElementById("e-age").value="";childAge=null;return;}
-  const t=new Date(),b=new Date(ddn);let a=t.getFullYear()-b.getFullYear();
+  var ddn=document.getElementById('e-ddn').value;
+  if(!ddn){document.getElementById('e-age').value='';childAge=null;return;}
+  var t=new Date(),b=new Date(ddn);var a=t.getFullYear()-b.getFullYear();
   if(t.getMonth()-b.getMonth()<0||(t.getMonth()===b.getMonth()&&t.getDate()<b.getDate()))a--;
   childAge=a>=0?a:null;
-  document.getElementById("e-age").value=a>=0?a+" ans":"—";
-  // Re-render si on revient à l'étape 1
-  if(step===1)renderActs();
+  document.getElementById('e-age').value=a>=0?a+' ans':'—';
+  // Mettre à jour l'enfant courant
+  if(isChildStep())children[childIdxOf()].age=childAge;
 }
 
 function getAgeErrors(){
   if(childAge===null)return[];
-  return selIds.filter(id=>{
-    const a=ACTS.find(x=>x.id===id);
+  return selIds.filter(function(id){
+    var a=ACTS.find(function(x){return x.id===id;});
     return a&&((a.ageMin!==null&&childAge<a.ageMin)||(a.ageMax!==null&&childAge>a.ageMax));
   });
 }
 
 function renderActs(){
-  const errors=getAgeErrors();
-  document.getElementById("activites-list").innerHTML=ACTS.map(a=>{
-    const rest=(parseInt(a.places)||0)-(parseInt(a.inscrits)||0),complet=rest<=0,sel=selIds.includes(a.id);
-    const ageErr=childAge!==null&&sel&&errors.includes(a.id);
-    return`<div class="act-card${sel?" selected":""}${complet?" complet":""}${ageErr?" age-error":""}" id="act-${a.id}" onclick="toggleAct(${a.id})">
-      <div class="act-card-header">
-        <div class="check-ico">${sel?"✓":""}</div>
-        <div style="flex:1">
-          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px">
-            <div class="act-title">${a.nom}</div>
-            <span class="places-badge ${complet?"pb-complet":rest<=5?"pb-limite":"pb-dispo"}">${complet?"Complet":rest<=5?rest+" places dispo":"Places disponibles : "+((parseInt(a.places)||0)-(parseInt(a.inscrits)||0))}</span>
-          </div>
-          <div class="badges-row">
-            <span class="badge-hl bh-age">👥 ${a.ageMin}–${a.ageMax} ans</span>
-            <span class="badge-hl bh-deadline">⏰ Date limite d'inscription : ${fd(a.deadline)}</span>
-            ${a.coutParticipant===0?`<span class="badge-hl bh-gratuit">🆓 Gratuit</span>`:`<span class="badge-hl bh-payant">💰 ${a.coutParticipant} CHF / enfant</span>`}
-            ${a.tParent?`<span class="badge-hl" style="background:#faeeda;color:#633806">👨‍👩‍👦 Présence d'un parent requise</span>`:''}
-            ${a.tMeteo&&a.statut!=='annule'?`<span class="badge-hl" style="background:#e6f1fb;color:#0c447c">🌧️ Peut être annulée si mauvais temps</span>`:''}
-            ${a.tMeteo&&a.statut==='annule'?`<span class="badge-hl" style="background:#fcebeb;color:#791f1f">⛔ Annulée – mauvais temps</span>`:''}
-          </div>
-        </div>
-      </div>
-      <div class="act-details">
-        <div class="act-desc">${a.desc}</div>
-        <div class="act-info-grid">
-          <div class="act-info-line"><span>📅</span><span class="act-info-lbl">Date</span><span class="act-info-val">${fd(a.date)}</span></div>
-          <div class="act-info-line"><span>🕐</span><span class="act-info-lbl">Horaire</span><span class="act-info-val">${a.deb} – ${a.fin}</span></div>
-          <div class="act-info-line"><span>📍</span><span class="act-info-lbl">Lieu</span><span class="act-info-val">${a.lieu}</span></div>
-          <div class="act-info-line"><span>👤</span><span class="act-info-lbl">Prestataire</span><span class="act-info-val">${a.prest}</span></div>
-          <div class="act-info-line mat"><span>🎒</span><span class="act-info-lbl">Matériel</span><span class="act-info-val">${a.materiel}</span></div>
-          <div class="act-info-line ten"><span>👕</span><span class="act-info-lbl">Tenue</span><span class="act-info-val">${a.tenue}</span></div>
-        </div>
-        ${ageErr?`<div class="age-error-msg visible">
-          ⛔ Inscription impossible — l'âge de votre enfant (${childAge} ans) ne correspond pas aux critères de l'activité "${a.nom}" (${a.ageMin}–${a.ageMax} ans requis). Veuillez retirer cette activité ou corriger l'âge de votre enfant.<br><br>
-          <em>Sachez toutefois qu'une pièce d'identité de votre enfant sera demandée et que le prestataire et les bénévoles s'autorisent le droit de refuser la participation d'un enfant si les règles ne sont pas respectées.</em>
-        </div>`:""}
-      </div>
-    </div>`;
-  }).join("");
+  var errors=getAgeErrors();
+  document.getElementById('activites-list').innerHTML=ACTS.map(function(a){
+    var rest=(parseInt(a.places)||0)-(parseInt(a.inscrits)||0),complet=rest<=0,sel=selIds.includes(a.id);
+    var ageErr=childAge!==null&&sel&&errors.includes(a.id);
+    return '<div class="act-card'+(sel?' selected':'')+(complet?' complet':'')+(ageErr?' age-error':'')+'" id="act-'+a.id+'" onclick="toggleAct('+a.id+')">'
+      +'<div class="act-card-header">'
+      +'<div class="check-ico">'+(sel?'✓':'')+'</div>'
+      +'<div style="flex:1">'
+      +'<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px">'
+      +'<div class="act-title">'+a.nom+'</div>'
+      +'<span class="places-badge '+(complet?'pb-complet':rest<=5?'pb-limite':'pb-dispo')+'">'+(complet?'Complet':rest<=5?rest+' places dispo':'Places disponibles : '+rest)+'</span>'
+      +'</div>'
+      +'<div class="badges-row">'
+      +'<span class="badge-hl bh-age">👥 '+a.ageMin+'–'+a.ageMax+' ans</span>'
+      +'<span class="badge-hl bh-deadline">⏰ Date limite : '+fd(a.deadline)+'</span>'
+      +(a.coutParticipant===0?'<span class="badge-hl bh-gratuit">🆓 Gratuit</span>':'<span class="badge-hl bh-payant">💰 '+a.coutParticipant+' CHF / enfant</span>')
+      +(a.tMeteo&&a.statut!=='annule'?'<span class="badge-hl" style="background:#e6f1fb;color:#0c447c">🌧️ Peut être annulée si mauvais temps</span>':'')
+      +(a.tMeteo&&a.statut==='annule'?'<span class="badge-hl" style="background:#fcebeb;color:#791f1f">⛔ Annulée – mauvais temps</span>':'')
+      +'</div>'
+      +'</div>'
+      +'</div>'
+      +'<div class="act-details">'
+      +'<div class="act-desc">'+a.desc+'</div>'
+      +'<div class="act-info-grid">'
+      +'<div class="act-info-line"><span>📅</span><span class="act-info-lbl">Date</span><span class="act-info-val">'+fd(a.date)+'</span></div>'
+      +'<div class="act-info-line"><span>🕐</span><span class="act-info-lbl">Horaire</span><span class="act-info-val">'+a.deb+' – '+a.fin+'</span></div>'
+      +'<div class="act-info-line"><span>📍</span><span class="act-info-lbl">Lieu</span><span class="act-info-val">'+a.lieu+'</span></div>'
+      +(a.prest?'<div class="act-info-line"><span>👤</span><span class="act-info-lbl">Prestataire</span><span class="act-info-val">'+a.prest+'</span></div>':'')
+      +(a.materiel?'<div class="act-info-line mat"><span>🎒</span><span class="act-info-lbl">Matériel</span><span class="act-info-val">'+a.materiel+'</span></div>':'')
+      +(a.tenue?'<div class="act-info-line ten"><span>👕</span><span class="act-info-lbl">Tenue</span><span class="act-info-val">'+a.tenue+'</span></div>':'')
+      +'</div>'
+      +(ageErr?'<div class="age-error-msg visible">⛔ Inscription impossible — l\'âge de votre enfant ('+childAge+' ans) ne correspond pas aux critères de l\'activité "'+a.nom+'" ('+a.ageMin+'–'+a.ageMax+' ans requis).</div>':'')
+      +'</div>'
+      +'</div>';
+  }).join('');
 }
 
 function toggleAct(id){
-  const a=ACTS.find(x=>x.id===id);if(((parseInt(a.places)||0)-(parseInt(a.inscrits)||0))<=0)return;
-  selIds=selIds.includes(id)?selIds.filter(x=>x!==id):[...selIds,id];
+  var a=ACTS.find(function(x){return x.id===id;});
+  if(((parseInt(a.places)||0)-(parseInt(a.inscrits)||0))<=0)return;
+  if(selIds.includes(id)){selIds=selIds.filter(function(x){return x!==id;});}
+  else{selIds.push(id);}
+  // Sync to current child
+  if(isChildStep())children[childIdxOf()].selIds=selIds.slice();
   renderActs();
-  document.getElementById("nav-info").textContent=selIds.length?`${selIds.length} activité${selIds.length>1?"s":""} sélectionnée${selIds.length>1?"s":""}` : "";
+  document.getElementById('nav-info').textContent=selIds.length?selIds.length+' activité'+(selIds.length>1?'s':'')+' sélectionnée'+(selIds.length>1?'s':''):'';
 }
 
+// ═══════════════════════════════════════════════════
+// PRÉFÉRENCES
+// ═══════════════════════════════════════════════════
 function renderPref(){
-  prefOrder=prefOrder.filter(id=>selIds.includes(id));
-  selIds.forEach(id=>{if(!prefOrder.includes(id))prefOrder.push(id);});
-  document.getElementById("pref-list").innerHTML=prefOrder.map((id,i)=>{
-    const a=ACTS.find(x=>x.id===id);if(!a)return"";
-    return`<div class="pref-card">
-      <div class="pref-rank">${i+1}</div>
-      <div style="flex:1"><div class="pref-name">${a.nom}</div><div style="font-size:12px;color:#888;margin-top:2px">${fd(a.date)} · ${a.deb}–${a.fin}</div></div>
-      <div class="pref-arrows">
-        <button class="pref-arrow" onclick="movePref(${i},-1)" ${i===0?"disabled":""}>▲</button>
-        <button class="pref-arrow" onclick="movePref(${i},1)" ${i===prefOrder.length-1?"disabled":""}>▼</button>
-      </div>
-    </div>`;
-  }).join("");
+  prefOrder=prefOrder.filter(function(id){return selIds.includes(id);});
+  selIds.forEach(function(id){if(!prefOrder.includes(id))prefOrder.push(id);});
+  // Sync to current child
+  if(isChildStep())children[childIdxOf()].prefOrder=prefOrder.slice();
+  document.getElementById('pref-list').innerHTML=prefOrder.map(function(id,i){
+    var a=ACTS.find(function(x){return x.id===id;});if(!a)return'';
+    return '<div class="pref-card">'
+      +'<div class="pref-rank">'+(i+1)+'</div>'
+      +'<div style="flex:1"><div class="pref-name">'+a.nom+'</div><div style="font-size:12px;color:#888;margin-top:2px">'+fd(a.date)+' · '+a.deb+'–'+a.fin+'</div></div>'
+      +'<div class="pref-arrows">'
+      +'<button class="pref-arrow" onclick="movePref('+i+',-1)" '+(i===0?'disabled':'')+'">▲</button>'
+      +'<button class="pref-arrow" onclick="movePref('+i+',1)" '+(i===prefOrder.length-1?'disabled':'')+'">▼</button>'
+      +'</div>'
+      +'</div>';
+  }).join('');
 }
 
 function movePref(i,d){
-  const ni=i+d;if(ni<0||ni>=prefOrder.length)return;
-  [prefOrder[i],prefOrder[ni]]=[prefOrder[ni],prefOrder[i]];renderPref();
+  var ni=i+d;if(ni<0||ni>=prefOrder.length)return;
+  var tmp=prefOrder[i];prefOrder[i]=prefOrder[ni];prefOrder[ni]=tmp;
+  renderPref();
 }
 
-function updateProg(s){
-  for(let i=1;i<=5;i++){
-    const n=document.getElementById("sn"+i),l=document.getElementById("sl"+i);
-    if(i<s){n.className="step-num done";n.textContent="✓";l.className="step-label done";}
-    else if(i===s){n.className="step-num active";n.textContent=i;l.className="step-label active";}
-    else{n.className="step-num";n.textContent=i;l.className="step-label";}
-  }
-}
-
-function showStep(n){
-  document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
-  document.getElementById(n===6?"panel-success":"panel-"+n).classList.add("active");
-  step=n;updateProg(Math.min(n,5));
-  document.getElementById("btn-prev").style.display=n>1&&n<6?"inline-flex":"none";
-  const nb=document.getElementById("btn-next");
-  if(n===5){nb.textContent="✓ Valider mon inscription";nb.style.background="#275a0a";nb.style.borderColor="#275a0a";}
-  else if(n===6){document.getElementById("nav-bar").style.display="none";}
-  else{nb.textContent="Continuer →";nb.style.background="#1a1a1a";nb.style.borderColor="#1a1a1a";}
-  window.scrollTo({top:0,behavior:"smooth"});
-}
-
-function nextStep(){
-  if(step===1){
-    if(!selIds.length){document.getElementById("no-sel-msg").style.display="block";return;}
-    document.getElementById("no-sel-msg").style.display="none";
-    const errs=getAgeErrors();
-    if(errs.length){document.getElementById("age-errors-global").style.display="block";document.getElementById("age-errors-global").textContent="Veuillez corriger les erreurs d'âge indiquées sur les activités concernées avant de continuer.";return;}
-    document.getElementById("age-errors-global").style.display="none";
-    showStep(2);
-  } else if(step===2){
-    if(!v2())return;
-    // Re-check age errors after age is entered
-    const errs=getAgeErrors();
-    if(errs.length){
-      const names=errs.map(id=>ACTS.find(x=>x.id===id)?.nom).join(", ");
-      alert("L'âge de votre enfant ne correspond pas aux critères de : "+names+". Veuillez retourner à l'étape 1 et retirer ces activités.");
-      return;
-    }
-    showStep(3);
-  } else if(step===3){
-    if(!v3())return;
-    renderPref();showStep(4);
-  } else if(step===4){
-    buildRecap();showStep(5);
-  } else if(step===5){
-    if(!document.getElementById("cond-consent").checked){
-      document.getElementById("err-cond-consent").classList.add("on");
-      document.getElementById("err-cond-consent").scrollIntoView({behavior:"smooth",block:"center"});
-      return;
-    }
-    document.getElementById("err-cond-consent").classList.remove("on");
-
-    // Désactiver le bouton pendant la vérification
-    var btnNext=document.getElementById("btn-next");
-    if(btnNext){btnNext.disabled=true;btnNext.textContent="Vérification…";}
-
-    const email=document.getElementById("p-email").value.trim();
-    const prenom=document.getElementById("e-prenom").value.trim();
-    const nom=document.getElementById("e-nom").value.trim();
-    const ddnValCheck=document.getElementById("e-ddn").value||null;
-
-    (async function(){
-      try{
-        const headers={
-          "Content-Type":"application/json",
-          "apikey":"sb_publishable_ZV04eYw85SDFQi43SwZJTg_igofPU8X",
-          "Authorization":"Bearer sb_publishable_ZV04eYw85SDFQi43SwZJTg_igofPU8X",
-          "Prefer":"return=representation"
-        };
-
-        // 1. Chercher l'enfant existant
-        var searchUrl='https://pixktldfpjtnimngvgqz.supabase.co/rest/v1/enfants?select=id,prenom,nom,ddn'
-          +'&prenom=eq.'+encodeURIComponent(prenom)
-          +'&nom=eq.'+encodeURIComponent(nom);
-        if(ddnValCheck) searchUrl+='&ddn=eq.'+encodeURIComponent(ddnValCheck);
-
-        var searchRes=await fetch(searchUrl,{headers:headers});
-        var enfantId=null;
-        if(searchRes.ok){
-          var existing=await searchRes.json();
-          if(existing&&existing.length>0) enfantId=existing[0].id;
-        }
-
-        // 2. Si enfant connu, vérifier les inscriptions en cours sur les mêmes activités
-        if(enfantId){
-          var prefs2=prefOrder.length?prefOrder:selIds;
-          var inUrl='https://pixktldfpjtnimngvgqz.supabase.co/rest/v1/inscriptions?select=activite_id,statut'
-            +'&enfant_id=eq.'+enfantId
-            +'&statut=neq.annule';
-          var inRes=await fetch(inUrl,{headers:headers});
-          if(inRes.ok){
-            var existingInscs=await inRes.json();
-            var existingActIds=(existingInscs||[]).map(function(i){return i.activite_id;});
-            var doublons=prefs2.filter(function(id){return existingActIds.indexOf(id)>=0;});
-            if(doublons.length>0){
-              var noms=doublons.map(function(id){var a=ACTS.find(function(x){return x.id===id;});return a?'"'+a.nom+'"':'#'+id;}).join(', ');
-              // Afficher l'erreur dans l'étape 5
-              var errBox=document.getElementById("err-doublon-insc");
-              if(!errBox){
-                errBox=document.createElement('div');
-                errBox.id='err-doublon-insc';
-                errBox.style.cssText='background:#fdf0f0;border:2px solid #f4c0c0;border-radius:8px;padding:12px 16px;font-size:13px;color:#7a1f1f;margin-top:1rem;line-height:1.6';
-                var step5el=document.getElementById("panel-5");
-                if(step5el) step5el.appendChild(errBox);
-              }
-              errBox.innerHTML='⚠️ <strong>'+prenom+' '+nom+' est déjà inscrit(e)</strong> aux activités suivantes pour cette campagne :<br>'
-                +'<ul style="margin:.5rem 0 0 1rem;padding:0">'+doublons.map(function(id){var a=ACTS.find(function(x){return x.id===id;});return'<li>'+(a?a.nom:'#'+id)+'</li>';}).join('')+'</ul>'
-                +'<br>Il n\'est pas possible d\'inscrire un enfant deux fois à la même activité.';
-              errBox.style.display='block';
-              errBox.scrollIntoView({behavior:'smooth',block:'center'});
-              if(btnNext){btnNext.disabled=false;btnNext.textContent="Confirmer l'inscription";}
-              return;
-            }
-          }
-        }
-
-        // 3. Pas de doublon : on peut procéder
-        var ref="FT-2026-"+Math.floor(1000+Math.random()*9000);
-        document.getElementById("success-email").textContent=email;
-        document.getElementById("ref-numero").textContent="Référence : "+ref;
-        showStep(6);
-
-        // 4. Créer ou réutiliser l'enfant, puis créer les inscriptions
-        var ddnVal=ddnValCheck;
-        if(!enfantId){
-          var enfantData={
-            prenom:prenom,nom:nom,ddn:ddnVal,
-            age:parseInt(document.getElementById("e-age").value)||0,
-            commune:document.getElementById("e-commune")?document.getElementById("e-commune").value.trim():"",
-            pp:document.getElementById("p-prenom").value.trim(),
-            pn:document.getElementById("p-nom").value.trim(),
-            pe:email,
-            pt:document.getElementById("p-tel").value.trim(),
-            notes:document.getElementById("e-notes")?document.getElementById("e-notes").value.trim():"",
-            statut:"actif",parts:0
-          };
-          var enfantRes=await fetch('https://pixktldfpjtnimngvgqz.supabase.co/rest/v1/enfants',{method:"POST",headers:headers,body:JSON.stringify(enfantData)});
-          if(!enfantRes.ok){console.warn("Erreur création enfant:",enfantRes.status,await enfantRes.text());return;}
-          var enfantCreated=await enfantRes.json();
-          enfantId=enfantCreated[0]&&enfantCreated[0].id;
-        }
-        if(!enfantId) return;
-
-        var prefs=prefOrder.length?prefOrder:selIds;
-        for(var i=0;i<prefs.length;i++){
-          var actId=prefs[i];
-          var inscData={enfant_id:enfantId,activite_id:actId,statut:"attente",pref:i+1,notes:"Inscrit via formulaire public — Réf: "+ref};
-          var inscRes=await fetch('https://pixktldfpjtnimngvgqz.supabase.co/rest/v1/inscriptions',{method:"POST",headers:headers,body:JSON.stringify(inscData)});
-          if(inscRes.ok){console.log("Inscription créée ✓ activite_id:",actId);}
-          else{console.warn("Erreur inscription activite",actId,inscRes.status);}
-        }
-      }catch(e){
-        console.warn("Erreur save:",e);
-        if(btnNext){btnNext.disabled=false;btnNext.textContent="Confirmer l'inscription";}
-      }
-    })();
-        // Send confirmation email
-    const actsChoisis=selIds.map(function(id){
-      const a=ACTS.find(function(x){return x.id===id;});
-      return a?a.nom:"Activité #"+id;
-    }).join(", ");
-    fetch("/api/send-email",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({
-        sender:{email:"fritimecommunesintyamon@gmail.com",name:"Fri-Time Intyamon"},
-        to:[{email:email}],
-        subject:"Confirmation d'inscription Fri-Time — "+ref,
-        htmlContent:`<div style="font-family:system-ui,sans-serif;max-width:600px;margin:0 auto;padding:20px">
-          <div style="background:#1a1a1a;color:#fff;padding:24px;border-radius:10px 10px 0 0;text-align:center">
-            <div style="font-size:18px;font-weight:600">Fri-Time Intyamon</div>
-          </div>
-          <div style="background:#fff;padding:24px;border:1px solid #eee;border-top:none;border-radius:0 0 10px 10px;line-height:1.7">
-            <p>Bonjour,</p>
-            <p>Nous avons bien reçu votre demande d'inscription pour <strong>${prenom} ${nom}</strong>.</p>
-            <div style="background:#eaf3de;border-left:3px solid #27ae60;padding:12px 16px;border-radius:0 6px 6px 0;margin:16px 0">
-              <p style="margin:0"><strong>Référence :</strong> ${ref}</p>
-              <p style="margin:8px 0 0"><strong>Activités demandées :</strong> ${actsChoisis}</p>
-            </div>
-            <p><strong>⚠️ Rappel important :</strong> Cet email confirme uniquement la réception de votre demande, pas la participation de votre enfant. La sélection se fait selon les critères d'équité définis — le choix est mécanique et impartial.</p>
-            <p>Vous recevrez un second email avec la décision finale.</p>
-            <p style="font-size:13px;color:#888;margin-top:24px;border-top:1px solid #eee;padding-top:12px">
-              Fri-Time Intyamon · fritimecommunesintyamon@gmail.com · 079 793 76 42
-            </p>
-          </div>
-        </div>`
-      })
-    }).then(function(r){
-      if(!r.ok) console.warn("Email confirmation: erreur HTTP",r.status);
-      else console.log("Email confirmation envoyé ✓");
-    }).catch(function(e){console.warn("Email confirmation erreur:",e);});
-  }
-}
-function prevStep(){var eb=document.getElementById('err-doublon-insc');if(eb)eb.style.display='none';showStep(step-1);}
-
+// ═══════════════════════════════════════════════════
+// VALIDATION
+// ═══════════════════════════════════════════════════
 function chk(fid,eid){
-  const v=document.getElementById(fid).value.trim(),ok=!!v;
-  document.getElementById(fid).classList.toggle("error",!ok);
-  document.getElementById(eid).classList.toggle("on",!ok);return ok;
+  var v=document.getElementById(fid).value.trim(),ok=!!v;
+  document.getElementById(fid).classList.toggle('error',!ok);
+  document.getElementById(eid).classList.toggle('on',!ok);return ok;
 }
-function v2(){return[["e-prenom","err-prenom"],["e-nom","err-nom"],["e-ddn","err-ddn"],["e-commune","err-commune"]].map(([f,e])=>chk(f,e)).every(Boolean);}
+function v2(){return[['e-prenom','err-prenom'],['e-nom','err-nom'],['e-ddn','err-ddn'],['e-commune','err-commune']].map(function(p){return chk(p[0],p[1]);}).every(Boolean);}
 function v3(){
-  let ok=[["p-prenom","err-p-prenom"],["p-nom","err-p-nom"],["p-tel","err-p-tel"]].map(([f,e])=>chk(f,e)).every(Boolean);
-  const em=document.getElementById("p-email").value.trim();
-  const eok=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em);
-  document.getElementById("p-email").classList.toggle("error",!eok);
-  document.getElementById("err-p-email").classList.toggle("on",!eok);
+  var ok=[['p-prenom','err-p-prenom'],['p-nom','err-p-nom'],['p-tel','err-p-tel']].map(function(p){return chk(p[0],p[1]);}).every(Boolean);
+  var em=document.getElementById('p-email').value.trim();
+  var eok=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em);
+  document.getElementById('p-email').classList.toggle('error',!eok);
+  document.getElementById('err-p-email').classList.toggle('on',!eok);
   if(!eok)ok=false;
   return ok;
 }
 
+// ═══════════════════════════════════════════════════
+// RÉCAP
+// ═══════════════════════════════════════════════════
 function buildRecap(){
-  const f=id=>document.getElementById(id).value.trim();
-  const email=f("p-email");
-  document.getElementById("conf-email-display").textContent=email;
+  var email=document.getElementById('p-email').value.trim();
+  document.getElementById('conf-email-display').textContent=email;
 
-  document.getElementById("recap-enfant").innerHTML=[
-    {i:"👤",l:"Nom",v:`${f("e-prenom")} ${f("e-nom")}`},
-    {i:"🎂",l:"Âge",v:f("e-age")||"—"},
-    {i:"📍",l:"Commune",v:f("e-commune")},
-    f("e-notes")?{i:"⚠️",l:"Allergies",v:f("e-notes")}:null,
-  ].filter(Boolean).map(r=>`<div class="recap-item"><span class="recap-ico">${r.i}</span><div><div class="recap-lbl">${r.l}</div><div class="recap-val">${r.v}</div></div></div>`).join("");
+  // Tous les enfants
+  var html='';
+  children.forEach(function(ch,ci){
+    var prefs=ch.prefOrder.length?ch.prefOrder:ch.selIds;
+    html+='<div class="form-section">'
+      +'<div class="form-section-title">👦 Enfant '+(nbEnfants>1?(ci+1)+' — ':'')+ch.prenom+' '+ch.nom+'</div>'
+      +'<div class="recap-item"><span class="recap-ico">🎂</span><div><div class="recap-lbl">Âge</div><div class="recap-val">'+(ch.age!==null?ch.age+' ans':'—')+'</div></div></div>'
+      +'<div class="recap-item"><span class="recap-ico">📍</span><div><div class="recap-lbl">Commune</div><div class="recap-val">'+(ch.commune||'—')+'</div></div></div>'
+      +(ch.notes?'<div class="recap-item"><span class="recap-ico">⚠️</span><div><div class="recap-lbl">Allergies</div><div class="recap-val">'+ch.notes+'</div></div></div>':'')
+      +'<div style="margin-top:10px;font-size:12px;font-weight:600;color:#888;margin-bottom:6px">Activités par ordre de préférence</div>'
+      +prefs.map(function(id,i){
+        var a=ACTS.find(function(x){return x.id===id;});if(!a)return'';
+        return '<div class="recap-act"><div class="rk">'+(i+1)+'</div><div><div style="font-weight:500;font-size:13px">'+a.nom+'</div><div style="font-size:12px;color:#888;margin-top:2px">'+fd(a.date)+' · '+a.deb+'–'+a.fin+' · '+a.lieu+'</div></div></div>';
+      }).join('')
+      +'</div>';
+  });
+  document.getElementById('recap-all-children').innerHTML=html;
 
-  document.getElementById("recap-parent").innerHTML=[
-    {i:"👤",l:"Nom",v:`${f("p-prenom")} ${f("p-nom")}`},
-    {i:"✉️",l:"E-mail",v:email},
-    {i:"📞",l:"Téléphone",v:f("p-tel")},
-  ].map(r=>`<div class="recap-item"><span class="recap-ico">${r.i}</span><div><div class="recap-lbl">${r.l}</div><div class="recap-val">${r.v}</div></div></div>`).join("");
-
-  document.getElementById("recap-activites").innerHTML=prefOrder.map((id,i)=>{
-    const a=ACTS.find(x=>x.id===id);if(!a)return"";
-    return`<div class="recap-act"><div class="rk">${i+1}</div><div><div style="font-weight:500;font-size:13px">${a.nom}</div><div style="font-size:12px;color:#888;margin-top:2px">${fd(a.date)} · ${a.deb}–${a.fin} · ${a.lieu}</div></div></div>`;
-  }).join("");
+  // Parent
+  var f=function(id){return document.getElementById(id).value.trim();};
+  document.getElementById('recap-parent').innerHTML=[
+    {i:'👤',l:'Nom',v:f('p-prenom')+' '+f('p-nom')},
+    {i:'✉️',l:'E-mail',v:email},
+    {i:'📞',l:'Téléphone',v:f('p-tel')},
+  ].map(function(r){return'<div class="recap-item"><span class="recap-ico">'+r.i+'</span><div><div class="recap-lbl">'+r.l+'</div><div class="recap-val">'+r.v+'</div></div></div>';}).join('');
 }
 
-window.addEventListener("DOMContentLoaded", function(){
-  loadActivitesFromSupabase();
-  loadReglesPubliques();
-  loadConditionsPubliques();
-});
+// ═══════════════════════════════════════════════════
+// SOUMISSION
+// ═══════════════════════════════════════════════════
+function submitForm(){
+  if(!document.getElementById('cond-consent').checked){
+    document.getElementById('err-cond-consent').classList.add('on');
+    document.getElementById('err-cond-consent').scrollIntoView({behavior:'smooth',block:'center'});
+    return;
+  }
+  document.getElementById('err-cond-consent').classList.remove('on');
+
+  var btnNext=document.getElementById('btn-next');
+  btnNext.disabled=true;btnNext.textContent='Vérification…';
+
+  var email=document.getElementById('p-email').value.trim();
+  var ref='FT-2026-'+Math.floor(1000+Math.random()*9000);
+  var hdrs=Object.assign({'Prefer':'return=representation'},SB_HDR);
+
+  (async function(){
+    try{
+      // Vérifier les doublons pour chaque enfant
+      for(var ci=0;ci<children.length;ci++){
+        var ch=children[ci];
+        var prenom=ch.prenom,nom=ch.nom,ddnV=ch.ddn;
+        var prefs=ch.prefOrder.length?ch.prefOrder:ch.selIds;
+
+        // Chercher l'enfant existant
+        var searchUrl=SB_URL+'/rest/v1/enfants?select=id,prenom,nom,ddn'
+          +'&prenom=eq.'+encodeURIComponent(prenom)
+          +'&nom=eq.'+encodeURIComponent(nom);
+        if(ddnV)searchUrl+='&ddn=eq.'+encodeURIComponent(ddnV);
+        var enfantId=null;
+        var sr=await fetch(searchUrl,{headers:SB_HDR});
+        if(sr.ok){var ex=await sr.json();if(ex&&ex.length)enfantId=ex[0].id;}
+
+        // Vérifier les doublons
+        if(enfantId){
+          var inUrl=SB_URL+'/rest/v1/inscriptions?select=activite_id,statut&enfant_id=eq.'+enfantId+'&statut=neq.annule';
+          var ir=await fetch(inUrl,{headers:SB_HDR});
+          if(ir.ok){
+            var ei=await ir.json();
+            var eaids=(ei||[]).map(function(x){return x.activite_id;});
+            var dbl=prefs.filter(function(id){return eaids.indexOf(id)>=0;});
+            if(dbl.length){
+              var errBox=document.getElementById('err-doublon-insc');
+              errBox.innerHTML='⚠️ <strong>'+prenom+' '+nom+' est déjà inscrit(e)</strong> aux activités :<br>'
+                +'<ul style="margin:.5rem 0 0 1rem">'+dbl.map(function(id){var a=ACTS.find(function(x){return x.id===id;});return'<li>'+(a?a.nom:'#'+id)+'</li>';}).join('')+'</ul>'
+                +'<br>Il n\'est pas possible d\'inscrire un enfant deux fois à la même activité.';
+              errBox.style.display='block';
+              errBox.scrollIntoView({behavior:'smooth',block:'center'});
+              btnNext.disabled=false;btnNext.textContent='✓ Valider les inscriptions';
+              return;
+            }
+          }
+        }
+        children[ci]._enfantId=enfantId; // stocker pour la suite
+      }
+
+      // Tout est ok → afficher succès
+      document.getElementById('success-email').textContent=email;
+      document.getElementById('ref-numero').textContent='Référence : '+ref;
+      showStep(recapStepN()+1);
+
+      // Créer / mettre à jour les enfants et leurs inscriptions
+      var pp=document.getElementById('p-prenom').value.trim();
+      var pn=document.getElementById('p-nom').value.trim();
+      var pt=document.getElementById('p-tel').value.trim();
+
+      for(var ci2=0;ci2<children.length;ci2++){
+        var ch2=children[ci2];
+        var prefs2=ch2.prefOrder.length?ch2.prefOrder:ch2.selIds;
+        var enfantId2=ch2._enfantId;
+
+        if(!enfantId2){
+          var ed={prenom:ch2.prenom,nom:ch2.nom,ddn:ch2.ddn||null,age:ch2.age||0,
+            commune:ch2.commune,pp:pp,pn:pn,pe:email,pt:pt,notes:ch2.notes,statut:'actif',parts:0};
+          var er=await fetch(SB_URL+'/rest/v1/enfants',{method:'POST',headers:hdrs,body:JSON.stringify(ed)});
+          if(!er.ok){console.warn('Erreur création enfant',ci2,er.status);continue;}
+          var ec=await er.json();
+          enfantId2=ec[0]&&ec[0].id;
+        }
+        if(!enfantId2)continue;
+
+        for(var pi=0;pi<prefs2.length;pi++){
+          var actId=prefs2[pi];
+          var id={enfant_id:enfantId2,activite_id:actId,statut:'attente',pref:pi+1,notes:'Inscrit via formulaire — Réf: '+ref};
+          var ir2=await fetch(SB_URL+'/rest/v1/inscriptions',{method:'POST',headers:hdrs,body:JSON.stringify(id)});
+          if(ir2.ok)console.log('Inscription créée ✓ enfant',ci2+1,'activite',actId);
+          else console.warn('Erreur inscription',actId,ir2.status);
+        }
+      }
+
+      // Email de confirmation
+      var enfantsText=children.map(function(ch,ci){
+        var prefs=ch.prefOrder.length?ch.prefOrder:ch.selIds;
+        var acts=prefs.map(function(id,i){var a=ACTS.find(function(x){return x.id===id;});return(i+1)+'. '+(a?a.nom:'#'+id);}).join('<br>');
+        return '<p><strong>'+ch.prenom+' '+ch.nom+'</strong></p><p style="margin:4px 0 0 8px;font-size:13px;color:#555">'+acts+'</p>';
+      }).join('<hr style="border:none;border-top:1px solid #eee;margin:8px 0">');
+
+      fetch('/api/send-email',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          sender:{email:'fritimecommunesintyamon@gmail.com',name:'Fri-Time Intyamon'},
+          to:[{email:email}],
+          subject:'Confirmation d\'inscription Fri-Time — '+ref,
+          htmlContent:'<div style="font-family:system-ui,sans-serif;max-width:600px;margin:0 auto;padding:20px">'
+            +'<div style="background:#1a1a1a;color:#fff;padding:24px;border-radius:10px 10px 0 0;text-align:center"><div style="font-size:18px;font-weight:600">Fri-Time Intyamon</div></div>'
+            +'<div style="background:#fff;padding:24px;border:1px solid #eee;border-top:none;border-radius:0 0 10px 10px;line-height:1.7">'
+            +'<p>Bonjour,</p>'
+            +'<p>Nous avons bien reçu votre demande d\'inscription.</p>'
+            +'<div style="background:#eaf3de;border-left:3px solid #27ae60;padding:12px 16px;border-radius:0 6px 6px 0;margin:16px 0">'
+            +'<p style="margin:0"><strong>Référence :</strong> '+ref+'</p></div>'
+            +'<p><strong>Activités demandées :</strong></p>'+enfantsText
+            +'<p style="margin-top:16px"><strong>⚠️ Rappel important :</strong> Cet email confirme uniquement la réception de votre demande. La sélection est mécanique et impartiale.</p>'
+            +'<p>Vous recevrez un second email avec la décision finale.</p>'
+            +'<p style="font-size:13px;color:#888;margin-top:24px;border-top:1px solid #eee;padding-top:12px">Fri-Time Intyamon · fritimecommunesintyamon@gmail.com</p>'
+            +'</div></div>'
+        })
+      }).then(function(r){if(!r.ok)console.warn('Email erreur',r.status);else console.log('Email envoyé ✓');})
+        .catch(function(e){console.warn('Email erreur:',e);});
+
+    }catch(e){
+      console.warn('Erreur soumission:',e);
+      btnNext.disabled=false;btnNext.textContent='✓ Valider les inscriptions';
+    }
+  })();
+}
+
+// ═══════════════════════════════════════════════════
+// CHARGEMENT SUPABASE
+// ═══════════════════════════════════════════════════
+async function loadActivitesFromSupabase(){
+  var urlParams=new URLSearchParams(window.location.search);
+  CAMP_ID=urlParams.get('id');
+  var campActIds=null;
+
+  if(CAMP_ID){
+    try{
+      var cr=await fetch(SB_URL+'/rest/v1/campagnes?id=eq.'+encodeURIComponent(CAMP_ID)+'&select=id,titre,activites',{headers:SB_HDR});
+      if(cr.ok){
+        var cd=await cr.json();
+        if(cd&&cd.length){
+          var camp=cd[0];
+          if(camp.titre){var ht=document.querySelector('.hero-title');if(ht)ht.textContent=camp.titre;}
+          if(camp.activites){
+            try{var p=typeof camp.activites==='string'?JSON.parse(camp.activites):camp.activites;if(Array.isArray(p)&&p.length)campActIds=p.map(function(x){return parseInt(x,10)||x;});}
+            catch(e){console.warn('Erreur parsing activites:',e);}
+          }
+        }
+      }
+    }catch(e){console.warn('Erreur campagne:',e);}
+  }
+
+  try{
+    var url=SB_URL+'/rest/v1/activites?order=date';
+    if(campActIds&&campActIds.length)url+='&id=in.('+campActIds.join(',')+')';
+    var res=await fetch(url,{headers:SB_HDR});
+    var data=await res.json();
+    if(data&&data.length){
+      ACTS=data.map(function(a){
+        return{id:a.id,nom:a.nom,date:a.date,deb:a.heure_debut||'',fin:a.heure_fin||'',
+          deadline:a.date_limite,lieu:a.lieu||'',desc:a.description||'',
+          cout:a.cout||0,coutParticipant:a.cout_type||0,places:a.places||0,
+          ageMin:a.age_min||null,ageMax:a.age_max||null,statut:a.statut||'ouvert',
+          tenue:a.tenue||'',materiel:a.materiel||'',tMeteo:a.t_meteo||false,prest:a.prestataire||''};
+      });
+    }
+  }catch(e){console.warn('Erreur activités:',e);}
+  showStep(0);
+}
 
 async function loadReglesPubliques(){
   var listEl=document.getElementById('regles-publiques-list');
-  var SB_URL='https://pixktldfpjtnimngvgqz.supabase.co';
-  var SB_KEY='sb_publishable_ZV04eYw85SDFQi43SwZJTg_igofPU8X';
-  var headers={'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY};
   try{
-    var res=await fetch(SB_URL+'/rest/v1/parametres?cle=eq.regles_inscription&select=valeur',{headers:headers});
+    var res=await fetch(SB_URL+'/rest/v1/parametres?cle=eq.regles_inscription&select=valeur',{headers:SB_HDR});
     if(res.ok){
       var data=await res.json();
       if(data&&data.length&&data[0].valeur){
         var regles=JSON.parse(data[0].valeur);
         if(Array.isArray(regles)&&regles.length){
-          listEl.innerHTML=regles.map(function(r){
-            var titre=r.titre?'<strong>'+r.titre+' :</strong> ':'';
-            return '<li>'+titre+(r.texte||'')+'</li>';
-          }).join('');
+          listEl.innerHTML=regles.map(function(r){var t=r.titre?'<strong>'+r.titre+' :</strong> ':'';return'<li>'+t+(r.texte||'')+'</li>';}).join('');
           return;
         }
       }
     }
-  }catch(e){console.warn('[Règles] Erreur chargement:',e);}
-  // Fallback si Supabase non disponible ou table non créée
+  }catch(e){console.warn('[Règles]',e);}
   listEl.innerHTML='<li>Erreur lors du chargement des règles. Veuillez recharger la page.</li>';
 }
 
 async function loadConditionsPubliques(){
   var listEl=document.getElementById('conditions-publiques-list');
   var noteEl=document.getElementById('conditions-publiques-note');
-  var SB_URL='https://pixktldfpjtnimngvgqz.supabase.co';
-  var SB_KEY='sb_publishable_ZV04eYw85SDFQi43SwZJTg_igofPU8X';
-  var headers={'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY};
   try{
-    var res=await fetch(SB_URL+'/rest/v1/parametres?cle=eq.conditions_participation&select=valeur',{headers:headers});
+    var res=await fetch(SB_URL+'/rest/v1/parametres?cle=eq.conditions_participation&select=valeur',{headers:SB_HDR});
     if(res.ok){
       var data=await res.json();
       if(data&&data.length&&data[0].valeur){
         var obj=JSON.parse(data[0].valeur);
-        var items=obj.items||[];
-        var note=obj.note||'';
-        if(items.length){
-          listEl.innerHTML=items.map(function(c){return '<li>'+(c||'')+'</li>';}).join('');
-        }else{
-          listEl.innerHTML='';
-        }
-        if(note){
-          noteEl.innerHTML=note;
-          noteEl.style.display='block';
-        }
+        var items=obj.items||[],note=obj.note||'';
+        if(items.length)listEl.innerHTML=items.map(function(c){return'<li>'+(c||'')+'</li>';}).join('');
+        else listEl.innerHTML='';
+        if(note){noteEl.innerHTML=note;noteEl.style.display='block';}
         return;
       }
     }
   }catch(e){console.warn('[Conditions]',e);}
-  // Fallback hardcodé
   listEl.innerHTML='<li>Atteste avoir pris connaissance des règles de participation</li><li>Atteste avoir transmis les règles de participation à son enfant</li><li>S\'engage à être atteignable par téléphone pendant l\'activité en cas de problème</li><li>Atteste que son enfant est au bénéfice d\'une assurance accident ainsi que d\'une assurance responsabilité civile (RC)</li><li>Certifie que l\'état de santé de son enfant lui permet de participer sans risque à l\'activité</li><li>Reconnaît être responsable de son enfant sur le chemin menant à l\'activité</li>';
   noteEl.innerHTML='<strong>En cas d\'annulation ou de problème :</strong> L\'organisateur et le comité d\'organisation Fri-Time ne peuvent être tenus responsables en cas d\'accident, de dégât matériel, de vol ou de tout autre problème survenant lors de l\'activité ou sur le trajet.';
   noteEl.style.display='block';
 }
+
+window.addEventListener('DOMContentLoaded',function(){
+  loadActivitesFromSupabase();
+  loadReglesPubliques();
+  loadConditionsPubliques();
+});
 </script>
 </body>
 </html>
