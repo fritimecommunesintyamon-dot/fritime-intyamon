@@ -1115,7 +1115,7 @@ async function changeStatut(id,statut){
 
   } else if(statut==='complet'){
     if(!isChecklistComplete(id)){
-      alert('⚠️ Checklist incomplète\n\nVeuillez cocher tous les éléments de la checklist avant de marquer cette activité comme "Complète".\n\nOuvrez la 📋 Checklist et complétez-la en entier.');
+      alert('⚠️ Checklist incomplète\n\nTous les éléments de la section "Avant le jour J" doivent être cochés pour pouvoir passer cette activité à "Complet".\n\nOuvrez la 📋 Checklist et cochez les éléments manquants.');
       return;
     }
     msg='🔒 Marquer l\'activité comme Complète ?\n\nToutes les données sont renseignées et la checklist est complète.\nL\'activité pourra désormais être publiée et ajoutée au calendrier.\n\nConfirmer ?';
