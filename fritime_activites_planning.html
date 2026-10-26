@@ -258,11 +258,25 @@ textarea{resize:vertical;min-height:80px}
   <!-- ═══════════════ MODULE ACTIVITÉS ═══════════════ -->
   <div id="mod-activites">
     <div class="container">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
         <h1 style="font-size:22px;font-weight:700">🎯 Activités</h1>
         <div style="display:flex;gap:.5rem">
+          <button class="btn btn-outline btn-sm" onclick="toggleHelp('help-activites')" title="Aide">❓ Aide</button>
           <button class="btn btn-outline" onclick="openEditChecklist()">📋 Modifier la checklist</button>
           <button class="btn btn-primary" onclick="openCreate()">+ Nouvelle activité</button>
+        </div>
+      </div>
+      <div id="help-activites" style="display:none;background:#f0f7ff;border:1px solid #bfdbfe;border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.25rem;font-size:13px;line-height:1.7">
+        <div style="font-weight:700;margin-bottom:.5rem;font-size:14px">🎯 Comment utiliser cet onglet</div>
+        <div style="display:grid;gap:.4rem">
+          <div>📌 <strong>Créer une activité</strong> : cliquez sur <em>+ Nouvelle activité</em> et remplissez le formulaire (nom, date, lieu, etc.).</div>
+          <div>🔍 <strong>Filtrer / rechercher</strong> : utilisez les boutons de filtre (statut, période) pour retrouver une activité rapidement.</div>
+          <div>📋 <strong>Voir le détail</strong> : cliquez sur une carte d'activité pour ouvrir sa fiche complète — participants, statut, lien d'inscription.</div>
+          <div>🔄 <strong>Changer le statut</strong> : depuis la fiche, utilisez les boutons en bas pour faire avancer l'activité dans son cycle :<br>
+            &nbsp;&nbsp;📢 <strong>Publier</strong> → l'activité est visible du comité · 🔒 <strong>Complet</strong> → prêt à lancer (checklist "Avant le jour J" obligatoire) · ✅ <strong>Réalisé</strong> → activité terminée · ❌ <strong>Annuler</strong> → annulation avec raison et email aux parents · 🌧️ <strong>Annulé météo</strong> → annulation météo avec email automatique.</div>
+          <div>📋 <strong>Checklist</strong> : chaque activité a une checklist de préparation. Depuis la fiche, cliquez sur 📋 Checklist pour cocher les étapes. La section <em>"Avant le jour J"</em> doit être entièrement cochée pour passer en statut Complet.</div>
+          <div>✏️ <strong>Modifier la checklist</strong> : le bouton <em>📋 Modifier la checklist</em> (en haut à droite) permet de changer les éléments pour <u>toutes les activités</u> en même temps.</div>
+          <div>📅 <strong>Proposer une nouvelle date</strong> : si une activité est annulée et qu'elle avait des inscrits, un bouton apparaît dans la fiche pour leur envoyer une invitation avec une nouvelle date. Les parents peuvent répondre Oui/Non via l'email.</div>
         </div>
       </div>
       <div class="metrics" id="act-metrics"></div>
@@ -281,9 +295,22 @@ textarea{resize:vertical;min-height:80px}
   <!-- ═══════════════ MODULE CAMPAGNES ═══════════════ -->
   <div id="mod-campagnes" style="display:none">
     <div class="container">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
         <div><h1 style="font-size:20px;font-weight:600">📅 Calendrier</h1><div style="font-size:13px;color:#666;margin-top:2px">Annonces et formulaires d'inscription — Fri-Time</div></div>
-        <button class="btn btn-primary" onclick="campOpenCreate()">+ Nouveau calendrier</button>
+        <div style="display:flex;gap:.5rem">
+          <button class="btn btn-outline btn-sm" onclick="toggleHelp('help-campagnes')" title="Aide">❓ Aide</button>
+          <button class="btn btn-primary" onclick="campOpenCreate()">+ Nouveau calendrier</button>
+        </div>
+      </div>
+      <div id="help-campagnes" style="display:none;background:#f0f7ff;border:1px solid #bfdbfe;border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.25rem;font-size:13px;line-height:1.7">
+        <div style="font-weight:700;margin-bottom:.5rem;font-size:14px">📅 Comment utiliser cet onglet</div>
+        <div style="display:grid;gap:.4rem">
+          <div>📌 <strong>À quoi ça sert ?</strong> : cet onglet permet de créer un calendrier d'inscriptions qui regroupe plusieurs activités. Un lien unique est généré, envoyé aux familles via Klapp. Les parents s'inscrivent directement en ligne.</div>
+          <div>➕ <strong>Créer un calendrier</strong> : cliquez sur <em>+ Nouveau calendrier</em>, donnez-lui un nom, sélectionnez les activités à inclure (seules les activités avec le statut <em>Complet</em> apparaissent) et enregistrez.</div>
+          <div>🔗 <strong>Partager le lien</strong> : une fois créé, copiez le lien du calendrier et transmettez-le à l'école pour diffusion sur Klapp.</div>
+          <div>👁️ <strong>Gérer un calendrier</strong> : cliquez sur un calendrier existant pour voir les activités incluses, modifier son contenu ou le supprimer.</div>
+          <div>📥 <strong>Inscriptions automatiques</strong> : dès qu'une famille soumet le formulaire, les inscriptions arrivent directement dans le module <em>Inscriptions</em>, sans aucune saisie manuelle.</div>
+        </div>
       </div>
       <div style="background:#e6f1fb;color:#0c447c;border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:1rem;line-height:1.5">
         Le lien généré pour chaque campagne est transmis par l'école via l'app Klapp à tous les élèves. Les familles remplissent le formulaire directement en ligne. Les inscriptions arrivent automatiquement dans le module Inscriptions.
@@ -298,7 +325,21 @@ textarea{resize:vertical;min-height:80px}
     <div class="plan-wrap">
       <div class="plan-list">
         <div class="plan-list-head">
-          <h2>📅 Planning</h2>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.25rem">
+            <h2 style="margin:0">📅 Planning</h2>
+            <button class="btn btn-outline btn-sm" onclick="toggleHelp('help-planning')" title="Aide" style="font-size:12px;padding:3px 8px">❓ Aide</button>
+          </div>
+          <div id="help-planning" style="display:none;background:#f0f7ff;border:1px solid #bfdbfe;border-radius:10px;padding:.75rem 1rem;margin-bottom:.75rem;font-size:12px;line-height:1.6">
+            <div style="font-weight:700;margin-bottom:.4rem">📅 Comment utiliser le Planning</div>
+            <div style="display:grid;gap:.35rem">
+              <div>📋 <strong>Liste à gauche</strong> : toutes les activités en cours ou archivées. Cliquez sur une pour ouvrir sa fiche détaillée à droite.</div>
+              <div>🔍 <strong>Recherche</strong> : tapez le nom d'une activité dans le champ de recherche pour la retrouver rapidement.</div>
+              <div>✅ <strong>Checklist</strong> : dans la fiche à droite, cochez les étapes de préparation au fur et à mesure. La section <em>"Avant le jour J"</em> doit être complète pour passer en statut Complet.</div>
+              <div>👥 <strong>Présences</strong> : le jour de l'activité, la liste des inscrits s'affiche dans la fiche. Vous pouvez marquer chaque enfant présent ou absent.</div>
+              <div>✏️ <strong>Modifier</strong> : le bouton <em>Modifier l'activité</em> dans la fiche renvoie vers l'onglet Activités pour éditer les infos.</div>
+              <div>📁 <strong>Archives</strong> : les activités passées basculent automatiquement dans l'onglet Archives.</div>
+            </div>
+          </div>
           <input class="plan-search" type="text" placeholder="Rechercher…" id="plan-search" oninput="searchVal=this.value;renderPlanList()">
           <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:.4rem;font-size:12px">
             <span style="color:#888">Du</span>
@@ -808,6 +849,7 @@ function renderAct(){renderMetrics();renderFilters();renderGrid();}
 // ═══ ACTIVITÉS — MODALS ═══
 function openOverlay(id){document.getElementById(id).classList.add('open')}
 function closeOverlay(id){document.getElementById(id).classList.remove('open')}
+function toggleHelp(id){var el=document.getElementById(id);if(el)el.style.display=el.style.display==='none'?'block':'none';}
 
 function openCreate(editing){
   actEditId=editing?actEditId:null;
