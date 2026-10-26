@@ -583,6 +583,28 @@ textarea{resize:vertical;min-height:80px}
   </div>
 </div>
 
+<!-- ═══════════ MODAL ANNULATION CAUSE ═══════════ -->
+<div class="overlay" id="mAnnulationCause">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-title">
+      <span>❌ Annuler l'activité</span>
+      <button class="btn btn-outline btn-sm" onclick="closeOverlay('mAnnulationCause')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="margin:0 0 1rem;color:#555;font-size:14px">Veuillez indiquer la raison de l'annulation. Un email sera envoyé automatiquement à tous les participants inscrits.</p>
+      <div class="sec">
+        <label>Raison de l'annulation <span style="color:#e53e3e">*</span></label>
+        <textarea id="annulation-cause" rows="4" placeholder="Ex : Le prestataire a annulé sa participation en raison de…" style="width:100%;resize:vertical;font-size:14px"></textarea>
+      </div>
+      <div id="annulation-nb-participants" style="margin-top:.75rem;font-size:13px;color:#666"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeOverlay('mAnnulationCause')">Retour</button>
+      <button class="btn btn-danger" id="annulation-confirm-btn" onclick="confirmerAnnulation()">❌ Confirmer l'annulation</button>
+    </div>
+  </div>
+</div>
+
 <script src="fritime_data.js"></script>
 <script src="fritime_sync.js"></script>
 <script src="fritime_auth.js"></script>
@@ -595,6 +617,7 @@ var nextId=4, nextPrestId=100, categories=[], sousCategories=[];
 var actSelId=null, actEditId=null, actFilter='tous';
 var currentActId=null, currentTab='encours', searchVal='';
 var modifRespActId=null;
+var annulationActId=null;
 var _publique=false, _currentStatut='brouillon', _tMeteo=false;
 
 // ═══ UTILS ═══
@@ -1043,28 +1066,128 @@ async function deleteActivite(){
   renderAct();
 }
 
+// ═══ CHECKLIST COMPLETENESS CHECK ═══
+function isChecklistComplete(id){
+  var saved={};
+  try{saved=JSON.parse(localStorage.getItem('ck-'+id)||'{}');}catch(e){}
+  var total=0,checked=0;
+  CHECKLIST.forEach(function(g){
+    g.items.forEach(function(item,i){
+      var cid='ck-'+id+'-'+g.group.replace(/\s/g,'')+'-'+i;
+      total++;
+      if(saved[cid])checked++;
+    });
+  });
+  return total>0&&checked>=total;
+}
+
+// ═══ CHANGEMENT DE STATUT AVEC VALIDATION ═══
 async function changeStatut(id,statut){
+  var a=activites.find(function(x){return x.id===id;});
+  if(!a)return;
+  var msg='';
+  var insc=inscriptions.filter(function(i){return String(i.activiteId||i.activite_id)===String(id);});
+
+  if(statut==='publie'){
+    msg='📢 Publier cette activité ?\n\nL\'activité sera visible uniquement par le comité.\nElle ne sera pas encore accessible aux inscriptions publiques à ce stade.\n\nConfirmer ?';
+    if(!confirm(msg))return;
+
+  } else if(statut==='complet'){
+    if(!isChecklistComplete(id)){
+      alert('⚠️ Checklist incomplète\n\nVeuillez cocher tous les éléments de la checklist avant de marquer cette activité comme "Complète".\n\nOuvrez la 📋 Checklist et complétez-la en entier.');
+      return;
+    }
+    msg='🔒 Marquer l\'activité comme Complète ?\n\nToutes les données sont renseignées et la checklist est complète.\nL\'activité pourra désormais être publiée et ajoutée au calendrier.\n\nConfirmer ?';
+    if(!confirm(msg))return;
+
+  } else if(statut==='realise'){
+    msg='✅ Marquer l\'activité comme Réalisée ?\n\nL\'activité sera considérée comme terminée et archivée.\n\nConfirmer ?';
+    if(!confirm(msg))return;
+
+  } else if(statut==='annule'){
+    // Ouvre le modal pour saisir la raison
+    openAnnulationModal(id);
+    return;
+  }
+
   try{await FriDB.query('activites','PATCH',{statut:statut},'?id=eq.'+id);}catch(e){console.warn(e);}
   var idx=activites.findIndex(function(a){return a.id===id;});
   if(idx>=0)activites[idx].statut=statut;
-  closeDetail();renderAct();
+  closeDetail();
+  renderAct();
 }
+
+function openAnnulationModal(id){
+  annulationActId=id;
+  var insc=inscriptions.filter(function(i){return String(i.activiteId||i.activite_id)===String(id);});
+  var nb=insc.length;
+  document.getElementById('annulation-cause').value='';
+  var nbEl=document.getElementById('annulation-nb-participants');
+  if(nb>0){
+    nbEl.innerHTML='📧 Un email sera envoyé à <strong>'+nb+' participant'+(nb>1?'s':'')+'</strong> inscrit'+(nb>1?'s':'')+'.';
+  } else {
+    nbEl.innerHTML='ℹ️ Aucun participant inscrit — aucun email ne sera envoyé.';
+  }
+  closeDetail();
+  openOverlay('mAnnulationCause');
+}
+
+async function confirmerAnnulation(){
+  var cause=document.getElementById('annulation-cause').value.trim();
+  if(!cause){
+    alert('⚠️ Veuillez indiquer la raison de l\'annulation.');
+    return;
+  }
+  var id=annulationActId;
+  var a=activites.find(function(x){return x.id===id;});
+  if(!a)return;
+  var btn=document.getElementById('annulation-confirm-btn');
+  btn.disabled=true;btn.textContent='Annulation en cours…';
+  try{await FriDB.query('activites','PATCH',{statut:'annule',t_meteo:false},'?id=eq.'+id);}catch(e){console.warn(e);}
+  var idx=activites.findIndex(function(a){return a.id===id;});
+  if(idx>=0){activites[idx].statut='annule';activites[idx].tMeteo=false;}
+  await sendAnnulationMails(id,cause);
+  btn.disabled=false;btn.textContent='❌ Confirmer l\'annulation';
+  closeOverlay('mAnnulationCause');
+  renderAct();
+}
+
+async function sendAnnulationMails(actId,cause){
+  var a=activites.find(function(x){return x.id===actId;});
+  if(!a)return;
+  var inscrits=inscriptions.filter(function(i){return String(i.activiteId||i.activite_id)===String(actId);});
+  if(!inscrits.length)return;
+  var dateStr=a.date?a.date.split('-').reverse().join('.'):'';
+  for(var ci=0;ci<inscrits.length;ci++){
+    var insc=inscrits[ci];
+    var eid=insc.enfantId||insc.enfant_id;
+    var enf=enfants.find(function(e){return e.id===eid;});
+    if(!enf||!enf.pe)continue;
+    var html='<p>Bonjour '+(enf.pp||'')+(enf.pn?' '+enf.pn:'')+'</p>'
+      +'<p>Nous vous informons que l\'activité <strong>'+esc(a.nom)+'</strong>'
+      +(dateStr?' du '+dateStr:'')
+      +' est <strong>annulée</strong>.</p>'
+      +'<p><strong>Raison de l\'annulation :</strong><br>'
+      +cause.replace(/\n/g,'<br>')+'</p>'
+      +'<p>Nous vous prions de nous excuser pour ce désagrément et espérons vous retrouver prochainement pour d\'autres activités.</p>'
+      +'<p>L\'équipe Fri-Time Intyamon</p>';
+    try{
+      await FriBrevo.sendEmail(enf.pe,'Activité annulée : '+a.nom,html);
+    }catch(e){console.warn('sendAnnulationMail erreur:',e);}
+  }
+}
+
 async function changeStatutMeteo(id){
   var a=activites.find(function(x){return x.id===id;});
   if(!a)return;
-  var confirmes=inscriptions.filter(function(i){
-    return String(i.activiteId||i.activite_id)===String(id)&&i.statut==='confirme';
-  });
-  var nbMails=confirmes.length;
-  var msg='🌧️ Annulation pour cause de mauvais temps\n\n'
-    +'Activité : '+a.nom+'\n\n'
-    +'Ce qui va se passer :\n'
-    +'• Le statut de l\'activité passera à "Annulé"\n'
-    +'• Le flag météo sera activé\n';
-  if(nbMails>0){
-    msg+='• Un email d\'annulation sera envoyé automatiquement à '+nbMails+' participant'+(nbMails>1?'s':'')+' confirmé'+(nbMails>1?'s':'')+'\n';
+  var inscrits=inscriptions.filter(function(i){return String(i.activiteId||i.activite_id)===String(id);});
+  var nb=inscrits.length;
+  var msg='🌧️ Annuler l\'activité pour cause météo ?\n\nActivité : '+a.nom+(a.date?'\nDate : '+a.date.split('-').reverse().join('.'):'')+'\n\nCe qui va se passer :\n'
+    +'• Le statut passera à "Annulé" avec flag météo\n';
+  if(nb>0){
+    msg+='• Un email d\'annulation météo sera envoyé à '+nb+' participant'+(nb>1?'s':'')+' inscrit'+(nb>1?'s':'')+'\n';
   } else {
-    msg+='• Aucun participant confirmé — aucun email ne sera envoyé\n';
+    msg+='• Aucun participant inscrit — aucun email ne sera envoyé\n';
   }
   msg+='\nCette action est irréversible. Confirmer ?';
   if(!confirm(msg))return;
@@ -1074,16 +1197,15 @@ async function changeStatutMeteo(id){
   await sendMeteoMails(id);
   closeDetail();renderAct();
 }
+
 async function sendMeteoMails(actId){
   var a=activites.find(function(x){return x.id===actId;});
   if(!a)return;
-  var confirmes=inscriptions.filter(function(i){
-    return String(i.activiteId||i.activite_id)===String(actId)&&i.statut==='confirme';
-  });
-  if(!confirmes.length)return;
+  var inscrits=inscriptions.filter(function(i){return String(i.activiteId||i.activite_id)===String(actId);});
+  if(!inscrits.length)return;
   var dateStr=a.date?a.date.split('-').reverse().join('.'):'';
-  for(var ci=0;ci<confirmes.length;ci++){
-    var insc=confirmes[ci];
+  for(var ci=0;ci<inscrits.length;ci++){
+    var insc=inscrits[ci];
     var eid=insc.enfantId||insc.enfant_id;
     var enf=enfants.find(function(e){return e.id===eid;});
     if(!enf||!enf.pe)continue;
