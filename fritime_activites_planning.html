@@ -1135,6 +1135,31 @@ async function openDetail(id){
       ${a.notes?`<div class="dl">Notes internes</div><div class="dv">${esc(a.notes)}</div>`:''}
       <div class="dl">Lien inscription</div><div class="dv"><a href="${lienInsc}" target="_blank" style="font-size:12px;word-break:break-all">${lienInsc}</a></div>
     </div>
+    ${insc.length>0?(function(){
+      var rows=insc.map(function(i){
+        var eid=i.enfantId||i.enfant_id;
+        var enf=enfants.find(function(e){return e.id===eid;});
+        var nomEnf=enf?esc(enf.prenom+' '+enf.nom):'ID '+eid;
+        var pres=i.presence||i.statut||'inscrit';
+        var presColor=pres==='present'?'#16a34a':pres==='absent'?'#dc2626':'#888';
+        var presBg=pres==='present'?'#dcfce7':pres==='absent'?'#fee2e2':'#f3f4f6';
+        return '<tr>'
+          +'<td style="padding:5px 8px;font-size:13px">'+nomEnf+'</td>'
+          +'<td style="padding:5px 8px;font-size:12px;color:#666">'+(enf&&enf.pp?esc(enf.pp):'')+'</td>'
+          +'<td style="padding:5px 8px"><span style="background:'+presBg+';color:'+presColor+';border-radius:6px;padding:2px 8px;font-size:12px;font-weight:600">'+pres+'</span></td>'
+          +'</tr>';
+      }).join('');
+      return '<div style="margin-top:1.25rem">'
+        +'<div style="font-weight:600;font-size:13px;margin-bottom:.5rem">👥 Participants ('+insc.length+')</div>'
+        +'<table style="width:100%;border-collapse:collapse;background:#fafafa;border-radius:8px;overflow:hidden">'
+        +'<thead><tr>'
+        +'<th style="padding:6px 8px;font-size:12px;text-align:left;color:#888;font-weight:600;background:#f0f0f0">Enfant</th>'
+        +'<th style="padding:6px 8px;font-size:12px;text-align:left;color:#888;font-weight:600;background:#f0f0f0">Parent</th>'
+        +'<th style="padding:6px 8px;font-size:12px;text-align:left;color:#888;font-weight:600;background:#f0f0f0">Présence</th>'
+        +'</tr></thead>'
+        +'<tbody>'+rows+'</tbody></table>'
+        +'</div>';
+    })():''}
     ${repHtml}
     <div style="margin-top:1rem;display:flex;gap:.5rem;flex-wrap:wrap">
       <button class="btn btn-outline btn-sm" onclick="changeStatut(${id},'publie')">📢 Publier</button>
