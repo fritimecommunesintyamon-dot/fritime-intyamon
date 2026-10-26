@@ -253,6 +253,7 @@ textarea{resize:vertical;min-height:80px}
     <button class="mod-tab active" id="mtab-activites" onclick="switchModuleTab('activites')">🎯 Activités</button>
     <button class="mod-tab" id="mtab-planning" onclick="switchModuleTab('planning')">📅 Planning / Fiches</button>
     <button class="mod-tab" id="mtab-campagnes" onclick="switchModuleTab('campagnes')">📅 Calendrier</button>
+    <button class="mod-tab" id="mtab-regles" onclick="switchModuleTab('regles')">⚠️ Règles</button>
   </div>
 
   <!-- ═══════════════ MODULE ACTIVITÉS ═══════════════ -->
@@ -287,6 +288,28 @@ textarea{resize:vertical;min-height:80px}
       </div>
       <div id="camp-metrics" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.5rem"></div>
       <div id="camp-campaigns-list"></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ MODULE RÈGLES ═══════════════ -->
+  <div id="mod-regles" style="display:none">
+    <div class="container" style="max-width:760px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:10px">
+        <div>
+          <h1 style="font-size:20px;font-weight:600">⚠️ Règles importantes</h1>
+          <div style="font-size:13px;color:#666;margin-top:2px">Ces règles s'affichent automatiquement dans le formulaire d'inscription.</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-outline btn-sm" onclick="reglesAjouterRegle()">+ Ajouter une règle</button>
+          <button class="btn btn-primary btn-sm" id="regles-save-btn" onclick="reglesSauvegarder()">💾 Enregistrer</button>
+        </div>
+      </div>
+      <div style="background:#fff8e6;color:#7a5600;border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:1.5rem;line-height:1.5">
+        Modifiez, ajoutez ou réordonnez les règles. Cliquez sur <strong>Enregistrer</strong> pour publier les changements — le formulaire d'inscription se met à jour automatiquement.
+      </div>
+      <div id="regles-save-status" style="display:none;background:#e6f6ea;color:#1a6b3a;border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:1rem">✅ Règles enregistrées avec succès.</div>
+      <div id="regles-error" style="display:none;background:#fdf0f0;color:#7a1f1f;border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:1rem"></div>
+      <div id="regles-list"></div>
     </div>
   </div>
 
@@ -611,10 +634,13 @@ function switchModuleTab(name){
   document.getElementById('mod-activites').style.display=name==='activites'?'block':'none';
   document.getElementById('mod-planning').style.display=name==='planning'?'block':'none';
   document.getElementById('mod-campagnes').style.display=name==='campagnes'?'block':'none';
+  document.getElementById('mod-regles').style.display=name==='regles'?'block':'none';
   document.getElementById('mtab-activites').className='mod-tab'+(name==='activites'?' active':'');
   document.getElementById('mtab-planning').className='mod-tab'+(name==='planning'?' active':'');
   document.getElementById('mtab-campagnes').className='mod-tab'+(name==='campagnes'?' active':'');
+  document.getElementById('mtab-regles').className='mod-tab'+(name==='regles'?' active':'');
   if(name==='campagnes'&&!campDataLoaded){campDataLoaded=true;loadCampagnesData();}
+  if(name==='regles'&&!reglesLoaded){reglesLoaded=true;reglesCharger();}
   location.hash=name;
 }
 
@@ -1355,6 +1381,110 @@ async function loadAllData(){
 
 // ═══ CAMPAGNES ═══
 var campDataLoaded=false;
+// ═══════════════════════════════════════════════════════
+// ═══ MODULE RÈGLES IMPORTANTES ═══════════════════════
+// ═══════════════════════════════════════════════════════
+var reglesLoaded=false;
+var reglesCurrent=[]; // [{titre:'', texte:''}]
+var SUPABASE_HEADERS={
+  'Content-Type':'application/json',
+  'apikey':'sb_publishable_ZV04eYw85SDFQi43SwZJTg_igofPU8X',
+  'Authorization':'Bearer sb_publishable_ZV04eYw85SDFQi43SwZJTg_igofPU8X'
+};
+
+async function reglesCharger(){
+  try{
+    var res=await fetch('https://pixktldfpjtnimngvgqz.supabase.co/rest/v1/parametres?cle=eq.regles_inscription&select=valeur',{headers:SUPABASE_HEADERS});
+    if(res.ok){
+      var data=await res.json();
+      if(data&&data.length&&data[0].valeur){
+        try{reglesCurrent=JSON.parse(data[0].valeur);}catch(e){reglesCurrent=[];}
+      }
+    }
+  }catch(e){console.warn('[Règles] Erreur chargement:',e);}
+  reglesRendre();
+}
+
+function reglesRendre(){
+  var el=document.getElementById('regles-list');
+  if(!reglesCurrent.length){
+    el.innerHTML='<div style="text-align:center;color:#aaa;padding:2rem;font-size:14px">Aucune règle. Cliquez sur « + Ajouter une règle » pour commencer.</div>';
+    return;
+  }
+  el.innerHTML=reglesCurrent.map(function(r,i){
+    return '<div id="regle-card-'+i+'" style="background:#fff;border:1px solid #e5e5e5;border-radius:10px;padding:14px 16px;margin-bottom:10px">'
+      +'<div style="display:flex;align-items:flex-start;gap:10px">'
+      +'<div style="flex:1;min-width:0">'
+      +'<input type="text" value="'+escHtml(r.titre)+'" oninput="reglesUpdate('+i+',\'titre\',this.value)" placeholder="Titre de la règle" style="width:100%;padding:6px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px;font-weight:600;margin-bottom:8px;box-sizing:border-box">'
+      +'<textarea oninput="reglesUpdate('+i+',\'texte\',this.value)" placeholder="Texte de la règle" rows="3" style="width:100%;padding:6px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px;resize:vertical;box-sizing:border-box;font-family:inherit">'+escHtml(r.texte)+'</textarea>'
+      +'</div>'
+      +'<div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0">'
+      +(i>0?'<button onclick="reglesMonter('+i+')" style="background:#f5f5f5;border:1px solid #ddd;border-radius:5px;padding:3px 7px;cursor:pointer;font-size:13px" title="Monter">▲</button>':'<span style="padding:3px 7px"></span>')
+      +(i<reglesCurrent.length-1?'<button onclick="reglesDescendre('+i+')" style="background:#f5f5f5;border:1px solid #ddd;border-radius:5px;padding:3px 7px;cursor:pointer;font-size:13px" title="Descendre">▼</button>':'<span style="padding:3px 7px"></span>')
+      +'<button onclick="reglesSupprimer('+i+')" style="background:none;border:none;cursor:pointer;font-size:16px;color:#c0392b;padding:3px 5px;margin-top:4px" title="Supprimer">🗑</button>'
+      +'</div>'
+      +'</div>'
+      +'</div>';
+  }).join('');
+}
+
+function escHtml(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+function reglesUpdate(i,field,val){reglesCurrent[i][field]=val;}
+
+function reglesMonter(i){
+  if(i===0)return;
+  var tmp=reglesCurrent[i-1];reglesCurrent[i-1]=reglesCurrent[i];reglesCurrent[i]=tmp;
+  reglesRendre();
+}
+function reglesDescendre(i){
+  if(i>=reglesCurrent.length-1)return;
+  var tmp=reglesCurrent[i+1];reglesCurrent[i+1]=reglesCurrent[i];reglesCurrent[i]=tmp;
+  reglesRendre();
+}
+function reglesSupprimer(i){
+  if(!confirm('Supprimer cette règle ?'))return;
+  reglesCurrent.splice(i,1);
+  reglesRendre();
+}
+function reglesAjouterRegle(){
+  reglesCurrent.push({titre:'',texte:''});
+  reglesRendre();
+  // scroll to new card
+  var cards=document.querySelectorAll('#regles-list > div');
+  if(cards.length)cards[cards.length-1].scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+async function reglesSauvegarder(){
+  var btn=document.getElementById('regles-save-btn');
+  var statusEl=document.getElementById('regles-save-status');
+  var errEl=document.getElementById('regles-error');
+  btn.disabled=true; btn.textContent='💾 Enregistrement…';
+  statusEl.style.display='none'; errEl.style.display='none';
+  // Synchro des champs (au cas où l'utilisateur n'a pas quitté le champ)
+  document.querySelectorAll('#regles-list textarea').forEach(function(ta,i){if(reglesCurrent[i])reglesCurrent[i].texte=ta.value;});
+  try{
+    var valeur=JSON.stringify(reglesCurrent);
+    // Upsert avec on_conflict
+    var res=await fetch('https://pixktldfpjtnimngvgqz.supabase.co/rest/v1/parametres?cle=eq.regles_inscription',{
+      method:'PATCH',
+      headers:Object.assign({'Prefer':'return=minimal'},SUPABASE_HEADERS),
+      body:JSON.stringify({valeur:valeur,updated_at:new Date().toISOString()})
+    });
+    if(res.ok||res.status===204){
+      statusEl.style.display='block';
+      setTimeout(function(){statusEl.style.display='none';},4000);
+    }else{
+      var errTxt=await res.text();
+      errEl.textContent='Erreur lors de l\'enregistrement : '+errTxt;
+      errEl.style.display='block';
+    }
+  }catch(e){
+    errEl.textContent='Erreur réseau : '+e.message;
+    errEl.style.display='block';
+  }
+  btn.disabled=false; btn.textContent='💾 Enregistrer';
+}
 var campaigns=[], campEditId=null, campEnvoiTargetId=null, campNid=4;
 var campActivitesDispo=[];
 var CAMP_TYPE_LABELS={inscription:"Formulaire d'inscription",annonce:"Annonce",bilan:"Bilan semestriel",mixte:"Mixte"};
@@ -1607,7 +1737,7 @@ async function loadCampagnesData(){
 }
 
 // ═══ HASH NAV + INIT ═══
-(function(){var h=location.hash.replace('#','');switchModuleTab(h==='planning'?'planning':h==='campagnes'?'campagnes':'activites');})();
+(function(){var h=location.hash.replace('#','');switchModuleTab(h==='planning'?'planning':h==='campagnes'?'campagnes':h==='regles'?'regles':'activites');})();
 loadAllData();
 </script>
 </body>

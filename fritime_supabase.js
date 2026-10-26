@@ -351,6 +351,7 @@ FriDB.COLUMNS = {
   campagnes: ['id','titre','type','duree','periode','deadline','message','activites','statut','date_envoi'],
   comptes: ['id','prenom','nom','email','role','actif'],
   contacts: ['id','nom','prenom','role','organisation','email','tel','notes'],
+  parametres: ['id','cle','valeur','updated_at'],
 };
 
 FriDB.stripUnknown = function(table, obj) {

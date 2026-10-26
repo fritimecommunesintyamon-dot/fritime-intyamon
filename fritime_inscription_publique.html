@@ -146,20 +146,13 @@ body{font-family:system-ui,sans-serif;background:#f5f5f3;color:#1a1a1a;font-size
   <div style="font-size:12px;opacity:.5">Formulaire sécurisé</div>
 </div>
 
-<!-- Règles importantes - fond clair -->
+<!-- Règles importantes - chargées dynamiquement depuis Supabase -->
 <div class="rules-band">
   <div class="rules-inner">
     <div class="rules-title">⚠️ Règles importantes à connaître avant l'inscription</div>
-    <ul class="rules-list">
-      <li><strong>Informations importantes à communiquer au comité :</strong> Pour la sécurité de votre enfant, il est indispensable de signaler au moment de l'inscription toute allergie (alimentaire, médicamenteuse, au soleil, aux insectes...), tout traitement médical en cours, toute condition de santé particulière (asthme, épilepsie, diabète, troubles moteurs...) ou toute information que les bénévoles doivent connaître. Ces informations sont confidentielles et uniquement utilisées dans le cadre de la sécurité de votre enfant.</li>
-      <li><strong>Procédures d'urgence :</strong> La sécurité des enfants est notre priorité. En cas de besoin, les responsables d'activité agiront selon leurs compétences et n'hésiteront pas à contacter les services de secours (144 ambulance · 117 police · 118 pompiers · 1414 Rega). Les parents seront prévenus dès que possible. <strong>Merci de rester joignable par téléphone pendant toute la durée de l'activité.</strong></li>
-      <li><strong>Rapport d'incident :</strong> En cas de problème, accident ou incident survenant lors d'une activité, un rapport d'incident officiel sera systématiquement établi par le comité d'organisation Fri-Time. Les parents ou responsables légaux concernés en seront informés dans les meilleurs délais et les mesures nécessaires seront prises en conséquence.</li>
-      <li><strong>Responsabilité :</strong> Avant chaque activité, les règles de sécurité sont expliquées à tous les participants. Si elles ne sont pas respectées, l'organisateur et le comité Fri-Time ne peuvent être tenus responsables d'un accident, de dégâts matériels ou d'un vol.</li>
-      <li><strong>Assurance du participant :</strong> Chaque participant doit être au bénéfice d'une assurance responsabilité civile (RC) privée. En cas de dégât matériel causé à autrui, c'est cette assurance qui prend en charge les frais.</li>
-      <li><strong>Non-respect des règles :</strong> Pour que l'activité se passe bien pour tous, chaque participant est tenu de respecter les règles de sécurité, la charte et les consignes des responsables. En cas de manquement grave ou répété, le comité se réserve le droit d'exclure le participant de l'activité en cours, voire des activités futures.</li>
-      <li><strong>Droit à l'image :</strong> En participant aux activités Fri-Time, vous acceptez que des photos et images puissent être utilisées à des fins de communication (réseaux sociaux, site web, affiches). Nous veillerons à ce qu'aucun visage ne soit identifiable. Si vous refusez ou souhaitez qu'une photo soit retirée, contactez-nous à <a href="mailto:fritimecommunesintyamon@gmail.com">fritimecommunesintyamon@gmail.com</a></li>
-    
-            </ul>
+    <ul class="rules-list" id="regles-publiques-list">
+      <li style="color:#aaa;font-style:italic">Chargement des règles…</li>
+    </ul>
   </div>
 </div>
 
@@ -739,7 +732,35 @@ function buildRecap(){
   }).join("");
 }
 
-window.addEventListener("DOMContentLoaded", function(){ loadActivitesFromSupabase(); });
+window.addEventListener("DOMContentLoaded", function(){
+  loadActivitesFromSupabase();
+  loadReglesPubliques();
+});
+
+async function loadReglesPubliques(){
+  var listEl=document.getElementById('regles-publiques-list');
+  var SB_URL='https://pixktldfpjtnimngvgqz.supabase.co';
+  var SB_KEY='sb_publishable_ZV04eYw85SDFQi43SwZJTg_igofPU8X';
+  var headers={'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY};
+  try{
+    var res=await fetch(SB_URL+'/rest/v1/parametres?cle=eq.regles_inscription&select=valeur',{headers:headers});
+    if(res.ok){
+      var data=await res.json();
+      if(data&&data.length&&data[0].valeur){
+        var regles=JSON.parse(data[0].valeur);
+        if(Array.isArray(regles)&&regles.length){
+          listEl.innerHTML=regles.map(function(r){
+            var titre=r.titre?'<strong>'+r.titre+' :</strong> ':'';
+            return '<li>'+titre+(r.texte||'')+'</li>';
+          }).join('');
+          return;
+        }
+      }
+    }
+  }catch(e){console.warn('[Règles] Erreur chargement:',e);}
+  // Fallback si Supabase non disponible ou table non créée
+  listEl.innerHTML='<li>Erreur lors du chargement des règles. Veuillez recharger la page.</li>';
+}
 </script>
 </body>
 </html>
