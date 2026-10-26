@@ -608,6 +608,40 @@ textarea{resize:vertical;min-height:80px}
   </div>
 </div>
 
+<!-- ═══════════ MODAL NOUVELLE DATE ═══════════ -->
+<div class="overlay" id="mNouvelleDate">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-title">
+      <span>📅 Proposer une nouvelle date</span>
+      <button class="btn btn-outline btn-sm" onclick="closeOverlay('mNouvelleDate')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="margin:0 0 1rem;font-size:14px;color:#555">Un email sera envoyé à tous les participants de l'activité annulée pour leur proposer une nouvelle date.</p>
+      <div class="sec">
+        <label>Nouvelle date <span style="color:#e53e3e">*</span></label>
+        <input type="date" id="nd-date">
+      </div>
+      <div class="sec" style="margin-top:.75rem">
+        <label>Horaire (optionnel)</label>
+        <div style="display:flex;gap:.5rem;align-items:center">
+          <input type="time" id="nd-hdeb" style="width:120px">
+          <span style="color:#aaa;font-size:13px">→</span>
+          <input type="time" id="nd-hfin" style="width:120px">
+        </div>
+      </div>
+      <div class="sec" style="margin-top:.75rem">
+        <label>Message complémentaire (optionnel)</label>
+        <textarea id="nd-message" rows="3" placeholder="Ex : Le lieu reste inchangé. Merci de confirmer votre présence…" style="width:100%;resize:vertical;font-size:14px"></textarea>
+      </div>
+      <div id="nd-nb-participants" style="margin-top:.75rem;font-size:13px;color:#666"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeOverlay('mNouvelleDate')">Annuler</button>
+      <button class="btn btn-primary" id="nd-send-btn" onclick="envoyerNouvelleDate()">📧 Envoyer l'invitation</button>
+    </div>
+  </div>
+</div>
+
 <!-- ═══════════ MODAL ÉDITION CHECKLIST ═══════════ -->
 <div class="overlay" id="mEditChecklist">
   <div class="modal" style="max-width:620px">
@@ -1072,6 +1106,7 @@ function openDetail(id){
       <button class="btn btn-outline btn-sm" onclick="changeStatut(${id},'annule')">❌ Annuler</button>
       <button class="btn btn-outline btn-sm" onclick="changeStatutMeteo(${id})">🌧️ Annulé météo</button>
       <button class="btn btn-outline btn-sm" onclick="openChecklist(${id})">📋 Checklist</button>
+      ${a.statut==='annule'&&insc.length>0?`<button class="btn btn-primary btn-sm" onclick="openNouvelleDate(${id})">📅 Proposer une nouvelle date</button>`:''}
     </div>`;
   openOverlay('mDetail');
 }
@@ -1197,6 +1232,61 @@ async function sendAnnulationMails(actId,cause){
       await FriBrevo.sendEmail(enf.pe,'Activité annulée : '+a.nom,html);
     }catch(e){console.warn('sendAnnulationMail erreur:',e);}
   }
+}
+
+// ═══ NOUVELLE DATE APRÈS ANNULATION ═══
+var nouvelleDateActId=null;
+function openNouvelleDate(id){
+  nouvelleDateActId=id;
+  var insc=inscriptions.filter(function(i){return String(i.activiteId||i.activite_id)===String(id);});
+  document.getElementById('nd-date').value='';
+  document.getElementById('nd-hdeb').value='';
+  document.getElementById('nd-hfin').value='';
+  document.getElementById('nd-message').value='';
+  var nb=insc.length;
+  document.getElementById('nd-nb-participants').innerHTML='📧 L\'invitation sera envoyée à <strong>'+nb+' participant'+(nb>1?'s':'')+'</strong> inscrit'+(nb>1?'s':'')+'.';
+  closeDetail();
+  openOverlay('mNouvelleDate');
+}
+async function envoyerNouvelleDate(){
+  var newDate=document.getElementById('nd-date').value;
+  if(!newDate){alert('Veuillez indiquer la nouvelle date.');return;}
+  var id=nouvelleDateActId;
+  var a=activites.find(function(x){return x.id===id;});
+  if(!a)return;
+  var hdeb=document.getElementById('nd-hdeb').value;
+  var hfin=document.getElementById('nd-hfin').value;
+  var message=document.getElementById('nd-message').value.trim();
+  var btn=document.getElementById('nd-send-btn');
+  btn.disabled=true;btn.textContent='Envoi en cours…';
+  var newDateStr=newDate.split('-').reverse().join('.');
+  var oldDateStr=a.date?a.date.split('-').reverse().join('.'):'';
+  var horaire='';
+  if(hdeb){horaire=' de '+hdeb;if(hfin)horaire+=' à '+hfin;}
+  var inscrits=inscriptions.filter(function(i){return String(i.activiteId||i.activite_id)===String(id);});
+  var nb=0;
+  for(var ci=0;ci<inscrits.length;ci++){
+    var insc=inscrits[ci];
+    var eid=insc.enfantId||insc.enfant_id;
+    var enf=enfants.find(function(e){return e.id===eid;});
+    if(!enf||!enf.pe)continue;
+    var html='<p>Bonjour '+(enf.pp||'')+(enf.pn?' '+enf.pn:'')+'</p>'
+      +'<p>Suite à l\'annulation de l\'activité <strong>'+esc(a.nom)+'</strong>'
+      +(oldDateStr?' du '+oldDateStr:'')
+      +', nous avons le plaisir de vous proposer une <strong>nouvelle date</strong>.</p>'
+      +'<p><strong>Nouvelle date :</strong> le '+newDateStr+(horaire?horaire+'':(a.lieu?' au lieu habituel':''))+'</p>'
+      +(a.lieu?'<p><strong>Lieu :</strong> '+esc(a.lieu)+'</p>':'')
+      +(message?'<p>'+message.replace(/\n/g,'<br>')+'</p>':'')
+      +'<p>Si vous avez des questions, n\'hésitez pas à nous contacter. Nous vous remercions de votre fidélité et espérons vous voir nombreux à cette nouvelle date.</p>'
+      +'<p>Cordialement,<br>L\'équipe Fri-Time Intyamon</p>';
+    try{
+      await FriBrevo.sendEmail(enf.pe,'Nouvelle date – '+a.nom+' : '+newDateStr,html);
+      nb++;
+    }catch(e){console.warn('envoyerNouvelleDate erreur:',e);}
+  }
+  btn.disabled=false;btn.textContent='📧 Envoyer l\'invitation';
+  closeOverlay('mNouvelleDate');
+  alert('✅ Invitation envoyée à '+nb+' participant'+(nb>1?'s':'')+'.');
 }
 
 async function changeStatutMeteo(id){
