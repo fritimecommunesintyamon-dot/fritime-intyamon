@@ -254,17 +254,10 @@ body{font-family:system-ui,sans-serif;background:#f5f5f3;color:#1a1a1a;font-size
     <div class="conditions-box">
       <div class="conditions-title">📋 Conditions de participation</div>
       <div style="font-size:13px;color:#5a1010;margin-bottom:10px;font-weight:500">Par cette inscription, le parent ou le représentant légal :</div>
-      <ul class="conditions-list">
-        <li>Atteste avoir pris connaissance des règles de participation</li>
-        <li>Atteste avoir transmis les règles de participation à son enfant</li>
-        <li>S'engage à être atteignable par téléphone pendant l'activité en cas de problème</li>
-        <li>Atteste que son enfant est au bénéfice d'une assurance accident ainsi que d'une assurance responsabilité civile (RC)</li>
-        <li>Certifie que l'état de santé de son enfant lui permet de participer sans risque à l'activité</li>
-        <li>Reconnaît être responsable de son enfant sur le chemin menant à l'activité</li>
+      <ul class="conditions-list" id="conditions-publiques-list">
+        <li style="color:#aaa;font-style:italic">Chargement…</li>
       </ul>
-      <div class="conditions-note">
-        <strong>En cas d'annulation ou de problème :</strong> L'organisateur et le comité d'organisation Fri-Time ne peuvent être tenus responsables en cas d'accident, de dégât matériel, de vol ou de tout autre problème survenant lors de l'activité ou sur le trajet.
-      </div>
+      <div class="conditions-note" id="conditions-publiques-note" style="display:none"></div>
       <div class="consent-row">
         <input type="checkbox" id="cond-consent" />
         <label for="cond-consent">J'accepte les conditions de participation et reconnais les responsabilités mentionnées ci-dessus</label>
@@ -735,6 +728,7 @@ function buildRecap(){
 window.addEventListener("DOMContentLoaded", function(){
   loadActivitesFromSupabase();
   loadReglesPubliques();
+  loadConditionsPubliques();
 });
 
 async function loadReglesPubliques(){
@@ -760,6 +754,39 @@ async function loadReglesPubliques(){
   }catch(e){console.warn('[Règles] Erreur chargement:',e);}
   // Fallback si Supabase non disponible ou table non créée
   listEl.innerHTML='<li>Erreur lors du chargement des règles. Veuillez recharger la page.</li>';
+}
+
+async function loadConditionsPubliques(){
+  var listEl=document.getElementById('conditions-publiques-list');
+  var noteEl=document.getElementById('conditions-publiques-note');
+  var SB_URL='https://pixktldfpjtnimngvgqz.supabase.co';
+  var SB_KEY='sb_publishable_ZV04eYw85SDFQi43SwZJTg_igofPU8X';
+  var headers={'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY};
+  try{
+    var res=await fetch(SB_URL+'/rest/v1/parametres?cle=eq.conditions_participation&select=valeur',{headers:headers});
+    if(res.ok){
+      var data=await res.json();
+      if(data&&data.length&&data[0].valeur){
+        var obj=JSON.parse(data[0].valeur);
+        var items=obj.items||[];
+        var note=obj.note||'';
+        if(items.length){
+          listEl.innerHTML=items.map(function(c){return '<li>'+(c||'')+'</li>';}).join('');
+        }else{
+          listEl.innerHTML='';
+        }
+        if(note){
+          noteEl.innerHTML=note;
+          noteEl.style.display='block';
+        }
+        return;
+      }
+    }
+  }catch(e){console.warn('[Conditions]',e);}
+  // Fallback hardcodé
+  listEl.innerHTML='<li>Atteste avoir pris connaissance des règles de participation</li><li>Atteste avoir transmis les règles de participation à son enfant</li><li>S\'engage à être atteignable par téléphone pendant l\'activité en cas de problème</li><li>Atteste que son enfant est au bénéfice d\'une assurance accident ainsi que d\'une assurance responsabilité civile (RC)</li><li>Certifie que l\'état de santé de son enfant lui permet de participer sans risque à l\'activité</li><li>Reconnaît être responsable de son enfant sur le chemin menant à l\'activité</li>';
+  noteEl.innerHTML='<strong>En cas d\'annulation ou de problème :</strong> L\'organisateur et le comité d\'organisation Fri-Time ne peuvent être tenus responsables en cas d\'accident, de dégât matériel, de vol ou de tout autre problème survenant lors de l\'activité ou sur le trajet.';
+  noteEl.style.display='block';
 }
 </script>
 </body>
