@@ -1270,14 +1270,23 @@ async function envoyerNouvelleDate(){
     var eid=insc.enfantId||insc.enfant_id;
     var enf=enfants.find(function(e){return e.id===eid;});
     if(!enf||!enf.pe)continue;
+    var origin=window.location.origin;
+    var repOui=origin+'/fritime_reponse_date.html?act='+id+'&insc='+insc.id+'&rep=oui';
+    var repNon=origin+'/fritime_reponse_date.html?act='+id+'&insc='+insc.id+'&rep=non';
     var html='<p>Bonjour '+(enf.pp||'')+(enf.pn?' '+enf.pn:'')+'</p>'
       +'<p>Suite à l\'annulation de l\'activité <strong>'+esc(a.nom)+'</strong>'
       +(oldDateStr?' du '+oldDateStr:'')
       +', nous avons le plaisir de vous proposer une <strong>nouvelle date</strong>.</p>'
-      +'<p><strong>Nouvelle date :</strong> le '+newDateStr+(horaire?horaire+'':(a.lieu?' au lieu habituel':''))+'</p>'
+      +'<p><strong>Nouvelle date :</strong> le '+newDateStr+(horaire?' '+horaire:'')+'</p>'
       +(a.lieu?'<p><strong>Lieu :</strong> '+esc(a.lieu)+'</p>':'')
       +(message?'<p>'+message.replace(/\n/g,'<br>')+'</p>':'')
-      +'<p>Si vous avez des questions, n\'hésitez pas à nous contacter. Nous vous remercions de votre fidélité et espérons vous voir nombreux à cette nouvelle date.</p>'
+      +'<p>Merci de nous indiquer si vous pouvez participer à cette nouvelle date :</p>'
+      +'<table style="margin:1.25rem 0"><tr>'
+      +'<td style="padding-right:12px"><a href="'+repOui+'" style="display:inline-block;background:#22c55e;color:#fff;text-decoration:none;padding:12px 28px;border-radius:8px;font-weight:600;font-size:15px">✅ Oui, je participe</a></td>'
+      +'<td><a href="'+repNon+'" style="display:inline-block;background:#ef4444;color:#fff;text-decoration:none;padding:12px 28px;border-radius:8px;font-weight:600;font-size:15px">❌ Je ne peux pas</a></td>'
+      +'</tr></table>'
+      +'<p style="font-size:13px;color:#888">Si les boutons ne fonctionnent pas, copiez ce lien dans votre navigateur :<br>Oui : '+repOui+'<br>Non : '+repNon+'</p>'
+      +'<p>Nous vous remercions de votre fidélité et espérons vous voir nombreux à cette nouvelle date.</p>'
       +'<p>Cordialement,<br>L\'équipe Fri-Time Intyamon</p>';
     try{
       await FriBrevo.sendEmail(enf.pe,'Nouvelle date – '+a.nom+' : '+newDateStr,html);
@@ -1322,11 +1331,12 @@ async function sendMeteoMails(actId){
     var enf=enfants.find(function(e){return e.id===eid;});
     if(!enf||!enf.pe)continue;
     var html='<p>Bonjour '+(enf.pp||'')+(enf.pn?' '+enf.pn:'')+'</p>'
-      +'<p>Nous vous informons que l\'activité <strong>'+esc(a.nom)+'</strong>'
-      +(dateStr?' du '+dateStr:'')
-      +' est <strong>annulée en raison du mauvais temps</strong>.</p>'
-      +'<p>Nous espérons vous revoir bientôt pour d\'autres activités.</p>'
-      +'<p>L\'équipe Fri-Time Intyamon</p>';
+      +'<p>Nous vous contactons au sujet de l\'activité <strong>'+esc(a.nom)+'</strong>'
+      +(dateStr?' prévue le '+dateStr:'')
+      +'. En raison des <strong>conditions météorologiques défavorables</strong>, nous sommes dans le regret de vous informer qu\'elle est <strong>annulée</strong>.</p>'
+      +'<p>Nous nous excusons sincèrement pour ce contretemps. La météo est malheureusement une contrainte sur laquelle nous n\'avons aucun contrôle. Dans la mesure du possible, nous ferons tout notre possible pour proposer une nouvelle date pour cette activité et vous en informerons dès que celle-ci sera confirmée.</p>'
+      +'<p>Merci de votre compréhension et de votre soutien envers Fri-Time Intyamon.</p>'
+      +'<p>Cordialement,<br>L\'équipe Fri-Time Intyamon</p>';
     try{
       await FriBrevo.sendEmail(enf.pe,'Activité annulée – mauvais temps : '+a.nom,html);
     }catch(e){console.warn('sendMeteoMail erreur:',e);}
