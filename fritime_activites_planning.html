@@ -1074,13 +1074,49 @@ async function saveActivite(){
   closeCreate();
 }
 
-function openDetail(id){
+async function openDetail(id){
   actSelId=id;
   var a=activites.find(x=>x.id===id);
   if(!a)return;
   var insc=inscriptions.filter(i=>(i.activiteId||i.activite_id)===id);
   var prest=a.prestId?prestataires.find(p=>p.id===a.prestId):null;
   var lienInsc=window.location.origin+'/fritime_inscription_publique.html?id='+id;
+
+  // Charger les réponses nouvelle date si activité annulée avec inscrits
+  var repHtml='';
+  if(a.statut==='annule'&&insc.length>0){
+    var repRows=[];
+    try{
+      var cles=insc.map(function(i){return 'nd_rep_'+id+'_'+i.id;});
+      var filter='?cle=in.('+cles.map(function(c){return '"'+c+'"';}).join(',')+')'+'&select=cle,valeur';
+      repRows=await FriDB.query('parametres','GET',null,filter);
+    }catch(e){repRows=[];}
+    // Map inscId → réponse
+    var repMap={};
+    if(Array.isArray(repRows)){repRows.forEach(function(r){
+      var parts=r.cle.split('_');
+      var inscId=parts[parts.length-1];
+      repMap[inscId]=r.valeur;
+    });}
+    var ouiNb=0,nonNb=0,attNb=0;
+    var lignes=insc.map(function(i){
+      var eid=i.enfantId||i.enfant_id;
+      var enf=enfants.find(function(e){return e.id===eid;});
+      var nom=enf?(esc(enf.pn||'')+' '+(enf.pp||'')).trim():'Participant';
+      var rep=repMap[String(i.id)];
+      var badge='';
+      if(rep==='oui'){badge='<span style="background:#dcfce7;color:#16a34a;border-radius:6px;padding:2px 8px;font-size:12px;font-weight:600">✅ Oui</span>';ouiNb++;}
+      else if(rep==='non'){badge='<span style="background:#fee2e2;color:#dc2626;border-radius:6px;padding:2px 8px;font-size:12px;font-weight:600">❌ Non</span>';nonNb++;}
+      else{badge='<span style="background:#f3f4f6;color:#888;border-radius:6px;padding:2px 8px;font-size:12px">En attente</span>';attNb++;}
+      return '<tr><td style="padding:5px 8px;font-size:13px">'+nom+'</td><td style="padding:5px 8px">'+badge+'</td></tr>';
+    }).join('');
+    repHtml='<div style="margin-top:1.25rem">'
+      +'<div style="font-weight:600;font-size:13px;margin-bottom:.5rem">📅 Réponses à la nouvelle date</div>'
+      +'<div style="font-size:12px;color:#666;margin-bottom:.5rem">✅ '+ouiNb+' oui · ❌ '+nonNb+' non · ⏳ '+attNb+' en attente</div>'
+      +'<table style="width:100%;border-collapse:collapse;background:#fafafa;border-radius:8px;overflow:hidden">'+lignes+'</table>'
+      +'</div>';
+  }
+
   document.getElementById('det').innerHTML=`
     ${a.image?`<img src="${esc(a.image)}" style="width:100%;max-height:200px;object-fit:cover;border-radius:8px;margin-bottom:.75rem">`:''}
     <div class="mf">
@@ -1099,6 +1135,7 @@ function openDetail(id){
       ${a.notes?`<div class="dl">Notes internes</div><div class="dv">${esc(a.notes)}</div>`:''}
       <div class="dl">Lien inscription</div><div class="dv"><a href="${lienInsc}" target="_blank" style="font-size:12px;word-break:break-all">${lienInsc}</a></div>
     </div>
+    ${repHtml}
     <div style="margin-top:1rem;display:flex;gap:.5rem;flex-wrap:wrap">
       <button class="btn btn-outline btn-sm" onclick="changeStatut(${id},'publie')">📢 Publier</button>
       <button class="btn btn-outline btn-sm" onclick="changeStatut(${id},'complet')">🔒 Complet</button>
