@@ -358,7 +358,7 @@ textarea{resize:vertical;min-height:80px}
     <textarea style="width:100%;padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit;resize:vertical;min-height:80px" id="cc-message" rows="3" placeholder="Bonjour, nous avons le plaisir de vous annoncer..."></textarea>
   </div>
   <div style="font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.06em;margin:1rem 0 .75rem;padding-top:1rem;border-top:1px solid #eee">Activités incluses</div>
-  <div id="camp-activites-checkboxes"></div>
+  <div id="camp-activites-checkboxes" style="width:100%;overflow:hidden"></div>
   <div style="font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.06em;margin:1rem 0 .75rem;padding-top:1rem;border-top:1px solid #eee">Aperçu du lien</div>
   <div style="margin-bottom:.75rem">
     <label style="font-size:12px;color:#666;margin-bottom:4px;display:block">Le lien suivant sera transmis à l'école pour diffusion</label>
@@ -1399,7 +1399,7 @@ function campRenderActivitesCheckboxes(selectedIds){
   if(!liste||!liste.length){document.getElementById('camp-activites-checkboxes').innerHTML='<p style="font-size:13px;color:#888;padding:8px 0">Aucune activité disponible.</p>';return;}
   document.getElementById('camp-activites-checkboxes').innerHTML=liste.map(function(a){
     var chk=(selectedIds.includes(a.id)||selectedIds.includes(String(a.id)))?'checked':'';
-    return'<label style="display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px solid #f0f0f0;font-size:13px;cursor:pointer;width:100%;box-sizing:border-box"><input type="checkbox" value="'+a.id+'" '+chk+' style="flex-shrink:0;margin-top:2px"><div style="flex:1;min-width:0"><div style="font-weight:500;white-space:normal">'+(a.nom||'')+'</div><div style="font-size:12px;color:#888;white-space:normal">'+(a.date?fd(a.date):'')+( a.places?' · '+a.places+' places':'')+'</div></div></label>';
+    return'<label style="display:grid;grid-template-columns:16px 1fr;align-items:start;gap:8px;padding:6px 0;border-bottom:1px solid #f0f0f0;font-size:13px;cursor:pointer"><input type="checkbox" value="'+a.id+'" '+chk+' style="margin-top:2px"><div><div style="font-weight:500">'+(a.nom||'')+'</div><div style="font-size:12px;color:#888">'+(a.date?fd(a.date):'')+( a.places?' · '+a.places+' places':'')+'</div></div></label>';
   }).join('');
 }
 
