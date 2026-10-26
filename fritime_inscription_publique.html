@@ -103,12 +103,13 @@ body{font-family:system-ui,sans-serif;background:#f5f5f3;color:#1a1a1a;font-size
 .err{font-size:11px;color:#791f1f;margin-top:4px;display:none}
 .err.on{display:block}
 
-/* Sélection nb enfants */
-.nb-card{display:flex;gap:12px;flex-wrap:wrap;margin-top:1rem}
-.nb-opt{flex:1;min-width:70px;max-width:120px;border:2px solid #eee;border-radius:12px;padding:16px 8px;text-align:center;cursor:pointer;transition:all .15s;background:#fff;font-size:18px;font-weight:700;color:#555}
-.nb-opt:hover{border-color:#aaa}
-.nb-opt.active{border-color:#1a1a1a;background:#1a1a1a;color:#fff}
-.nb-opt-label{font-size:11px;font-weight:400;margin-top:4px;display:block}
+/* Sélecteur nb enfants (roulette) */
+.nb-picker{display:flex;align-items:center;justify-content:center;gap:24px;margin:1.5rem 0}
+.nb-btn{width:52px;height:52px;border-radius:50%;border:2px solid #ddd;background:#fff;font-size:26px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;color:#555;line-height:1;user-select:none}
+.nb-btn:hover:not(:disabled){border-color:#1a1a1a;color:#1a1a1a;background:#f5f5f3}
+.nb-btn:disabled{opacity:.25;cursor:not-allowed}
+.nb-display{width:80px;height:80px;border-radius:50%;background:#1a1a1a;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:34px;font-weight:700;line-height:1;box-shadow:0 4px 16px rgba(0,0,0,.15)}
+.nb-display-label{font-size:11px;font-weight:400;opacity:.7;margin-top:3px}
 
 /* Conditions */
 .conditions-box{background:#fdf0f0;border:1px solid #f7c1c1;border-radius:10px;padding:1.25rem;margin-bottom:1rem}
@@ -183,15 +184,14 @@ body{font-family:system-ui,sans-serif;background:#f5f5f3;color:#1a1a1a;font-size
 
   <!-- Étape 0 : Nombre d'enfants -->
   <div class="panel active" id="panel-0">
-    <div class="form-section">
-      <div class="form-section-title">Combien d'enfants souhaitez-vous inscrire ?</div>
-      <div class="nb-card" id="nb-cards">
-        <div class="nb-opt active" onclick="setNbEnfants(1,this)">1<span class="nb-opt-label">enfant</span></div>
-        <div class="nb-opt" onclick="setNbEnfants(2,this)">2<span class="nb-opt-label">enfants</span></div>
-        <div class="nb-opt" onclick="setNbEnfants(3,this)">3<span class="nb-opt-label">enfants</span></div>
-        <div class="nb-opt" onclick="setNbEnfants(4,this)">4<span class="nb-opt-label">enfants</span></div>
+    <div class="form-section" style="text-align:center">
+      <div class="form-section-title" style="text-align:left">Combien d'enfants souhaitez-vous inscrire ?</div>
+      <div class="nb-picker">
+        <button class="nb-btn" id="nb-minus" onclick="changeNb(-1)" disabled>−</button>
+        <div class="nb-display"><span id="nb-val">1</span><span class="nb-display-label" id="nb-lbl">enfant</span></div>
+        <button class="nb-btn" id="nb-plus" onclick="changeNb(1)">+</button>
       </div>
-      <div style="font-size:13px;color:#888;margin-top:1rem;line-height:1.5">Les informations du parent ne seront demandées qu'une seule fois, quelle que soit le nombre d'enfants.</div>
+      <div style="font-size:13px;color:#888;line-height:1.5">Les informations du parent ne seront demandées qu'une seule fois, quelle que soit le nombre d'enfants.</div>
     </div>
   </div>
 
@@ -355,10 +355,14 @@ function recapStepN(){return nbEnfants*3+2;}
 // ═══════════════════════════════════════════════════
 // SÉLECTION NOMBRE D'ENFANTS
 // ═══════════════════════════════════════════════════
-function setNbEnfants(n,el){
+function changeNb(delta){
+  var n=nbEnfants+delta;
+  if(n<1)n=1;
   nbEnfants=n;
-  document.querySelectorAll('.nb-opt').forEach(function(c){c.classList.remove('active');});
-  el.classList.add('active');
+  document.getElementById('nb-val').textContent=n;
+  document.getElementById('nb-lbl').textContent=n===1?'enfant':'enfants';
+  document.getElementById('nb-minus').disabled=n<=1;
+  document.getElementById('nb-plus').disabled=false;
 }
 
 // ═══════════════════════════════════════════════════
