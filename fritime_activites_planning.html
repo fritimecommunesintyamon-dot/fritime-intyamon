@@ -260,7 +260,10 @@ textarea{resize:vertical;min-height:80px}
     <div class="container">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
         <h1 style="font-size:22px;font-weight:700">🎯 Activités</h1>
-        <button class="btn btn-primary" onclick="openCreate()">+ Nouvelle activité</button>
+        <div style="display:flex;gap:.5rem">
+          <button class="btn btn-outline" onclick="openEditChecklist()">📋 Modifier la checklist</button>
+          <button class="btn btn-primary" onclick="openCreate()">+ Nouvelle activité</button>
+        </div>
       </div>
       <div class="metrics" id="act-metrics"></div>
       <div id="periode-bar" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:.5rem;font-size:13px">
@@ -601,6 +604,25 @@ textarea{resize:vertical;min-height:80px}
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeOverlay('mAnnulationCause')">Retour</button>
       <button class="btn btn-danger" id="annulation-confirm-btn" onclick="confirmerAnnulation()">❌ Confirmer l'annulation</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ MODAL ÉDITION CHECKLIST ═══════════ -->
+<div class="overlay" id="mEditChecklist">
+  <div class="modal" style="max-width:620px">
+    <div class="modal-title">
+      <span>📋 Modifier la checklist</span>
+      <button class="btn btn-outline btn-sm" onclick="closeOverlay('mEditChecklist')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="margin:0 0 1rem;font-size:13px;color:#666">Cette checklist est commune à toutes les activités. Seule la section <strong>« Avant le jour J »</strong> est obligatoire pour passer une activité en statut "Complet".</p>
+      <div id="eck-groups"></div>
+      <button class="btn btn-outline btn-sm" onclick="addEckGroup()" style="margin-top:.75rem">+ Ajouter une section</button>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeOverlay('mEditChecklist')">Annuler</button>
+      <button class="btn btn-primary" id="eck-save-btn" onclick="saveChecklistTemplate()">💾 Enregistrer</button>
     </div>
   </div>
 </div>
@@ -1066,19 +1088,18 @@ async function deleteActivite(){
   renderAct();
 }
 
-// ═══ CHECKLIST COMPLETENESS CHECK ═══
+// ═══ CHECKLIST COMPLETENESS CHECK (section "Avant le jour J" uniquement) ═══
 function isChecklistComplete(id){
   var saved={};
   try{saved=JSON.parse(localStorage.getItem('ck-'+id)||'{}');}catch(e){}
-  var total=0,checked=0;
-  CHECKLIST.forEach(function(g){
-    g.items.forEach(function(item,i){
-      var cid='ck-'+id+'-'+g.group.replace(/\s/g,'')+'-'+i;
-      total++;
-      if(saved[cid])checked++;
-    });
+  var g=CHECKLIST[0]; // première section = "Avant le jour J", obligatoire
+  if(!g||!g.items.length)return true;
+  var total=g.items.length,checked=0;
+  g.items.forEach(function(item,i){
+    var cid='ck-'+id+'-'+g.group.replace(/\s/g,'')+'-'+i;
+    if(saved[cid])checked++;
   });
-  return total>0&&checked>=total;
+  return checked>=total;
 }
 
 // ═══ CHANGEMENT DE STATUT AVEC VALIDATION ═══
@@ -1252,11 +1273,121 @@ async function confirmerModifResponsable(){
   renderAct();
 }
 
-const CHECKLIST=[
+var CHECKLIST_DEFAULT=[
   {group:"Avant le jour J",items:["Confirmer le lieu et l'horaire","Contacter le prestataire","Envoyer les infos aux participants","Préparer le matériel","Vérifier les inscriptions","Préparer la feuille de présence","Communiquer sur les réseaux","Prévenir en cas d'annulation"]},
   {group:"Le jour J",items:["Accueillir les participants","Faire la feuille de présence","Animer / superviser l'activité","Gérer les imprévus","Prendre des photos","Remercier les participants"]},
   {group:"Après l'activité",items:["Saisir les présences","Envoyer le bilan","Archiver les documents","Mettre à jour le statut"]}
 ];
+var CHECKLIST=CHECKLIST_DEFAULT.map(function(g){return{group:g.group,items:g.items.slice()};});
+
+async function loadChecklistTemplate(){
+  try{
+    var res=await FriDB.query('parametres','GET',null,'?cle=eq.checklist_template&limit=1');
+    if(res&&res[0]&&res[0].valeur){
+      var parsed=JSON.parse(res[0].valeur);
+      if(Array.isArray(parsed)&&parsed.length>0)CHECKLIST=parsed;
+    }
+  }catch(e){console.warn('loadChecklistTemplate:',e);}
+}
+
+// ═══ ÉDITION CHECKLIST CENTRALISÉE ═══
+function openEditChecklist(){
+  renderEckGroups();
+  openOverlay('mEditChecklist');
+}
+
+function renderEckGroups(){
+  var html='';
+  CHECKLIST.forEach(function(g,gi){
+    html+='<div class="eck-group" style="border:1px solid #e5e5e5;border-radius:8px;padding:1rem;margin-bottom:1rem">'
+      +'<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.75rem">'
+      +'<input class="eck-group-name" data-gi="'+gi+'" value="'+esc(g.group)+'" style="flex:1;font-weight:600;font-size:14px;border:1px solid #ddd;border-radius:6px;padding:6px 10px" placeholder="Nom de la section">'
+      +(gi>0?'<button class="btn btn-outline btn-sm" onclick="removeEckGroup('+gi+')" style="color:#e53e3e;border-color:#e53e3e" title="Supprimer la section">✕</button>':'<span style="font-size:11px;color:#e53e3e;background:#fff0f0;padding:3px 8px;border-radius:4px;white-space:nowrap">Obligatoire</span>')
+      +'</div>'
+      +'<div class="eck-items" id="eck-items-'+gi+'">';
+    g.items.forEach(function(item,ii){
+      html+='<div class="eck-item" style="display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem">'
+        +'<input class="eck-item-input" data-gi="'+gi+'" data-ii="'+ii+'" value="'+esc(item)+'" style="flex:1;font-size:13px;border:1px solid #eee;border-radius:6px;padding:5px 8px" placeholder="Élément de checklist">'
+        +'<button class="btn btn-outline btn-sm" onclick="removeEckItem('+gi+','+ii+')" style="color:#999;border-color:#ddd;padding:4px 8px" title="Supprimer">✕</button>'
+        +'</div>';
+    });
+    html+='</div>'
+      +'<button class="btn btn-outline btn-sm" onclick="addEckItem('+gi+')" style="margin-top:.5rem;font-size:12px">+ Ajouter un élément</button>'
+      +'</div>';
+  });
+  document.getElementById('eck-groups').innerHTML=html;
+}
+
+function getEckCurrentState(){
+  var groups=[];
+  document.querySelectorAll('.eck-group').forEach(function(gEl,gi){
+    var nameEl=gEl.querySelector('.eck-group-name');
+    var groupName=nameEl?nameEl.value.trim():'';
+    var items=[];
+    gEl.querySelectorAll('.eck-item-input').forEach(function(inp){
+      var v=inp.value.trim();
+      if(v)items.push(v);
+    });
+    if(groupName)groups.push({group:groupName,items:items});
+  });
+  return groups;
+}
+
+function addEckItem(gi){
+  CHECKLIST=getEckCurrentState();
+  if(CHECKLIST[gi])CHECKLIST[gi].items.push('');
+  renderEckGroups();
+  // focus dernier input du groupe
+  var inputs=document.querySelectorAll('#eck-items-'+gi+' .eck-item-input');
+  if(inputs.length)inputs[inputs.length-1].focus();
+}
+
+function removeEckItem(gi,ii){
+  CHECKLIST=getEckCurrentState();
+  if(CHECKLIST[gi])CHECKLIST[gi].items.splice(ii,1);
+  renderEckGroups();
+}
+
+function addEckGroup(){
+  CHECKLIST=getEckCurrentState();
+  CHECKLIST.push({group:'Nouvelle section',items:['']});
+  renderEckGroups();
+  var inputs=document.querySelectorAll('.eck-group-name');
+  if(inputs.length)inputs[inputs.length-1].focus();
+}
+
+function removeEckGroup(gi){
+  if(!confirm('Supprimer cette section ?'))return;
+  CHECKLIST=getEckCurrentState();
+  CHECKLIST.splice(gi,1);
+  renderEckGroups();
+}
+
+async function saveChecklistTemplate(){
+  var newCL=getEckCurrentState();
+  if(!newCL.length||!newCL[0].items.length){
+    alert('La section "Avant le jour J" doit contenir au moins un élément.');
+    return;
+  }
+  var btn=document.getElementById('eck-save-btn');
+  btn.disabled=true;btn.textContent='Enregistrement…';
+  var json=JSON.stringify(newCL);
+  try{
+    var existing=await FriDB.query('parametres','GET',null,'?cle=eq.checklist_template&limit=1');
+    if(existing&&existing[0]&&existing[0].id){
+      await FriDB.query('parametres','PATCH',{valeur:json,updated_at:new Date().toISOString()},'?id=eq.'+existing[0].id);
+    } else {
+      await FriDB.query('parametres','POST',{cle:'checklist_template',valeur:json},'');
+    }
+    CHECKLIST=newCL;
+    btn.disabled=false;btn.textContent='💾 Enregistrer';
+    closeOverlay('mEditChecklist');
+    alert('✅ Checklist mise à jour pour toutes les activités.');
+  }catch(e){
+    btn.disabled=false;btn.textContent='💾 Enregistrer';
+    alert('Erreur lors de la sauvegarde : '+e.message);
+  }
+}
 
 function openChecklist(id){
   var a=activites.find(x=>x.id===id);
@@ -1470,6 +1601,7 @@ async function loadAllData(){
     membres=[];
   }
   if(typeof FriCats!=='undefined'&&typeof FriCats.loadAndFill==='function')await FriCats.loadAndFill('f-cat','f-souscat');
+  await loadChecklistTemplate();
   autoUpdateStatuts();
   renderAct();
   renderPlanList();
