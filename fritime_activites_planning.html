@@ -1408,16 +1408,34 @@ function openChecklist(id){
   closeOverlay('mDetail');
   openOverlay('mChecklist');
 }
-function saveChecklist(id){
+async function saveChecklist(id){
   var state={};
-  document.querySelectorAll(`#mChecklistBody input[type=checkbox]`).forEach(function(cb){state[cb.id]=cb.checked;});
+  document.querySelectorAll('#mChecklistBody input[type=checkbox]').forEach(function(cb){state[cb.id]=cb.checked;});
   try{localStorage.setItem('ck-'+id,JSON.stringify(state));}catch(e){}
+  await checkAndDowngradeStatut(id);
 }
-function savePlanChecklist(id,cb,ckid){
+async function savePlanChecklist(id,cb,ckid){
   var state={};
   try{state=JSON.parse(localStorage.getItem('ck-'+id)||'{}');}catch(e){}
   state[ckid]=cb.checked;
   try{localStorage.setItem('ck-'+id,JSON.stringify(state));}catch(e){}
+  await checkAndDowngradeStatut(id);
+}
+async function checkAndDowngradeStatut(id){
+  var a=activites.find(function(x){return x.id===id;});
+  if(!a||a.statut!=='complet')return;
+  if(!isChecklistComplete(id)){
+    try{await FriDB.query('activites','PATCH',{statut:'publie'},'?id=eq.'+id);}catch(e){console.warn(e);}
+    var idx=activites.findIndex(function(x){return x.id===id;});
+    if(idx>=0)activites[idx].statut='publie';
+    renderAct();
+    renderPlanList();
+    var t=document.createElement('div');
+    t.textContent='⚠️ Checklist incomplète — statut repassé à Publié';
+    t.style.cssText='position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:.75rem 1.25rem;border-radius:8px;font-size:13px;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.2);white-space:nowrap';
+    document.body.appendChild(t);
+    setTimeout(function(){t.remove();},3500);
+  }
 }
 
 // ═══ PLANNING — RENDER ═══
