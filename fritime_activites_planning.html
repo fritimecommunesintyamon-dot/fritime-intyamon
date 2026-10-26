@@ -338,6 +338,18 @@ textarea{resize:vertical;min-height:80px}
       <option value="mixte">Mixte (annonce + inscription)</option>
     </select>
   </div>
+  <div style="margin-bottom:.75rem"><label style="font-size:12px;color:#666;margin-bottom:4px;display:block">Durée du calendrier *</label>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px" id="cc-duree-wrap">
+      <label id="cc-duree-sem-lbl" style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:2px solid #1a1a1a;border-radius:8px;cursor:pointer;background:#f5f5f3">
+        <input type="radio" name="cc-duree" value="semestriel" checked onchange="campUpdateDureeUI()" style="margin-top:2px;flex-shrink:0;accent-color:#1a1a1a">
+        <div><div style="font-size:13px;font-weight:600">Semestriel</div><div style="font-size:11px;color:#666;margin-top:2px">6 mois — 6 activités minimum</div></div>
+      </label>
+      <label id="cc-duree-ann-lbl" style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:2px solid #eee;border-radius:8px;cursor:pointer;background:#fff">
+        <input type="radio" name="cc-duree" value="annuel" onchange="campUpdateDureeUI()" style="margin-top:2px;flex-shrink:0;accent-color:#1a1a1a">
+        <div><div style="font-size:13px;font-weight:600">Annuel</div><div style="font-size:11px;color:#666;margin-top:2px">12 mois — 12 activités minimum</div></div>
+      </label>
+    </div>
+  </div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:.75rem">
     <div><label style="font-size:12px;color:#666;margin-bottom:4px;display:block">Période</label><input style="width:100%;padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit" id="cc-periode" placeholder="Ex: Printemps 2026"></div>
     <div><label style="font-size:12px;color:#666;margin-bottom:4px;display:block">Date limite inscription</label><input type="date" style="width:100%;padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit" id="cc-deadline"></div>
@@ -1395,17 +1407,35 @@ function campGetSelectedActivites(){
   return Array.from(document.querySelectorAll('#camp-activites-checkboxes input:checked')).map(function(el){return parseInt(el.value);});
 }
 
+function campGetDuree(){
+  var r=document.querySelector('input[name="cc-duree"]:checked');
+  return r?r.value:'semestriel';
+}
+function campSetDuree(val){
+  document.querySelectorAll('input[name="cc-duree"]').forEach(function(r){r.checked=r.value===val;});
+  campUpdateDureeUI();
+}
+function campUpdateDureeUI(){
+  var v=campGetDuree();
+  document.getElementById('cc-duree-sem-lbl').style.borderColor=v==='semestriel'?'#1a1a1a':'#eee';
+  document.getElementById('cc-duree-sem-lbl').style.background=v==='semestriel'?'#f5f5f3':'#fff';
+  document.getElementById('cc-duree-ann-lbl').style.borderColor=v==='annuel'?'#1a1a1a':'#eee';
+  document.getElementById('cc-duree-ann-lbl').style.background=v==='annuel'?'#f5f5f3':'#fff';
+}
+function campMinActivites(){return campGetDuree()==='annuel'?12:6;}
+
 function campOpenCreate(){
   campEditId=null;
   if(activites&&activites.length)campActivitesDispo=activites;
   campRenderActivitesCheckboxes([]);
-  document.getElementById('camp-create-title').textContent='Nouvelle campagne';
+  document.getElementById('camp-create-title').textContent='Nouveau calendrier';
   document.getElementById('camp-c-del-btn').style.display='none';
   document.getElementById('cc-titre').value='';
   document.getElementById('cc-type').value='inscription';
   document.getElementById('cc-periode').value='';
   document.getElementById('cc-deadline').value='';
   document.getElementById('cc-message').value='';
+  campSetDuree('semestriel');
   document.getElementById('camp-preview-link').textContent='https://fritime-intyamon-1t2w.vercel.app/fritime_inscription_publique.html?id=XXX';
   document.getElementById('mCampCreate').classList.add('open');
 }
@@ -1421,6 +1451,7 @@ function campOpenEdit(id){
   document.getElementById('cc-periode').value=c.periode||'';
   document.getElementById('cc-deadline').value=c.deadline||'';
   document.getElementById('cc-message').value=c.message||'';
+  campSetDuree(c.duree||'semestriel');
   document.getElementById('camp-preview-link').textContent='https://fritime-intyamon-1t2w.vercel.app/fritime_inscription_publique.html?id='+id;
   campRenderActivitesCheckboxes(c.activites||[]);
   document.getElementById('mCampCreate').classList.add('open');
@@ -1436,11 +1467,12 @@ async function campSaveCampaign(statut){
   var actsSelected=campGetSelectedActivites();
   var erreurs=[];
   if(!titre)erreurs.push('Le <strong>titre</strong> est obligatoire.');
+  var minActs=campMinActivites();
   if(statut==='pret'){
     if(!periode)erreurs.push('La <strong>période</strong> est obligatoire.');
     if(!deadline)erreurs.push('La <strong>date limite</strong> d\'inscription est obligatoire.');
     if(!message)erreurs.push('Le <strong>message</strong> pour les familles est obligatoire.');
-    if(!actsSelected.length)erreurs.push('Sélectionne au moins <strong>une activité</strong>.');
+    if(actsSelected.length<minActs)erreurs.push('Un calendrier <strong>'+campGetDuree()+'</strong> nécessite au moins <strong>'+minActs+' activités</strong> — '+actsSelected.length+' sélectionnée'+(actsSelected.length>1?'s':'')+' actuellement.');
   }
   var errBox=document.getElementById('camp-form-error');
   if(erreurs.length){
@@ -1450,7 +1482,7 @@ async function campSaveCampaign(statut){
     return;
   }
   errBox.style.display='none';
-  var data={titre:titre,type:document.getElementById('cc-type').value,periode:periode,deadline:deadline,message:message,activites:actsSelected,statut:statut};
+  var data={titre:titre,type:document.getElementById('cc-type').value,duree:campGetDuree(),periode:periode,deadline:deadline,message:message,activites:actsSelected,statut:statut};
   if(campEditId){
     campaigns=campaigns.map(function(c){return c.id===campEditId?Object.assign({},c,data):c;});
     if(typeof FriDB!=='undefined')try{await FriDB.quickSave('campagnes',Object.assign({id:campEditId},data));}catch(e){console.warn(e);}

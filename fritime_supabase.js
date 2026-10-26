@@ -348,7 +348,7 @@ FriDB.COLUMNS = {
     'blesses','temoins','actions','redacteur','statut'],
   sondages: ['id','activite','date_activite','date_envoi','statut'],
   reponses_sondage: ['id','sondage_id','nom','email','note','refaire','comment'],
-  campagnes: ['id','titre','type','periode','deadline','message','activites','statut','date_envoi'],
+  campagnes: ['id','titre','type','duree','periode','deadline','message','activites','statut','date_envoi'],
   comptes: ['id','prenom','nom','email','role','actif'],
   contacts: ['id','nom','prenom','role','organisation','email','tel','notes'],
 };
