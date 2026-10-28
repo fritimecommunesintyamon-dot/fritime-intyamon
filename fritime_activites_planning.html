@@ -1507,12 +1507,18 @@ function renderEckGroups(){
     html+='<div class="eck-group" style="border:1px solid #e5e5e5;border-radius:8px;padding:1rem;margin-bottom:1rem">'
       +'<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.75rem">'
       +'<input class="eck-group-name" data-gi="'+gi+'" value="'+esc(g.group)+'" style="flex:1;font-weight:600;font-size:14px;border:1px solid #ddd;border-radius:6px;padding:6px 10px" placeholder="Nom de la section">'
+      +(gi>1?'<button class="btn btn-outline btn-sm" onclick="moveEckGroup('+gi+',-1)" style="padding:4px 7px;font-size:13px" title="Monter">↑</button>':'')
+      +(gi>0&&gi<CHECKLIST.length-1?'<button class="btn btn-outline btn-sm" onclick="moveEckGroup('+gi+',1)" style="padding:4px 7px;font-size:13px" title="Descendre">↓</button>':'')
       +(gi>0?'<button class="btn btn-outline btn-sm" onclick="removeEckGroup('+gi+')" style="color:#e53e3e;border-color:#e53e3e" title="Supprimer la section">✕</button>':'<span style="font-size:11px;color:#e53e3e;background:#fff0f0;padding:3px 8px;border-radius:4px;white-space:nowrap">Obligatoire</span>')
       +'</div>'
       +'<div class="eck-items" id="eck-items-'+gi+'">';
+    var total=g.items.length;
     g.items.forEach(function(item,ii){
       html+='<div class="eck-item" style="display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem">'
+        +'<input class="eck-pos-input" type="number" min="1" max="'+total+'" value="'+(ii+1)+'" data-gi="'+gi+'" data-ii="'+ii+'" onchange="moveEckItem('+gi+','+ii+',this.value)" style="width:42px;font-size:12px;font-weight:600;color:#6366f1;border:1px solid #c7d2fe;border-radius:6px;padding:4px 5px;text-align:center;background:#f5f3ff" title="Changer la position">'
         +'<input class="eck-item-input" data-gi="'+gi+'" data-ii="'+ii+'" value="'+esc(item)+'" style="flex:1;font-size:13px;border:1px solid #eee;border-radius:6px;padding:5px 8px" placeholder="Élément de checklist">'
+        +(ii>0?'<button class="btn btn-outline btn-sm" onclick="shiftEckItem('+gi+','+ii+',-1)" style="padding:4px 7px;font-size:12px" title="Monter">↑</button>':'')
+        +(ii<total-1?'<button class="btn btn-outline btn-sm" onclick="shiftEckItem('+gi+','+ii+',1)" style="padding:4px 7px;font-size:12px" title="Descendre">↓</button>':'')
         +'<button class="btn btn-outline btn-sm" onclick="removeEckItem('+gi+','+ii+')" style="color:#999;border-color:#ddd;padding:4px 8px" title="Supprimer">✕</button>'
         +'</div>';
     });
@@ -1559,6 +1565,39 @@ function addEckGroup(){
   renderEckGroups();
   var inputs=document.querySelectorAll('.eck-group-name');
   if(inputs.length)inputs[inputs.length-1].focus();
+}
+
+function moveEckItem(gi,ii,newPos){
+  CHECKLIST=getEckCurrentState();
+  var items=CHECKLIST[gi]?CHECKLIST[gi].items:null;
+  if(!items)return;
+  var target=parseInt(newPos,10)-1;
+  if(isNaN(target)||target<0)target=0;
+  if(target>=items.length)target=items.length-1;
+  if(target===ii){renderEckGroups();return;}
+  var moved=items.splice(ii,1)[0];
+  items.splice(target,0,moved);
+  renderEckGroups();
+}
+
+function shiftEckItem(gi,ii,dir){
+  CHECKLIST=getEckCurrentState();
+  var items=CHECKLIST[gi]?CHECKLIST[gi].items:null;
+  if(!items)return;
+  var target=ii+dir;
+  if(target<0||target>=items.length)return;
+  var tmp=items[ii];items[ii]=items[target];items[target]=tmp;
+  renderEckGroups();
+}
+
+function moveEckGroup(gi,dir){
+  CHECKLIST=getEckCurrentState();
+  var target=gi+dir;
+  if(target<1||target>=CHECKLIST.length)return;
+  var tmp=CHECKLIST[gi];
+  CHECKLIST[gi]=CHECKLIST[target];
+  CHECKLIST[target]=tmp;
+  renderEckGroups();
 }
 
 function removeEckGroup(gi){
