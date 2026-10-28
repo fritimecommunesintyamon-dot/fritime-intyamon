@@ -296,8 +296,6 @@ function doLogout(){
 <!-- TAB: TÂCHES -->
 <div id="tab-taches">
 
-<div id="debug-taches" style="background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:10px 14px;margin-bottom:1rem;font-size:12px;font-family:monospace;color:#333">🔍 Chargement...</div>
-
 <div class="metrics" id="metrics"></div>
 
 <div class="toolbar">
@@ -756,21 +754,14 @@ function loadMembresEtActivites(){
 
 
 async function loadTachesDB(){
-  var dbgEl=document.getElementById('debug-taches');
-  function dbg(msg){if(dbgEl)dbgEl.innerHTML+=msg+'<br>';}
   var a=0;
   while(typeof FriDB==='undefined'&&a<30){await new Promise(function(r){setTimeout(r,100);});a++;}
-  if(typeof FriDB==='undefined'){dbg('❌ FriDB non défini');return;}
-  dbg('✅ FriDB OK');
+  if(typeof FriDB==='undefined') return;
   try{
     var results = await Promise.all([FriDB.getTaches(), chargerMembresModele()]);
     var db_taches = results[0];
-    dbg('📦 Tâches reçues : '+(db_taches?db_taches.length:'null'));
-    if(db_taches&&db_taches.length){var types=[...new Set(db_taches.map(function(t){return String(t.type);}))];dbg('🏷️ Types présents : '+types.join(', '));}
     if(db_taches && db_taches.length) {
-      taches = db_taches.filter(function(item){
-        return item.type !== 'modele';
-      }).map(function(item){
+      taches = db_taches.map(function(item){
         Object.keys(item).forEach(function(k){
           if(typeof item[k] === 'string' && (item[k].startsWith('[') || item[k].startsWith('{'))) {
             try{ item[k] = JSON.parse(item[k]); }catch(e){}
@@ -778,13 +769,10 @@ async function loadTachesDB(){
         });
         return item;
       });
-      dbg('✅ Après filtre type : '+taches.length+' tâches');
-    } else {
-      dbg('⚠️ Aucune tâche retournée par Supabase');
     }
     loadMembresEtActivites();
     render();
-  }catch(e){dbg('❌ Erreur : '+e.message);console.warn('DB:',e);}
+  }catch(e){console.warn('DB:',e);}
 }
 loadTachesDB();
 
