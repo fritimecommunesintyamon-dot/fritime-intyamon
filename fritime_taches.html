@@ -768,7 +768,7 @@ async function loadTachesDB(){
     dbg('📦 Tâches reçues : '+(db_taches?db_taches.length:'null'));
     if(db_taches && db_taches.length) {
       taches = db_taches.filter(function(item){
-        return !item.type || item.type === 'ponctuelle';
+        return item.type !== 'modele';
       }).map(function(item){
         Object.keys(item).forEach(function(k){
           if(typeof item[k] === 'string' && (item[k].startsWith('[') || item[k].startsWith('{'))) {
