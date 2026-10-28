@@ -453,6 +453,8 @@ function renderDet(){
       <div style="font-size:12px;color:#888;margin-top:2px">${e.pe||'—'} · ${e.pt||'—'}</div>
     </div>
     ${e.notes?`<div class="note-box">${e.notes}</div>`:''}
+    ${(e.urg_nom||e.urg_tel)?`<div style="background:#fff8e6;border:1px solid #f6c84b;border-radius:8px;padding:10px 12px;margin-bottom:12px"><div class="dl">🆘 Contact d'urgence</div><div style="font-weight:500;font-size:13px;margin-top:4px">${e.urg_nom||'—'}</div><div style="font-size:12px;color:#888;margin-top:2px">${e.urg_tel||'—'}</div></div>`:''}
+    ${e.photo_accord!==null&&e.photo_accord!==undefined?`<div style="background:#f5f5f3;border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:13px">📸 Photos/vidéos : <strong>${e.photo_accord?'✅ Autorisé':'❌ Refusé'}</strong></div>`:''}
     ${(function(){
       var inscs=inscriptions.filter(function(i){return i.enfant_id==e.id && i.statut!=='annule';});
       if(!inscs.length) return '<div style="font-size:12px;color:#aaa;margin-bottom:12px">Aucune inscription en cours.</div>';
@@ -615,6 +617,9 @@ function renderEdit(){
   document.getElementById('epe').value=e.pe||'';
   document.getElementById('ept').value=e.pt||'';
   document.getElementById('eno').value=e.notes||'';
+  document.getElementById('eurgnom').value=e.urg_nom||'';
+  document.getElementById('eurgtel').value=e.urg_tel||'';
+  document.getElementById('ephoto').value=e.photo_accord===true?'true':e.photo_accord===false&&e.photo_accord!==null&&e.photo_accord!==undefined?'false':'';
 }
 function calcEditAge(){const a=calcAgeFrom(document.getElementById('ed').value);document.getElementById('ea').value=a!==null?a+' ans':'—';}
 async function saveEdit(){
@@ -719,6 +724,17 @@ loadEnfantsDB();
     <div class="fg"><label class="fl">Tél. parent</label><input class="fi" type="tel" id="ept" /></div>
   </div>
   <div class="fg"><label class="fl">Notes / Infos médicales</label><textarea class="fi" id="eno" rows="2"></textarea></div>
+  <div class="fr">
+    <div class="fg"><label class="fl">Contact d'urgence (nom)</label><input class="fi" id="eurgnom" placeholder="Ex: Grand-mère Marie Dupont" /></div>
+    <div class="fg"><label class="fl">Contact d'urgence (tél.)</label><input class="fi" type="tel" id="eurgtel" placeholder="+41 79 000 00 00" /></div>
+  </div>
+  <div class="fg"><label class="fl">Autorisation photos / vidéos</label>
+    <select class="fi" id="ephoto">
+      <option value="">— Non renseigné —</option>
+      <option value="true">✅ Autorisé</option>
+      <option value="false">❌ Refusé</option>
+    </select>
+  </div>
   <div class="mf">
     <button class="btn" onclick="closeEdit()">Annuler</button>
     <button class="btn btn-primary" onclick="saveEdit()">Enregistrer</button>
@@ -739,7 +755,10 @@ async function saveEdit(){
     pn: document.getElementById('epn').value.trim(),
     pe: document.getElementById('epe').value.trim(),
     pt: document.getElementById('ept').value.trim(),
-    notes: document.getElementById('eno').value.trim()
+    notes: document.getElementById('eno').value.trim(),
+    urg_nom: document.getElementById('eurgnom').value.trim()||null,
+    urg_tel: document.getElementById('eurgtel').value.trim()||null,
+    photo_accord: document.getElementById('ephoto').value===''?null:document.getElementById('ephoto').value==='true'
   };
   enfants = enfants.map(x=>x.id===selId?Object.assign({},x,data):x);
   if(typeof FriDB!=="undefined"){

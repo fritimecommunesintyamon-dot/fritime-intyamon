@@ -261,6 +261,31 @@ body{font-family:system-ui,sans-serif;background:#f5f5f3;color:#1a1a1a;font-size
       <div class="fg"><label class="fl">E-mail <span class="req">*</span></label><input class="fi" type="email" id="p-email" placeholder="votre@email.ch" /><div class="err" id="err-p-email">Email invalide</div></div>
       <div class="fg"><label class="fl">Téléphone <span class="req">*</span></label><input class="fi" type="tel" id="p-tel" placeholder="+41 79 000 00 00" /><div class="err" id="err-p-tel">Obligatoire</div></div>
     </div>
+    <div class="form-section">
+      <div class="form-section-title">Contact d'urgence (si vous êtes injoignable)</div>
+      <div style="font-size:13px;color:#555;margin-bottom:1rem;background:#f5f5f3;border-radius:8px;padding:10px 14px">Personne à contacter en cas d'urgence si vous ne répondez pas. Facultatif mais recommandé.</div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Nom et prénom</label><input class="fi" id="p-urg-nom" placeholder="Ex: Grand-mère Marie Dupont" /></div>
+        <div class="fg"><label class="fl">Téléphone</label><input class="fi" type="tel" id="p-urg-tel" placeholder="+41 79 000 00 00" /></div>
+      </div>
+    </div>
+    <div class="form-section">
+      <div class="form-section-title">Autorisation photos / vidéos</div>
+      <div style="font-size:13px;color:#555;margin-bottom:1rem;background:#f5f5f3;border-radius:8px;padding:10px 14px">Les photos et vidéos prises lors des activités peuvent être utilisées pour la communication de Fri-Time Intyamon (réseaux sociaux, affiches, rapports d'activité).</div>
+      <div style="display:flex;gap:1.5rem">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px">
+          <input type="radio" name="photo-accord" id="photo-oui" value="oui" style="width:16px;height:16px;accent-color:#275a0a" />
+          ✅ J'autorise la prise et l'utilisation de photos/vidéos de mon/mes enfant(s)
+        </label>
+      </div>
+      <div style="display:flex;gap:1.5rem;margin-top:8px">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px">
+          <input type="radio" name="photo-accord" id="photo-non" value="non" style="width:16px;height:16px;accent-color:#c0392b" />
+          ❌ Je n'autorise pas la prise et l'utilisation de photos/vidéos de mon/mes enfant(s)
+        </label>
+      </div>
+      <div class="err" id="err-photo-accord" style="margin-top:6px">Veuillez indiquer votre choix concernant les photos</div>
+    </div>
   </div>
 
   <!-- Panel récap + validation -->
@@ -687,6 +712,10 @@ function v3(){
   document.getElementById('p-email').classList.toggle('error',!eok);
   document.getElementById('err-p-email').classList.toggle('on',!eok);
   if(!eok)ok=false;
+  // Photo accord obligatoire
+  var photoOk=document.querySelector('input[name="photo-accord"]:checked')!==null;
+  document.getElementById('err-photo-accord').classList.toggle('on',!photoOk);
+  if(!photoOk)ok=false;
   return ok;
 }
 
@@ -717,11 +746,19 @@ function buildRecap(){
 
   // Parent
   var f=function(id){return document.getElementById(id).value.trim();};
-  document.getElementById('recap-parent').innerHTML=[
+  var photoVal=document.querySelector('input[name="photo-accord"]:checked');
+  var photoTxt=photoVal?(photoVal.value==='oui'?'✅ Autorisé':'❌ Refusé'):'—';
+  var urgNom=f('p-urg-nom');var urgTel=f('p-urg-tel');
+  var recapRows=[
     {i:'👤',l:'Nom',v:f('p-prenom')+' '+f('p-nom')},
     {i:'✉️',l:'E-mail',v:email},
     {i:'📞',l:'Téléphone',v:f('p-tel')},
-  ].map(function(r){return'<div class="recap-item"><span class="recap-ico">'+r.i+'</span><div><div class="recap-lbl">'+r.l+'</div><div class="recap-val">'+r.v+'</div></div></div>';}).join('');
+    {i:'📸',l:'Photos / vidéos',v:photoTxt},
+  ];
+  if(urgNom||urgTel){
+    recapRows.push({i:'🆘',l:'Contact d\'urgence',v:(urgNom||'')+(urgNom&&urgTel?' — ':''+(urgTel||''))});
+  }
+  document.getElementById('recap-parent').innerHTML=recapRows.map(function(r){return'<div class="recap-item"><span class="recap-ico">'+r.i+'</span><div><div class="recap-lbl">'+r.l+'</div><div class="recap-val">'+r.v+'</div></div></div>';}).join('');
 }
 
 // ═══════════════════════════════════════════════════
@@ -791,6 +828,10 @@ function submitForm(){
       var pp=document.getElementById('p-prenom').value.trim();
       var pn=document.getElementById('p-nom').value.trim();
       var pt=document.getElementById('p-tel').value.trim();
+      var photoAccordVal=document.querySelector('input[name="photo-accord"]:checked');
+      var photoAccord=photoAccordVal?photoAccordVal.value==='oui':false;
+      var urgNomVal=document.getElementById('p-urg-nom').value.trim()||null;
+      var urgTelVal=document.getElementById('p-urg-tel').value.trim()||null;
 
       for(var ci2=0;ci2<children.length;ci2++){
         var ch2=children[ci2];
@@ -799,7 +840,8 @@ function submitForm(){
 
         if(!enfantId2){
           var ed={prenom:ch2.prenom,nom:ch2.nom,ddn:ch2.ddn||null,age:ch2.age||0,
-            commune:ch2.commune,pp:pp,pn:pn,pe:email,pt:pt,notes:ch2.notes,statut:'actif',parts:0};
+            commune:ch2.commune,pp:pp,pn:pn,pe:email,pt:pt,notes:ch2.notes,statut:'actif',parts:0,
+            photo_accord:photoAccord,urg_nom:urgNomVal,urg_tel:urgTelVal};
           var er=await fetch(SB_URL+'/rest/v1/enfants',{method:'POST',headers:hdrs,body:JSON.stringify(ed)});
           if(!er.ok){console.warn('Erreur création enfant',ci2,er.status);continue;}
           var ec=await er.json();

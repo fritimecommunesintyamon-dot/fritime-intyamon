@@ -333,7 +333,7 @@ FriDB.COLUMNS = {
   membres: ['id','prenom','nom','role','statut','email','tel','commune',
     'date_entree','fin_engagement','notes'],
   enfants: ['id','prenom','nom','ddn','age','commune','pp','pn','pe','pt',
-    'notes','parts','statut','ban_motif'],
+    'notes','parts','statut','ban_motif','photo_accord','urg_nom','urg_tel'],
   inscriptions: ['id','enfant_id','activite_id','statut','pref','notes','presence'],
   taches: ['id','titre','description','assignee','priorite','activite_id','date_limite','statut','notes','type'],
   taches_modeles: ['id','titre','role','description','suppleant_id'],
