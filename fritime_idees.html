@@ -1130,13 +1130,6 @@ Cours de théâtre | Arts"></textarea>
 })();
 </script>
 <script>
-(function(){
-  var p=window.location.pathname.split("/").pop();
-  document.querySelectorAll("#ft-sb a").forEach(function(a){
-    if(a.getAttribute("href")===p){a.className="on";}
-  });
-})();
-
 function toggleNewSousCat(){ document.getElementById("f-new-souscat").classList.toggle("visible"); }
 async function onCatChange(){ await FriCats.refreshSousCats(document.getElementById("f-cat").value,"f-souscat"); }
 async function onCatChangeIdees(){ await FriCats.refreshSousCats(document.getElementById("f-cat").value,"f-souscat"); }

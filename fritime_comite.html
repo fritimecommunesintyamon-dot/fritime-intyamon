@@ -958,13 +958,6 @@ render();
 })();
 </script>
 <script>
-(function(){
-  var p=window.location.pathname.split("/").pop();
-  document.querySelectorAll("#ft-sb a").forEach(function(a){
-    if(a.getAttribute("href")===p){a.className="on";}
-  });
-})();
-
 function renderPendingAccounts(){
   var comptes = JSON.parse(localStorage.getItem("ft_comptes")||"[]");
   var pending = comptes.filter(function(c){return !c.actif;});

@@ -736,13 +736,6 @@ render();
 })();
 </script>
 <script>
-(function(){
-  var p=window.location.pathname.split("/").pop();
-  document.querySelectorAll("#ft-sb a").forEach(function(a){
-    if(a.getAttribute("href")===p){a.className="on";}
-  });
-})();
-
 function toggleNewSousCat(){ var d=document.getElementById("new-souscat-row");if(d)d.style.display=d.style.display==="none"?"block":"none"; }
 async function onCatChange(){ await FriCats.onCatChange("f-cat","f-souscat"); }
 async function onCatChangeIdees(){ await FriCats.onCatChange("f-cat","f-souscat"); }

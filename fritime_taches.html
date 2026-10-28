@@ -708,13 +708,6 @@ render();
 })();
 </script>
 <script>
-(function(){
-  var p=window.location.pathname.split("/").pop();
-  document.querySelectorAll("#ft-sb a").forEach(function(a){
-    if(a.getAttribute("href")===p){a.className="on";}
-  });
-})();
-
 function loadMembresEtActivites(){
   var ftData = localStorage.getItem("ft_data");
   var membres = [];
