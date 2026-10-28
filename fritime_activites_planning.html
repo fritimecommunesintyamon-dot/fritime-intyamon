@@ -1484,6 +1484,7 @@ var CHECKLIST_DEFAULT=[
   {group:"Après l'activité",items:["Saisir les présences","Envoyer le bilan","Archiver les documents","Mettre à jour le statut"]}
 ];
 var CHECKLIST=CHECKLIST_DEFAULT.map(function(g){return{group:g.group,items:g.items.slice()};});
+var MANDATORY_SECTIONS=2;
 
 async function loadChecklistTemplate(){
   try{
@@ -1507,9 +1508,9 @@ function renderEckGroups(){
     html+='<div class="eck-group" style="border:1px solid #e5e5e5;border-radius:8px;padding:1rem;margin-bottom:1rem">'
       +'<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.75rem">'
       +'<input class="eck-group-name" data-gi="'+gi+'" value="'+esc(g.group)+'" style="flex:1;font-weight:600;font-size:14px;border:1px solid #ddd;border-radius:6px;padding:6px 10px" placeholder="Nom de la section">'
-      +(gi>1?'<button class="btn btn-outline btn-sm" onclick="moveEckGroup('+gi+',-1)" style="padding:4px 7px;font-size:13px" title="Monter">↑</button>':'')
-      +(gi>0&&gi<CHECKLIST.length-1?'<button class="btn btn-outline btn-sm" onclick="moveEckGroup('+gi+',1)" style="padding:4px 7px;font-size:13px" title="Descendre">↓</button>':'')
-      +(gi>0?'<button class="btn btn-outline btn-sm" onclick="removeEckGroup('+gi+')" style="color:#e53e3e;border-color:#e53e3e" title="Supprimer la section">✕</button>':'<span style="font-size:11px;color:#e53e3e;background:#fff0f0;padding:3px 8px;border-radius:4px;white-space:nowrap">Obligatoire</span>')
+      +(gi>MANDATORY_SECTIONS?'<button class="btn btn-outline btn-sm" onclick="moveEckGroup('+gi+',-1)" style="padding:4px 7px;font-size:13px" title="Monter">↑</button>':'')
+      +(gi>=MANDATORY_SECTIONS&&gi<CHECKLIST.length-1?'<button class="btn btn-outline btn-sm" onclick="moveEckGroup('+gi+',1)" style="padding:4px 7px;font-size:13px" title="Descendre">↓</button>':'')
+      +(gi>=MANDATORY_SECTIONS?'<button class="btn btn-outline btn-sm" onclick="removeEckGroup('+gi+')" style="color:#e53e3e;border-color:#e53e3e" title="Supprimer la section">✕</button>':'<span style="font-size:11px;color:#e53e3e;background:#fff0f0;padding:3px 8px;border-radius:4px;white-space:nowrap">Obligatoire</span>')
       +'</div>'
       +'<div class="eck-items" id="eck-items-'+gi+'">';
     var total=g.items.length;
@@ -1595,7 +1596,7 @@ function shiftEckItem(gi,ii,dir){
 function moveEckGroup(gi,dir){
   CHECKLIST=getEckCurrentState();
   var target=gi+dir;
-  if(target<1||target>=CHECKLIST.length)return;
+  if(target<MANDATORY_SECTIONS||target>=CHECKLIST.length)return;
   var tmp=CHECKLIST[gi];
   CHECKLIST[gi]=CHECKLIST[target];
   CHECKLIST[target]=tmp;
