@@ -766,6 +766,7 @@ async function loadTachesDB(){
     var results = await Promise.all([FriDB.getTaches(), chargerMembresModele()]);
     var db_taches = results[0];
     dbg('📦 Tâches reçues : '+(db_taches?db_taches.length:'null'));
+    if(db_taches&&db_taches.length){var types=[...new Set(db_taches.map(function(t){return String(t.type);}))];dbg('🏷️ Types présents : '+types.join(', '));}
     if(db_taches && db_taches.length) {
       taches = db_taches.filter(function(item){
         return item.type !== 'modele';
