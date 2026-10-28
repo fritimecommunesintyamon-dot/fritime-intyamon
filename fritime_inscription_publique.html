@@ -859,11 +859,28 @@ function submitForm(){
       }
 
       // Email de confirmation
+      function fmtDate(d){if(!d)return'—';var p=d.split('-');return p[2]+'.'+p[1]+'.'+p[0];}
       var enfantsText=children.map(function(ch,ci){
         var prefs=ch.prefOrder.length?ch.prefOrder:ch.selIds;
-        var acts=prefs.map(function(id,i){var a=ACTS.find(function(x){return x.id===id;});return(i+1)+'. '+(a?a.nom:'#'+id);}).join('<br>');
-        return '<p><strong>'+ch.prenom+' '+ch.nom+'</strong></p><p style="margin:4px 0 0 8px;font-size:13px;color:#555">'+acts+'</p>';
-      }).join('<hr style="border:none;border-top:1px solid #eee;margin:8px 0">');
+        var actsHtml=prefs.map(function(id,i){
+          var a=ACTS.find(function(x){return x.id===id;});
+          if(!a)return'';
+          var rows='';
+          rows+='<tr><td style="padding:4px 8px 4px 0;color:#666;font-size:12px;white-space:nowrap">📅 Date</td><td style="padding:4px 0;font-size:13px">'+fmtDate(a.date)+(a.deb?' de '+a.deb+' à '+a.fin:'')+'</td></tr>';
+          rows+='<tr><td style="padding:4px 8px 4px 0;color:#666;font-size:12px;white-space:nowrap">📍 Lieu</td><td style="padding:4px 0;font-size:13px">'+(a.lieu||'—')+'</td></tr>';
+          if(a.prest)rows+='<tr><td style="padding:4px 8px 4px 0;color:#666;font-size:12px;white-space:nowrap">👤 Prestataire</td><td style="padding:4px 0;font-size:13px">'+a.prest+'</td></tr>';
+          if(a.coutParticipant>0)rows+='<tr><td style="padding:4px 8px 4px 0;color:#666;font-size:12px;white-space:nowrap">💰 Participation</td><td style="padding:4px 0;font-size:13px">'+a.coutParticipant+' CHF par enfant</td></tr>';
+          else rows+='<tr><td style="padding:4px 8px 4px 0;color:#666;font-size:12px;white-space:nowrap">💰 Participation</td><td style="padding:4px 0;font-size:13px">Gratuite</td></tr>';
+          if(a.tenue)rows+='<tr><td style="padding:4px 8px 4px 0;color:#666;font-size:12px;white-space:nowrap">👕 Tenue</td><td style="padding:4px 0;font-size:13px">'+a.tenue+'</td></tr>';
+          if(a.materiel)rows+='<tr><td style="padding:4px 8px 4px 0;color:#666;font-size:12px;white-space:nowrap">🎒 Matériel</td><td style="padding:4px 0;font-size:13px">'+a.materiel+'</td></tr>';
+          if(a.tMeteo)rows+='<tr><td colspan="2" style="padding:6px 0;font-size:12px;color:#0c447c;background:#e6f1fb;padding:6px 8px;border-radius:4px">🌧️ Cette activité peut être annulée en cas de mauvais temps. Vous serez prévenus au plus tôt.</td></tr>';
+          if(a.desc)rows+='<tr><td colspan="2" style="padding:6px 0;font-size:12px;color:#555;font-style:italic">'+a.desc+'</td></tr>';
+          return '<div style="margin-bottom:16px;border:1px solid #e0e0e0;border-radius:8px;overflow:hidden">'
+            +'<div style="background:#275a0a;color:#fff;padding:10px 14px;font-weight:600;font-size:14px">'+(i+1)+'e choix — '+a.nom+'</div>'
+            +'<div style="padding:12px 14px"><table style="border-collapse:collapse;width:100%">'+rows+'</table></div></div>';
+        }).join('');
+        return '<div style="margin-bottom:20px"><div style="font-weight:700;font-size:15px;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid #275a0a">👦 '+(nbEnfants>1?'Enfant '+(ci+1)+' — ':'')+ch.prenom+' '+ch.nom+'</div>'+actsHtml+'</div>';
+      }).join('');
 
       fetch('/api/send-email',{
         method:'POST',
@@ -873,16 +890,25 @@ function submitForm(){
           to:[{email:email}],
           subject:'Confirmation d\'inscription Fri-Time — '+ref,
           htmlContent:'<div style="font-family:system-ui,sans-serif;max-width:600px;margin:0 auto;padding:20px">'
-            +'<div style="background:#1a1a1a;color:#fff;padding:24px;border-radius:10px 10px 0 0;text-align:center"><div style="font-size:18px;font-weight:600">Fri-Time Intyamon</div></div>'
+            +'<div style="background:#1a1a1a;color:#fff;padding:24px;border-radius:10px 10px 0 0;text-align:center"><div style="font-size:20px;font-weight:700">Fri-Time Intyamon</div><div style="font-size:13px;color:#aaa;margin-top:4px">Confirmation d\'inscription</div></div>'
             +'<div style="background:#fff;padding:24px;border:1px solid #eee;border-top:none;border-radius:0 0 10px 10px;line-height:1.7">'
-            +'<p>Bonjour,</p>'
-            +'<p>Nous avons bien reçu votre demande d\'inscription.</p>'
-            +'<div style="background:#eaf3de;border-left:3px solid #27ae60;padding:12px 16px;border-radius:0 6px 6px 0;margin:16px 0">'
-            +'<p style="margin:0"><strong>Référence :</strong> '+ref+'</p></div>'
-            +'<p><strong>Activités demandées :</strong></p>'+enfantsText
-            +'<p style="margin-top:16px"><strong>⚠️ Rappel important :</strong> Cet email confirme uniquement la réception de votre demande. La sélection est mécanique et impartiale.</p>'
-            +'<p>Vous recevrez un second email avec la décision finale.</p>'
-            +'<p style="font-size:13px;color:#888;margin-top:24px;border-top:1px solid #eee;padding-top:12px">Fri-Time Intyamon · fritimecommunesintyamon@gmail.com</p>'
+            +'<p>Bonjour <strong>'+document.getElementById('p-prenom').value.trim()+' '+document.getElementById('p-nom').value.trim()+'</strong>,</p>'
+            +'<p>Nous avons bien reçu votre demande d\'inscription aux activités Fri-Time Intyamon.</p>'
+            +'<div style="background:#eaf3de;border-left:4px solid #27ae60;padding:12px 16px;border-radius:0 6px 6px 0;margin:16px 0">'
+            +'<p style="margin:0;font-weight:600">Référence : '+ref+'</p>'
+            +'<p style="margin:4px 0 0;font-size:13px;color:#555">Conservez cette référence pour tout contact avec nous.</p></div>'
+            +'<h3 style="color:#275a0a;margin-top:24px;margin-bottom:12px">Activités demandées</h3>'
+            +enfantsText
+            +'<div style="background:#fff8e6;border:1px solid #f6c84b;border-radius:8px;padding:16px;margin-top:24px">'
+            +'<p style="margin:0 0 8px;font-weight:700;font-size:14px">⚠️ Rappels importants</p>'
+            +'<ul style="margin:0;padding-left:18px;font-size:13px;line-height:1.9">'
+            +'<li>Cet email confirme <strong>uniquement la réception</strong> de votre demande. Votre enfant n\'est pas encore inscrit.</li>'
+            +'<li>La sélection est <strong>mécanique et impartiale</strong> — tous les dossiers reçus avant la date limite ont les mêmes chances.</li>'
+            +'<li>Vous recevrez un <strong>second email</strong> avec la décision finale (inscription confirmée, liste d\'attente ou refus).</li>'
+            +'<li>En cas d\'empêchement après confirmation, merci de nous prévenir <strong>au plus tôt</strong> par email.</li>'
+            +'<li>Fri-Time Intyamon se réserve le droit d\'annuler une activité en cas de force majeure (conditions météo, santé, etc.).</li>'
+            +'</ul></div>'
+            +'<p style="font-size:13px;color:#888;margin-top:24px;border-top:1px solid #eee;padding-top:12px">Questions ? Contactez-nous à <a href="mailto:fritimecommunesintyamon@gmail.com" style="color:#275a0a">fritimecommunesintyamon@gmail.com</a><br>Fri-Time Intyamon · Intyamon, canton de Fribourg</p>'
             +'</div></div>'
         })
       }).then(function(r){if(!r.ok)console.warn('Email erreur',r.status);else console.log('Email envoyé ✓');})
