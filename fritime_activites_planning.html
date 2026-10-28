@@ -1479,12 +1479,11 @@ async function confirmerModifResponsable(){
 }
 
 var CHECKLIST_DEFAULT=[
-  {group:"Avant le jour J",items:["Confirmer le lieu et l'horaire","Contacter le prestataire","Envoyer les infos aux participants","Préparer le matériel","Vérifier les inscriptions","Préparer la feuille de présence","Communiquer sur les réseaux","Prévenir en cas d'annulation"]},
-  {group:"Le jour J",items:["Accueillir les participants","Faire la feuille de présence","Animer / superviser l'activité","Gérer les imprévus","Prendre des photos","Remercier les participants"]},
-  {group:"Après l'activité",items:["Saisir les présences","Envoyer le bilan","Archiver les documents","Mettre à jour le statut"]}
+  {group:"Avant le jour J",required:true,items:["Confirmer le lieu et l'horaire","Contacter le prestataire","Envoyer les infos aux participants","Préparer le matériel","Vérifier les inscriptions","Préparer la feuille de présence","Communiquer sur les réseaux","Prévenir en cas d'annulation"]},
+  {group:"Le jour J",required:false,items:["Accueillir les participants","Faire la feuille de présence","Animer / superviser l'activité","Gérer les imprévus","Prendre des photos","Remercier les participants"]},
+  {group:"Après l'activité",required:false,items:["Saisir les présences","Envoyer le bilan","Archiver les documents","Mettre à jour le statut"]}
 ];
-var CHECKLIST=CHECKLIST_DEFAULT.map(function(g){return{group:g.group,items:g.items.slice()};});
-var MANDATORY_SECTIONS=2;
+var CHECKLIST=CHECKLIST_DEFAULT.map(function(g){return{group:g.group,required:!!g.required,items:g.items.slice()};});
 
 async function loadChecklistTemplate(){
   try{
@@ -1505,14 +1504,17 @@ function openEditChecklist(){
 function renderEckGroups(){
   var html='';
   CHECKLIST.forEach(function(g,gi){
-    html+='<div class="eck-group" style="border:1px solid #e5e5e5;border-radius:8px;padding:1rem;margin-bottom:1rem">'
+    var borderColor=g.required?'#fcd34d':'#e5e5e5';
+    html+='<div class="eck-group" style="border:1px solid '+borderColor+';border-radius:8px;padding:1rem;margin-bottom:1rem">'
+      +'<input type="hidden" class="eck-required-val" value="'+(g.required?'1':'0')+'">'
       +'<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.75rem">'
       +'<input class="eck-group-name" data-gi="'+gi+'" value="'+esc(g.group)+'" style="flex:1;font-weight:600;font-size:14px;border:1px solid #ddd;border-radius:6px;padding:6px 10px" placeholder="Nom de la section">'
-      +(gi===1?'<button class="btn btn-outline btn-sm" onclick="swapMandatory()" style="padding:4px 7px;font-size:13px" title="Inverser avec la section du dessus">↑</button>':'')
-      +(gi===0&&MANDATORY_SECTIONS>1?'<button class="btn btn-outline btn-sm" onclick="swapMandatory()" style="padding:4px 7px;font-size:13px" title="Inverser avec la section du dessous">↓</button>':'')
-      +(gi>MANDATORY_SECTIONS?'<button class="btn btn-outline btn-sm" onclick="moveEckGroup('+gi+',-1)" style="padding:4px 7px;font-size:13px" title="Monter">↑</button>':'')
-      +(gi>=MANDATORY_SECTIONS&&gi<CHECKLIST.length-1?'<button class="btn btn-outline btn-sm" onclick="moveEckGroup('+gi+',1)" style="padding:4px 7px;font-size:13px" title="Descendre">↓</button>':'')
-      +(gi>=MANDATORY_SECTIONS?'<button class="btn btn-outline btn-sm" onclick="removeEckGroup('+gi+')" style="color:#e53e3e;border-color:#e53e3e" title="Supprimer la section">✕</button>':'<span style="font-size:11px;color:#e53e3e;background:#fff0f0;padding:3px 8px;border-radius:4px;white-space:nowrap">Obligatoire</span>')
+      +(gi>0?'<button class="btn btn-outline btn-sm" onclick="moveEckGroup('+gi+',-1)" style="padding:4px 7px;font-size:13px" title="Monter">↑</button>':'')
+      +(gi<CHECKLIST.length-1?'<button class="btn btn-outline btn-sm" onclick="moveEckGroup('+gi+',1)" style="padding:4px 7px;font-size:13px" title="Descendre">↓</button>':'')
+      +(g.required
+        ?'<button class="btn btn-outline btn-sm" onclick="toggleEckRequired('+gi+')" style="font-size:12px;padding:4px 8px;color:#d97706;border-color:#fcd34d;background:#fffbeb" title="Retirer l\'obligation">🔒 Obligatoire</button>'
+        :'<button class="btn btn-outline btn-sm" onclick="toggleEckRequired('+gi+')" style="font-size:12px;padding:4px 8px;color:#6b7280;border-color:#d1d5db" title="Rendre obligatoire">🔓 Optionnel</button>')
+      +(!g.required?'<button class="btn btn-outline btn-sm" onclick="removeEckGroup('+gi+')" style="color:#e53e3e;border-color:#e53e3e" title="Supprimer la section">✕</button>':'')
       +'</div>'
       +'<div class="eck-items" id="eck-items-'+gi+'">';
     var total=g.items.length;
@@ -1542,7 +1544,9 @@ function getEckCurrentState(){
       var v=inp.value.trim();
       if(v)items.push(v);
     });
-    if(groupName)groups.push({group:groupName,items:items});
+    var reqEl=gEl.querySelector('.eck-required-val');
+    var isReq=reqEl?reqEl.value==='1':false;
+    if(groupName)groups.push({group:groupName,required:isReq,items:items});
   });
   return groups;
 }
@@ -1595,17 +1599,16 @@ function shiftEckItem(gi,ii,dir){
   renderEckGroups();
 }
 
-function swapMandatory(){
+function toggleEckRequired(gi){
   CHECKLIST=getEckCurrentState();
-  if(CHECKLIST.length<2)return;
-  var tmp=CHECKLIST[0];CHECKLIST[0]=CHECKLIST[1];CHECKLIST[1]=tmp;
+  if(CHECKLIST[gi])CHECKLIST[gi].required=!CHECKLIST[gi].required;
   renderEckGroups();
 }
 
 function moveEckGroup(gi,dir){
   CHECKLIST=getEckCurrentState();
   var target=gi+dir;
-  if(target<MANDATORY_SECTIONS||target>=CHECKLIST.length)return;
+  if(target<0||target>=CHECKLIST.length)return;
   var tmp=CHECKLIST[gi];
   CHECKLIST[gi]=CHECKLIST[target];
   CHECKLIST[target]=tmp;
