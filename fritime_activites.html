@@ -90,8 +90,8 @@ textarea.fi{resize:vertical;min-height:70px}
 
 }
 </style>
-  <script src="fritime_data.js">function toggleHelp(id){var el=document.getElementById(id);if(el)el.style.display=el.style.display==='none'?'block':'none';}
-</script>
+  <script src="fritime_data.js"></script>
+<script>function toggleHelp(id){var el=document.getElementById(id);if(el)el.style.display=el.style.display==='none'?'block':'none';}</script>
   <script src="fritime_sync.js"></script>
   <script src="fritime_auth.js"></script>
   <script src="fritime_supabase.js"></script>
@@ -280,10 +280,7 @@ function doLogout(){
     <div><h1>Activités</h1><div class="subtitle">Gestion et suivi des activités — Fri-Time Intyamon</div></div>
     <div style="display:flex;gap:.5rem"><button class="btn btn-outline btn-sm" onclick="toggleHelp('help-activites-stand')" style="font-size:12px">&#x2753; Aide</button><button class="btn btn-primary" onclick="openCreate()">+ Nouvelle activité</button></div>
   </div>
-<div id="help-activites-stand" style="display:none;background:#f0f7ff;border:1px solid #bfdbfe;border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.25rem;font-size:13px;line-height:1.7"><div style="font-weight:700;margin-bottom:.5rem;font-size:14px">&#x1F3AF; Module Activit&eacute;s &#x2014; Guide</div><div style="display:grid;gap:.3rem"><div style="padding:2px 0">&#x2795; <strong>Cr&eacute;er</strong> : <em>+ Nouvelle activit&eacute;</em> &rarr; nom, date, lieu, tranche d'&acirc;ge, co&ucirc;t, prestataire.</div><div style="padding:2px 0">&#x1F50D; <strong>Filtrer</strong> : par statut (brouillon, publi&eacute;, complet, r&eacute;alis&eacute;, annul&eacute;) ou cat&eacute;gorie.</div><div style="padding:2px 0">&#x1F4CB; <strong>Fiche</strong> : cliquez &rarr; participants, statut, checklist, lien d'inscription public.</div><div style="padding:2px 0">&#x1F504; <strong>Cycle de vie</strong> : Brouillon &rarr; Publi&eacute; &rarr; Complet &rarr; R&eacute;alis&eacute; (ou Annul&eacute;).</div><div style="padding:2px 0">&#x1F4CB; <strong>Checklist</strong> : cochez toutes les t&acirc;ches avant de passer en statut Complet.</div><div style="padding:2px 0">&#x1F465; <strong>Participants</strong> : liste des inscrits avec statut de pr&eacute;sence dans la fiche.</div></div></div>
-  <div style="display:none"
-  </div>
-  <div class="metrics" id="metrics"></div>
+<div id="help-activites-stand" style="display:none;background:#f0f7ff;border:1px solid #bfdbfe;border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.25rem;font-size:13px;line-height:1.7"><div style="font-weight:700;margin-bottom:.5rem;font-size:14px">&#x1F3AF; Module Activit&eacute;s &#x2014; Guide</div><div style="display:grid;gap:.3rem"><div style="padding:2px 0">&#x2795; <strong>Cr&eacute;er</strong> : <em>+ Nouvelle activit&eacute;</em> &rarr; nom, date, lieu, tranche d'&acirc;ge, co&ucirc;t, prestataire.</div><div style="padding:2px 0">&#x1F50D; <strong>Filtrer</strong> : par statut (brouillon, publi&eacute;, complet, r&eacute;alis&eacute;, annul&eacute;) ou cat&eacute;gorie.</div><div style="padding:2px 0">&#x1F4CB; <strong>Fiche</strong> : cliquez &rarr; participants, statut, checklist, lien d'inscription public.</div><div style="padding:2px 0">&#x1F504; <strong>Cycle de vie</strong> : Brouillon &rarr; Publi&eacute; &rarr; Complet &rarr; R&eacute;alis&eacute; (ou Annul&eacute;).</div><div style="padding:2px 0">&#x1F4CB; <strong>Checklist</strong> : cochez toutes les t&acirc;ches avant de passer en statut Complet.</div><div style="padding:2px 0">&#x1F465; <strong>Participants</strong> : liste des inscrits avec statut de pr&eacute;sence dans la fiche.</div></div></div>  <div class="metrics" id="metrics"></div>
   <div class="status-flow">
     <span class="flow-step badge-idee">Idée</span><span class="flow-arrow">→</span>
     <span class="flow-step badge-approuvee">Approuvée (comité)</span><span class="flow-arrow">→</span>
@@ -766,8 +763,6 @@ render();
   });
 })();
 </script>
-</div>
-</div>
 <script>
 (function(){
   var p=window.location.pathname.split("/").pop();

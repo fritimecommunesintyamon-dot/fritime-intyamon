@@ -107,8 +107,8 @@ textarea.fi{resize:vertical;min-height:70px}
 .view-btn{padding:4px 10px;border-radius:6px;border:none;background:none;cursor:pointer;font-size:12px;color:#888;font-family:inherit}
 .view-btn.active{background:#fff;color:#1a1a1a;font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.1)}
 </style>
-  <script src="fritime_data.js">function toggleHelp(id){var el=document.getElementById(id);if(el)el.style.display=el.style.display==='none'?'block':'none';}
-</script>
+  <script src="fritime_data.js"></script>
+<script>function toggleHelp(id){var el=document.getElementById(id);if(el)el.style.display=el.style.display==='none'?'block':'none';}</script>
   <script src="fritime_sync.js"></script>
   <script src="fritime_auth.js"></script>
   <script src="fritime_supabase.js"></script>
@@ -299,9 +299,6 @@ function doLogout(){
   <div style="display:flex;gap:.5rem"><button class="btn btn-outline btn-sm" onclick="toggleHelp('help-idees')" style="font-size:12px">&#x2753; Aide</button><button class="btn btn-primary" onclick="openCreate()">+ Nouvelle idée</button></div>
 </div>
 <div id="help-idees" style="display:none;background:#f0f7ff;border:1px solid #bfdbfe;border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.25rem;font-size:13px;line-height:1.7"><div style="font-weight:700;margin-bottom:.5rem;font-size:14px">&#x1F3F7;&#xFE0F; Module Id&eacute;es &#x2014; Guide</div><div style="display:grid;gap:.3rem"><div style="padding:2px 0">&#x1F4CC; <strong>A quoi &ccedil;a sert ?</strong> : banque d'id&eacute;es pour inspirer la programmation future.</div><div style="padding:2px 0">&#x2795; <strong>Proposer</strong> : <em>+ Nouvelle id&eacute;e</em> &rarr; titre, description, cat&eacute;gorie, tranche d'&acirc;ge, co&ucirc;t.</div><div style="padding:2px 0">&#x1F44D; <strong>Voter</strong> : cliquez sur une id&eacute;e et votez. Les plus populaires remontent en t&ecirc;te.</div><div style="padding:2px 0">&#x1F91D; <strong>Prestataires</strong> : onglet <em>Prestataires sugg&eacute;r&eacute;s</em> &rarr; associez des prestataires &agrave; des types d'activit&eacute;s.</div><div style="padding:2px 0">&#x1F3AF; <strong>Transformer</strong> : quand retenue, cr&eacute;ez l'activit&eacute; dans le module Activit&eacute;s.</div></div></div>
-<div style="display:none"
-</div>
-
 <div class="metrics" id="metrics"></div>
 
 <div class="tabs-main" style="display:flex;border-bottom:1px solid #eee;margin-bottom:1.25rem">
@@ -1132,8 +1129,6 @@ Cours de théâtre | Arts"></textarea>
   });
 })();
 </script>
-</div>
-</div>
 <script>
 (function(){
   var p=window.location.pathname.split("/").pop();

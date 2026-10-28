@@ -60,8 +60,8 @@ tr:hover td{background:#fafaf8;cursor:pointer}
 
 }
 </style>
-  <script src="fritime_data.js">function toggleHelp(id){var el=document.getElementById(id);if(el)el.style.display=el.style.display==='none'?'block':'none';}
-</script>
+  <script src="fritime_data.js"></script>
+<script>function toggleHelp(id){var el=document.getElementById(id);if(el)el.style.display=el.style.display==='none'?'block':'none';}</script>
   <script src="fritime_sync.js"></script>
   <script src="fritime_auth.js"></script>
   <script src="fritime_supabase.js"></script>
@@ -253,9 +253,6 @@ function doLogout(){
   <div style="display:flex;gap:.5rem"><button class="btn btn-outline btn-sm" onclick="toggleHelp('help-sondages')" style="font-size:12px">&#x2753; Aide</button><button class="btn btn-primary" onclick="openSend()">+ Envoyer un sondage</button></div>
 </div>
 <div id="help-sondages" style="display:none;background:#f0f7ff;border:1px solid #bfdbfe;border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.25rem;font-size:13px;line-height:1.7"><div style="font-weight:700;margin-bottom:.5rem;font-size:14px">&#x2B50; Module Sondages &#x2014; Guide</div><div style="display:grid;gap:.3rem"><div style="padding:2px 0">&#x1F4CC; <strong>A quoi &ccedil;a sert ?</strong> : recueillir les retours des parents apr&egrave;s chaque activit&eacute;.</div><div style="padding:2px 0">&#x1F4E7; <strong>Envoyer</strong> : <em>+ Envoyer un sondage</em> &rarr; choisissez activit&eacute; et destinataires. Email envoy&eacute; automatiquement.</div><div style="padding:2px 0">&#x1F4CA; <strong>R&eacute;sultats</strong> : cliquez sur un sondage &rarr; taux de r&eacute;ponse, notes, commentaires.</div><div style="padding:2px 0">&#x1F4C8; <strong>Am&eacute;lioration</strong> : utilisez les r&eacute;sultats pour identifier les points forts et axes d'am&eacute;lioration.</div></div></div>
-<div style="display:none"
-</div>
-
 <div class="metrics" id="metrics"></div>
 
 <div class="section">
@@ -541,8 +538,6 @@ renderAll();
   });
 })();
 </script>
-</div>
-</div>
 <script>
 (function(){
   var p=window.location.pathname.split("/").pop();

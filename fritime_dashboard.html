@@ -145,8 +145,8 @@ tr:hover td{background:#fafaf8}
 .qa-ico{font-size:24px;margin-bottom:6px}
 .qa-lbl{font-size:12px;font-weight:500;line-height:1.3}
 </style>
-  <script src="fritime_data.js">function toggleHelp(id){var el=document.getElementById(id);if(el)el.style.display=el.style.display==='none'?'block':'none';}
-</script>
+  <script src="fritime_data.js"></script>
+<script>function toggleHelp(id){var el=document.getElementById(id);if(el)el.style.display=el.style.display==='none'?'block':'none';}</script>
   <script src="fritime_sync.js"></script>
   <script src="fritime_auth.js"></script>
   <script src="fritime_supabase.js"></script>
@@ -791,8 +791,6 @@ setInterval(refreshDashboard, 30000);
 // Refresh immédiat quand l'onglet redevient visible
 document.addEventListener('visibilitychange',function(){if(!document.hidden)refreshDashboard();});
 </script>
-</div>
-</div>
 <script>
 (function(){
   var p=window.location.pathname.split("/").pop();

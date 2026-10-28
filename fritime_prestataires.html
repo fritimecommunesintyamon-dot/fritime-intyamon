@@ -88,8 +88,8 @@ textarea.fi{resize:vertical;min-height:60px}
 
 }
 </style>
-  <script src="fritime_data.js">function toggleHelp(id){var el=document.getElementById(id);if(el)el.style.display=el.style.display==='none'?'block':'none';}
-</script>
+  <script src="fritime_data.js"></script>
+<script>function toggleHelp(id){var el=document.getElementById(id);if(el)el.style.display=el.style.display==='none'?'block':'none';}</script>
   <script src="fritime_sync.js"></script>
   <script src="fritime_auth.js"></script>
   <script src="fritime_supabase.js"></script>
@@ -280,9 +280,6 @@ function doLogout(){
   <div style="display:flex;gap:.5rem"><button class="btn btn-outline btn-sm" onclick="toggleHelp('help-prestataires')" style="font-size:12px">&#x2753; Aide</button><button class="btn btn-primary" onclick="openCreate()">+ Nouveau prestataire</button></div>
 </div>
 <div id="help-prestataires" style="display:none;background:#f0f7ff;border:1px solid #bfdbfe;border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.25rem;font-size:13px;line-height:1.7"><div style="font-weight:700;margin-bottom:.5rem;font-size:14px">&#x1F91D; Module Prestataires &#x2014; Guide</div><div style="display:grid;gap:.3rem"><div style="padding:2px 0">&#x2795; <strong>Ajouter</strong> : <em>+ Nouveau prestataire</em> &rarr; nom, type d'activit&eacute;, contact, tarif.</div><div style="padding:2px 0">&#x1F4CB; <strong>Fiche</strong> : coordonn&eacute;es, activit&eacute;s pass&eacute;es, &eacute;valuations.</div><div style="padding:2px 0">&#x2B50; <strong>&Eacute;valuer</strong> : apr&egrave;s une activit&eacute;, ajoutez note + commentaire depuis la fiche.</div><div style="padding:2px 0">&#x1F50D; <strong>Recherche</strong> : barre de recherche par nom ou type d'activit&eacute;.</div><div style="padding:2px 0">&#x1F4CC; <strong>Lien auto</strong> : en associant un prestataire &agrave; une activit&eacute;, il appara&icirc;t dans sa fiche.</div></div></div>
-<div style="display:none"
-</div>
-
 <div class="metrics" id="metrics"></div>
 
 <div class="toolbar">
@@ -738,8 +735,6 @@ render();
   });
 })();
 </script>
-</div>
-</div>
 <script>
 (function(){
   var p=window.location.pathname.split("/").pop();

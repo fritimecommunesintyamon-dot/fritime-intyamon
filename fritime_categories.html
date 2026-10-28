@@ -34,8 +34,8 @@ h1{font-size:20px;font-weight:600}
 .edit-row{display:flex;gap:8px;align-items:center;flex:1}
 .section-title{font-size:12px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.06em;margin:1.5rem 0 .75rem}
 </style>
-  <script src="fritime_data.js">function toggleHelp(id){var el=document.getElementById(id);if(el)el.style.display=el.style.display==='none'?'block':'none';}
-</script>
+  <script src="fritime_data.js"></script>
+<script>function toggleHelp(id){var el=document.getElementById(id);if(el)el.style.display=el.style.display==='none'?'block':'none';}</script>
   <script src="fritime_sync.js"></script>
   <script src="fritime_auth.js"></script>
   <script src="fritime_supabase.js"></script>
@@ -171,9 +171,6 @@ function doLogout(){sessionStorage.removeItem("ft_user");window.location.href="f
     <div style="display:flex;gap:.5rem"><button class="btn btn-outline btn-sm" onclick="toggleHelp('help-categories')" style="font-size:12px">&#x2753; Aide</button><button class="btn btn-primary" onclick="openAddCat()">+ Nouvelle catégorie</button></div>
   </div>
 <div id="help-categories" style="display:none;background:#f0f7ff;border:1px solid #bfdbfe;border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.25rem;font-size:13px;line-height:1.7"><div style="font-weight:700;margin-bottom:.5rem;font-size:14px">&#x1F3F7;&#xFE0F; Module Cat&eacute;gories &#x2014; Guide</div><div style="display:grid;gap:.3rem"><div style="padding:2px 0">&#x1F4CC; <strong>A quoi &ccedil;a sert ?</strong> : classer les activit&eacute;s par type pour faciliter la navigation et les filtres.</div><div style="padding:2px 0">&#x2795; <strong>Cr&eacute;er</strong> : <em>+ Nouvelle cat&eacute;gorie</em> &rarr; nom et couleur. Disponible ensuite dans Activit&eacute;s.</div><div style="padding:2px 0">&#x1F4C2; <strong>Sous-cat&eacute;gories</strong> : d&eacute;veloppez une cat&eacute;gorie pour ajouter des sous-types.</div><div style="padding:2px 0">&#x270F;&#xFE0F; <strong>Modifier</strong> : renommez, changez la couleur, ajoutez des sous-cat&eacute;gories.</div><div style="padding:2px 0">&#x26A0;&#xFE0F; <strong>Supprimer</strong> : ne supprimez que si aucune activit&eacute; ne l'utilise encore.</div></div></div>
-  <div style="display:none"
-  </div>
-
   <div id="cat-list"></div>
 
   <!-- Formulaire nouvelle catégorie -->

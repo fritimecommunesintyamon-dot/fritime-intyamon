@@ -78,8 +78,8 @@ h1{font-size:20px;font-weight:600}
 
 }
 </style>
-  <script src="fritime_data.js">function toggleHelp(id){var el=document.getElementById(id);if(el)el.style.display=el.style.display==='none'?'block':'none';}
-</script>
+  <script src="fritime_data.js"></script>
+<script>function toggleHelp(id){var el=document.getElementById(id);if(el)el.style.display=el.style.display==='none'?'block':'none';}</script>
   <script src="fritime_sync.js"></script>
   <script src="fritime_auth.js"></script>
   <script src="fritime_supabase.js"></script>
@@ -270,9 +270,6 @@ function doLogout(){
   <div style="display:flex;gap:.5rem"><button class="btn btn-outline btn-sm" onclick="toggleHelp('help-documents')" style="font-size:12px">&#x2753; Aide</button><button class="btn btn-primary" onclick="openAddDoc()">+ Ajouter un document</button></div>
 </div>
 <div id="help-documents" style="display:none;background:#f0f7ff;border:1px solid #bfdbfe;border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.25rem;font-size:13px;line-height:1.7"><div style="font-weight:700;margin-bottom:.5rem;font-size:14px">&#x1F4C1; Module Documents &#x2014; Guide</div><div style="display:grid;gap:.3rem"><div style="padding:2px 0">&#x1F4CC; <strong>A quoi &ccedil;a sert ?</strong> : biblioth&egrave;que des documents &mdash; r&egrave;glements, formulaires, contrats, guides.</div><div style="padding:2px 0">&#x2795; <strong>Ajouter</strong> : <em>+ Ajouter un document</em> &rarr; titre, cat&eacute;gorie, lien (Google Drive, PDF, etc.).</div><div style="padding:2px 0">&#x1F4C2; <strong>Cat&eacute;gories</strong> : bouton <em>G&eacute;rer les cat&eacute;gories</em> pour organiser les documents.</div><div style="padding:2px 0">&#x1F50D; <strong>Retrouver</strong> : barre de recherche ou filtre par cat&eacute;gorie.</div><div style="padding:2px 0">&#x270F;&#xFE0F; <strong>Modifier/supprimer</strong> : depuis la fiche, mettez &agrave; jour ou supprimez.</div></div></div>
-<div style="display:none"
-</div>
-
 <div class="metrics" id="metrics"></div>
 
 <div class="toolbar">
@@ -658,8 +655,6 @@ renderAll();
   });
 })();
 </script>
-</div>
-</div>
 <script>
 (function(){
   var p=window.location.pathname.split("/").pop();
