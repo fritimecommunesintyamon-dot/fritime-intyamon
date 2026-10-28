@@ -300,7 +300,7 @@ function doLogout(){
 
 <div class="toolbar">
   <input class="search" id="search" placeholder="Rechercher une tâche..." oninput="render()" />
-  <button class="filter-btn active" onclick="setFilter('toutes',this)">Toutes</button>
+  <button class="filter-btn active" onclick="setFilter('toutes',this)">Actives</button>
   <button class="filter-btn" onclick="setFilter('encours',this)">En cours</button>
   <button class="filter-btn" onclick="setFilter('assignee',this)">Assignées</button>
   <button class="filter-btn" onclick="setFilter('ouverte',this)">Non-assignées</button>
@@ -474,7 +474,7 @@ function getFiltered(){
   return taches.filter(t=>{
     var estTerminee = t.statut==='terminee'||t.statut==='archivee';
     var mf;
-    if(filtre==='toutes')        mf = !estTerminee;
+    if(filtre==='toutes')        mf = true;
     else if(filtre==='terminee') mf = estTerminee;
     else if(filtre==='assignee') mf = !!t.assignee && !estTerminee;
     else if(filtre==='ouverte')  mf = !t.assignee && !estTerminee;
