@@ -726,6 +726,7 @@ function renderDet(){
       <div><div class="dl">Facturé à</div><div class="dv">${a.coutFacture==="commune"?"Commune":a.coutFacture==="familles"?"Familles":"Mixte"}</div></div>
       <div><div class="dl">Prestataire</div><div class="dv">${a.prestContact||"—"}</div></div>
       <div><div class="dl">Surveillants</div><div class="dv">${a.surveillants||"—"}</div></div>
+      <div><div class="dl">Responsable du jour</div><div class="dv" style="color:#791f1f;font-weight:600">${a.responsableNom||"—"}${a.responsableTel?' <span style="font-weight:400;color:#555">· '+a.responsableTel+'</span>':''}</div></div>
     </div>
     ${a.materiel?`<div class="dl">Matériel</div><div class="dv">${a.materiel}</div>`:""}
     ${a.tenue?`<div class="dl">Tenue</div><div class="dv">${a.tenue}</div>`:""}
