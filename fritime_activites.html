@@ -705,8 +705,11 @@ function renderDet(){
   const a=activites.find(x=>x.id===selId);if(!a)return;
   // Lookup tel from membres cache if not stored in activite
   var respTel=a.responsableTel||a.responsable_tel||"";
-  if(!respTel&&(a.responsableId||a.responsable_id)&&membresCache.length){
-    var rm=membresCache.find(function(m){return String(m.id)===String(a.responsableId||a.responsable_id);});
+  var respId=a.responsableId||a.responsable_id;
+  console.log('[renderDet] activite id='+a.id+' responsableId='+respId+' responsableTel='+a.responsableTel+' responsable_tel='+a.responsable_tel+' membresCache='+membresCache.length);
+  if(!respTel&&respId&&membresCache.length){
+    var rm=membresCache.find(function(m){return String(m.id)===String(respId);});
+    console.log('[renderDet] lookup dans membresCache -> membre trouvé:', rm?rm.prenom+' '+rm.nom+' tel='+rm.tel:'aucun');
     if(rm)respTel=rm.tel||"";
   }
   var respNom=a.responsableNom||a.responsable_nom||"";
