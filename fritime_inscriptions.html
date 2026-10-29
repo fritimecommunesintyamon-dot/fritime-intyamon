@@ -1317,7 +1317,7 @@ async function envoyerConfirmationsActivite(actId){
   }
   
   if(!confirm("Envoyer "+confirmes.length+" mail(s) de confirmation pour : "+act.nom+" ?")) return;
-  
+
   var ok=0, erreurs=0;
   // Get responsable tel from activite (saved with the activity)
   var respTelGlobal = act.responsableTel || act.responsable_tel || "";
@@ -1330,6 +1330,8 @@ async function envoyerConfirmationsActivite(actId){
       if(respMembre2) respTelGlobal = respMembre2.tel || "";
     }catch(e){}
   }
+  // Réinjecter le tel et le nom dans act pour qu'ils soient bien transmis à sendConfirmationParticipation
+  act = Object.assign({}, act, {responsableTel: respTelGlobal, responsableNom: respNom});
   
   for(var k=0; k<confirmes.length; k++){
     var insc = confirmes[k];
