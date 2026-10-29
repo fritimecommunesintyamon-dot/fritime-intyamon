@@ -466,6 +466,7 @@ let prestataires=[];
 let nextPrestId=100;
 
 let activites=[];
+let membresCache=[];
 let nextId=4;
 let currentFilter="tous";
 let selId=null;
@@ -702,6 +703,13 @@ async function changeStatut(s){
 
 function renderDet(){
   const a=activites.find(x=>x.id===selId);if(!a)return;
+  // Lookup tel from membres cache if not stored in activite
+  var respTel=a.responsableTel||a.responsable_tel||"";
+  if(!respTel&&(a.responsableId||a.responsable_id)&&membresCache.length){
+    var rm=membresCache.find(function(m){return String(m.id)===String(a.responsableId||a.responsable_id);});
+    if(rm)respTel=rm.tel||"";
+  }
+  var respNom=a.responsableNom||a.responsable_nom||"";
   document.getElementById("det").innerHTML=`
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem">
       <div><div style="font-size:16px;font-weight:600">${a.nom}</div>
@@ -726,7 +734,7 @@ function renderDet(){
       <div><div class="dl">Facturé à</div><div class="dv">${a.coutFacture==="commune"?"Commune":a.coutFacture==="familles"?"Familles":"Mixte"}</div></div>
       <div><div class="dl">Prestataire</div><div class="dv">${a.prestContact||"—"}</div></div>
       <div><div class="dl">Surveillants</div><div class="dv">${a.surveillants||"—"}</div></div>
-      <div><div class="dl">Responsable du jour</div><div class="dv" style="color:#791f1f;font-weight:600">${a.responsableNom||"—"}${a.responsableTel?' <span style="font-weight:400;color:#555">· '+a.responsableTel+'</span>':''}</div></div>
+      <div style="grid-column:1/-1"><div class="dl">Responsable du jour</div><div class="dv" style="color:#791f1f;font-weight:600">${respNom||"—"}${respTel?' <span style="font-weight:400;color:#555">· '+respTel+'</span>':''}</div></div>
     </div>
     ${a.materiel?`<div class="dl">Matériel</div><div class="dv">${a.materiel}</div>`:""}
     ${a.tenue?`<div class="dl">Tenue</div><div class="dv">${a.tenue}</div>`:""}
@@ -787,7 +795,7 @@ async function loadActivitesDB(){
     // Load membres for responsable select
     try{
       var dbMembres=await FriDB.getMembres();
-      if(dbMembres&&dbMembres.length){
+      if(dbMembres&&dbMembres.length){membresCache=dbMembres;
         var rSel=document.getElementById("f-responsable");
         if(rSel){
           rSel.innerHTML="<option value=''>— Choisir un membre du comité —</option>"+
