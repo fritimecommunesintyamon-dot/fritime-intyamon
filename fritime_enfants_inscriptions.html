@@ -457,6 +457,25 @@ function doLogout(){sessionStorage.removeItem("ft_user");window.location.href="f
       <textarea id="cond-note-input" rows="2" style="width:100%;margin-top:6px;padding:6px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px;resize:vertical;box-sizing:border-box;font-family:inherit" placeholder="Texte de la note (optionnel)"></textarea>
     </div>
     <div id="cond-list-insc"></div>
+
+    <!-- ── Rappels email de confirmation de participation ── -->
+    <hr style="border:none;border-top:1px solid #e5e5e5;margin:2rem 0">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:10px">
+      <div>
+        <h2 style="font-size:18px;font-weight:600;margin:0">📧 Rappels — Email de confirmation</h2>
+        <div style="font-size:13px;color:#666;margin-top:3px">Ces rappels apparaissent dans l'email de confirmation envoyé aux parents quand une participation est validée.</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-outline btn-sm" onclick="confirmRappelsAjouter()">+ Ajouter</button>
+        <button class="btn btn-primary btn-sm" id="conf-rappels-save-btn" onclick="confirmRappelsSauvegarder()">💾 Enregistrer</button>
+      </div>
+    </div>
+    <div id="conf-rappels-save-ok" style="display:none;background:#e6f6ea;color:#1a6b3a;border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:1rem">✅ Rappels enregistrés.</div>
+    <div id="conf-rappels-save-err" style="display:none;background:#fdf0f0;color:#7a1f1f;border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:1rem"></div>
+    <div style="font-size:13px;color:#555;margin-bottom:1rem;background:#f5f5f5;border-radius:8px;padding:10px 14px">
+      Chaque rappel a une icône, un titre et un texte. Ils remplacent les rappels actuellement fixes dans l'email de confirmation.
+    </div>
+    <div id="conf-rappels-list"></div>
   </div>
 </div><!-- /section-regles -->
 
@@ -1415,12 +1434,96 @@ async function conditionsSauvegarder(){
   btn.disabled=false; btn.textContent='💾 Enregistrer';
 }
 
+// ═══ MODULE RAPPELS EMAIL CONFIRMATION ═══
+var confirmRappelsCurrent=[], confirmRappelsLoaded=false;
+var _RAPPELS_DEFAULT=[
+  {icone:'⚠️',titre:'Absence',texte:"Les places étant limitées et réservées, toute absence non justifiée peut entraîner l'exclusion des inscriptions pour le reste de la saison. En cas d'empêchement, merci de nous prévenir au plus vite."},
+  {icone:'🛡️',titre:'Assurance',texte:"En cas de dégât matériel ou autre, c'est l'assurance responsabilité civile privée du participant qui prend en charge les frais."},
+  {icone:'⚖️',titre:'Responsabilité',texte:"L'organisateur et le comité Fri-Time déclinent toute responsabilité en cas d'accident, de dégâts matériels ou de vol."},
+  {icone:'📋',titre:'Non-respect des règles',texte:"En cas de non-respect de la charte, des règles de sécurité ou des directives, le comité se réserve le droit de renvoi et de bannissement des futures activités."},
+  {icone:'📝',titre:"Rapport d'incident",texte:"En cas d'accident ou d'incident, un rapport officiel sera établi et les parents informés dans les meilleurs délais."},
+  {icone:'🚑',titre:'Urgences',texte:"Nos bénévoles connaissent les premiers gestes de secours. En cas d'urgence extrême, les services compétents sont contactés immédiatement (144 · 117 · 118 · 1414) ainsi que les parents. Il est impératif d'être joignable pendant toute la durée de l'activité."},
+  {icone:'🏥',titre:'Informations médicales',texte:"Pour la sécurité de votre enfant, signalez au comité toute allergie, traitement médical ou condition de santé particulière (asthme, épilepsie, diabète…). Ces informations sont confidentielles."},
+];
+
+async function confirmRappelsCharger(){
+  try{
+    var res=await fetch(_SB_URL+'/rest/v1/parametres?cle=eq.confirmation_rappels&select=valeur',{headers:_SB_HDR});
+    if(res.ok){
+      var data=await res.json();
+      if(data&&data.length&&data[0].valeur){
+        try{confirmRappelsCurrent=JSON.parse(data[0].valeur);}catch(e){confirmRappelsCurrent=_RAPPELS_DEFAULT.slice();}
+      } else {
+        confirmRappelsCurrent=_RAPPELS_DEFAULT.slice();
+      }
+    }
+  }catch(e){console.warn('[RappelsConf]',e);confirmRappelsCurrent=_RAPPELS_DEFAULT.slice();}
+  confirmRappelsRendre();
+}
+
+function confirmRappelsRendre(){
+  var el=document.getElementById('conf-rappels-list');
+  if(!confirmRappelsCurrent.length){
+    el.innerHTML='<div style="text-align:center;color:#aaa;padding:2rem;font-size:14px">Aucun rappel. Cliquez sur « + Ajouter ».</div>';
+    return;
+  }
+  el.innerHTML=confirmRappelsCurrent.map(function(r,i){
+    return '<div style="background:#fff;border:1px solid #e5e5e5;border-radius:10px;padding:14px 16px;margin-bottom:10px">'
+      +'<div style="display:grid;grid-template-columns:60px 1fr auto;gap:10px;align-items:start">'
+      +'<input type="text" value="'+_escHtml(r.icone)+'" oninput="confirmRappelsCurrent['+i+'].icone=this.value" placeholder="Icône" style="padding:6px 8px;border:1px solid #ddd;border-radius:6px;font-size:16px;text-align:center">'
+      +'<div>'
+      +'<input type="text" value="'+_escHtml(r.titre)+'" oninput="confirmRappelsCurrent['+i+'].titre=this.value" placeholder="Titre" style="width:100%;padding:6px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px;font-weight:600;margin-bottom:8px;box-sizing:border-box">'
+      +'<textarea oninput="confirmRappelsCurrent['+i+'].texte=this.value" placeholder="Texte" rows="3" style="width:100%;padding:6px 10px;border:1px solid #ddd;border-radius:6px;font-size:13px;resize:vertical;box-sizing:border-box;font-family:inherit">'+_escHtml(r.texte)+'</textarea>'
+      +'</div>'
+      +'<div style="display:flex;flex-direction:column;gap:4px">'
+      +(i>0?'<button onclick="confirmRappelsMonter('+i+')" style="background:#f5f5f5;border:1px solid #ddd;border-radius:5px;padding:3px 8px;cursor:pointer">▲</button>':'<span style="padding:3px 8px"></span>')
+      +(i<confirmRappelsCurrent.length-1?'<button onclick="confirmRappelsDescendre('+i+')" style="background:#f5f5f5;border:1px solid #ddd;border-radius:5px;padding:3px 8px;cursor:pointer">▼</button>':'<span style="padding:3px 8px"></span>')
+      +'<button onclick="confirmRappelsSupprimer('+i+')" style="background:none;border:none;cursor:pointer;font-size:16px;color:#c0392b;padding:3px 5px;margin-top:2px" title="Supprimer">🗑</button>'
+      +'</div>'
+      +'</div>'
+      +'</div>';
+  }).join('');
+}
+
+function confirmRappelsMonter(i){if(i===0)return;var t=confirmRappelsCurrent[i-1];confirmRappelsCurrent[i-1]=confirmRappelsCurrent[i];confirmRappelsCurrent[i]=t;confirmRappelsRendre();}
+function confirmRappelsDescendre(i){if(i>=confirmRappelsCurrent.length-1)return;var t=confirmRappelsCurrent[i+1];confirmRappelsCurrent[i+1]=confirmRappelsCurrent[i];confirmRappelsCurrent[i]=t;confirmRappelsRendre();}
+function confirmRappelsSupprimer(i){if(!confirm('Supprimer ce rappel ?'))return;confirmRappelsCurrent.splice(i,1);confirmRappelsRendre();}
+function confirmRappelsAjouter(){
+  confirmRappelsCurrent.push({icone:'📌',titre:'',texte:''});
+  confirmRappelsRendre();
+  var cards=document.querySelectorAll('#conf-rappels-list > div');
+  if(cards.length)cards[cards.length-1].scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+async function confirmRappelsSauvegarder(){
+  if(!confirm('Enregistrer les rappels ? Ils apparaîtront dans tous les prochains emails de confirmation.'))return;
+  var btn=document.getElementById('conf-rappels-save-btn');
+  var okEl=document.getElementById('conf-rappels-save-ok');
+  var errEl=document.getElementById('conf-rappels-save-err');
+  btn.disabled=true; btn.textContent='💾 Enregistrement…';
+  okEl.style.display='none'; errEl.style.display='none';
+  document.querySelectorAll('#conf-rappels-list textarea').forEach(function(ta,i){if(confirmRappelsCurrent[i])confirmRappelsCurrent[i].texte=ta.value;});
+  try{
+    // PATCH si existe, sinon POST
+    var check=await fetch(_SB_URL+'/rest/v1/parametres?cle=eq.confirmation_rappels',{headers:_SB_HDR});
+    var exists=check.ok&&(await check.json()).length>0;
+    var method=exists?'PATCH':'POST';
+    var url=_SB_URL+'/rest/v1/parametres'+(exists?'?cle=eq.confirmation_rappels':'');
+    var body=exists?{valeur:JSON.stringify(confirmRappelsCurrent),updated_at:new Date().toISOString()}:{cle:'confirmation_rappels',valeur:JSON.stringify(confirmRappelsCurrent)};
+    var res=await fetch(url,{method:method,headers:Object.assign({'Prefer':'return=minimal'},_SB_HDR),body:JSON.stringify(body)});
+    if(res.ok||res.status===204){okEl.style.display='block';setTimeout(function(){okEl.style.display='none';},4000);}
+    else{errEl.textContent='Erreur : '+(await res.text());errEl.style.display='block';}
+  }catch(e){errEl.textContent='Erreur réseau : '+e.message;errEl.style.display='block';}
+  btn.disabled=false; btn.textContent='💾 Enregistrer';
+}
+
 // Charger les règles et conditions au clic sur l'onglet
 var _origSwitch=switchModuleTab;
 switchModuleTab=function(name,btn){
   _origSwitch(name,btn);
   if(name==='regles'&&!reglesLoaded){reglesLoaded=true;reglesChargerInsc();}
   if(name==='regles'&&!conditionsLoaded){conditionsLoaded=true;conditionsCharger();}
+  if(name==='regles'&&!confirmRappelsLoaded){confirmRappelsLoaded=true;confirmRappelsCharger();}
 };
 </script>
 

@@ -271,7 +271,7 @@ function doLogout(){
   </div>
   <div class="table-wrap">
     <table>
-      <thead><tr><th>Enfant</th><th>Âge</th><th>Commune</th><th>Participations</th><th>Activités confirmées</th><th>Statut</th></tr></thead>
+      <thead><tr><th>Enfant</th><th>Âge</th><th>Commune</th><th>Participations</th><th>Activités confirmées</th><th title="Consentement photo/vidéo">📸</th><th>Statut</th></tr></thead>
       <tbody id="tbody"></tbody>
     </table>
   </div>
@@ -396,6 +396,7 @@ function render(){
     <td>${calcAgeFrom(e.ddn)??e.age} ans</td><td>${e.commune}</td>
     <td><span class="part-badge">${e.parts}</span></td>
     <td>${(e.activitesConfirmees||[]).length?e.activitesConfirmees.map(a=>`<span style="display:inline-block;font-size:11px;padding:2px 7px;border-radius:20px;background:#e6f1fb;color:#0c447c;margin:1px">${a}</span>`).join(' '):'<span style="color:#bbb;font-size:12px">—</span>'}</td>
+    <td style="text-align:center;font-size:16px" title="${e.photo_accord===true?'Photos autorisées':e.photo_accord===false?'Photos refusées':'Non renseigné'}">${e.photo_accord===true?'✅':e.photo_accord===false?'❌':'<span style="color:#bbb;font-size:12px">—</span>'}</td>
     <td><span class="badge badge-${e.statut}">${e.statut==='actif'?'Actif':'Banni'}</span></td>
   </tr>`).join('');
 }

@@ -161,6 +161,39 @@ const FriBrevo = {
     // Strip tel number from nom if included (e.g. "Karine Rebelo (0797937642)")
     responsableNom = responsableNom.replace(/\s*\(\d[\d\s]+\)$/, '').trim();
     var responsableTel = activite.responsableTel || '';
+    // Charger les rappels depuis Supabase (avec fallback)
+    var _SB_URL_BR='https://pixktldfpjtnimngvgqz.supabase.co';
+    var _SB_KEY_BR='sb_publishable_ZV04eYw85SDFQi43SwZJTg_igofPU8X';
+    var _SB_HDR_BR={'Content-Type':'application/json','apikey':_SB_KEY_BR,'Authorization':'Bearer '+_SB_KEY_BR};
+    var rappels=[];
+    var _RAPPELS_FALLBACK=[
+      {icone:'🛡️',titre:'Assurance',texte:"En cas de dégât matériel ou autre, c'est l'assurance responsabilité civile privée du participant qui prend en charge les frais."},
+      {icone:'⚖️',titre:'Responsabilité',texte:"L'organisateur et le comité Fri-Time déclinent toute responsabilité en cas d'accident, de dégâts matériels ou de vol."},
+      {icone:'📋',titre:'Non-respect des règles',texte:"En cas de non-respect de la charte, des règles de sécurité ou des directives, le comité se réserve le droit de renvoi et de bannissement des futures activités."},
+      {icone:'📝',titre:"Rapport d'incident",texte:"En cas d'accident ou d'incident, un rapport officiel sera établi et les parents informés dans les meilleurs délais."},
+      {icone:'🚑',titre:'Urgences',texte:"Nos bénévoles connaissent les premiers gestes de secours. En cas d'urgence extrême, les services compétents sont contactés immédiatement (144 · 117 · 118 · 1414) et vous aussi au même moment. Il est impératif d'être joignable pendant toute la durée de l'activité."},
+      {icone:'🏥',titre:'Informations médicales',texte:"Pour la sécurité de votre enfant, signalez toute allergie, traitement médical ou condition particulière (asthme, épilepsie, diabète…). Ces informations sont confidentielles."},
+    ];
+    try{
+      var rr=await fetch(_SB_URL_BR+'/rest/v1/parametres?cle=eq.confirmation_rappels&select=valeur',{headers:_SB_HDR_BR});
+      if(rr.ok){var rd=await rr.json();if(rd&&rd.length&&rd[0].valeur)rappels=JSON.parse(rd[0].valeur);}
+    }catch(e){}
+    if(!rappels.length) rappels=_RAPPELS_FALLBACK;
+    var rappelsRows=rappels.map(function(r){
+      return '<tr style="vertical-align:top"><td style="padding:5px 8px 5px 0;width:20px">'+r.icone+'</td><td style="padding:5px 0"><strong>'+r.titre+' :</strong> '+r.texte+'</td></tr>';
+    }).join('');
+    // Contact d'urgence et photo accord
+    var urgNom = enfant.urg_nom || '';
+    var urgTel = enfant.urg_tel || '';
+    var photoAccord = enfant.photo_accord; // true / false / null
+    var photoLigne = photoAccord === true
+      ? '<tr style="vertical-align:top"><td style="padding:5px 8px 5px 0;width:16px">📷</td><td style="padding:5px 0"><strong>Droit à l\'image :</strong> Vous avez autorisé la prise et l\'utilisation de photos/vidéos de votre enfant lors des activités Fri-Time. Merci !</td></tr>'
+      : photoAccord === false
+      ? '<tr style="vertical-align:top"><td style="padding:5px 8px 5px 0;width:16px">📷</td><td style="padding:5px 0"><strong>Droit à l\'image :</strong> Vous avez refusé la prise et l\'utilisation de photos/vidéos de votre enfant. Nous en tiendrons compte.</td></tr>'
+      : '<tr style="vertical-align:top"><td style="padding:5px 8px 5px 0;width:16px">📷</td><td style="padding:5px 0"><strong>Droit à l\'image :</strong> En participant, vous acceptez que des photos prises lors des activités puissent être utilisées à des fins de promotion. Opposition : <a href="mailto:fritimecommunesintyamon@gmail.com" style="color:#0c447c">fritimecommunesintyamon@gmail.com</a></td></tr>';
+    var urgLigne = (urgNom || urgTel)
+      ? '<tr style="vertical-align:top"><td style="padding:5px 8px 5px 0;width:16px">🆘</td><td style="padding:5px 0"><strong>Contact d\'urgence déclaré :</strong> '+(urgNom||'—')+(urgTel?' — '+urgTel:'')+'</td></tr>'
+      : '';
 
     var html = `
 <!DOCTYPE html>
@@ -204,42 +237,12 @@ const FriBrevo = {
       <div style="font-size:13px;color:rgba(255,255,255,.75);line-height:1.6">Ce mail contient toutes les informations importantes pour le bon déroulement de la journée.<br>Merci de le lire en entier et de communiquer ces informations à votre enfant.</div>
     </div>
 
-    <div style="background:#faeeda;border-radius:8px;padding:14px 16px;font-size:13px;color:#633806;margin-bottom:16px">
-      ⚠️ <strong>Absence :</strong> Les places étant limitées et réservées, toute absence non justifiée peut entraîner l'exclusion des inscriptions pour le reste de la saison.
-      En cas d'empêchement, merci de nous prévenir au plus vite afin de pouvoir pourvoir la place à un autre enfant.
-    </div>
-
     <div style="background:#f5f5f3;border-radius:8px;padding:16px;margin-bottom:24px">
-      <div style="font-size:13px;font-weight:700;color:#1a1a1a;margin-bottom:12px">⚠️ Règles importantes à connaître</div>
+      <div style="font-size:13px;font-weight:700;color:#1a1a1a;margin-bottom:12px">⚠️ Rappels importants</div>
       <table style="width:100%;border-collapse:collapse;font-size:12px;color:#555">
-        <tr style="vertical-align:top">
-          <td style="padding:5px 8px 5px 0;width:16px">🛡️</td>
-          <td style="padding:5px 0"><strong>Assurance :</strong> En cas de dégât matériel ou autre, c'est l'assurance responsabilité civile privée du participant qui prend en charge les frais.</td>
-        </tr>
-        <tr style="vertical-align:top">
-          <td style="padding:5px 8px 5px 0">⚖️</td>
-          <td style="padding:5px 0"><strong>Responsabilité :</strong> L'organisateur et le comité Fri-Time déclinent toute responsabilité en cas d'accident, de dégâts matériels ou de vol.</td>
-        </tr>
-        <tr style="vertical-align:top">
-          <td style="padding:5px 8px 5px 0">📋</td>
-          <td style="padding:5px 0"><strong>Non-respect des règles :</strong> En cas de non-respect de la charte, des règles de sécurité ou des directives, le comité se réserve le droit de renvoi et de bannissement des futures activités.</td>
-        </tr>
-        <tr style="vertical-align:top">
-          <td style="padding:5px 8px 5px 0">📷</td>
-          <td style="padding:5px 0"><strong>Droit à l'image :</strong> En participant, vous acceptez que des photos prises lors des activités puissent être utilisées à des fins de promotion. Opposition : <a href="mailto:fritimecommunesintyamon@gmail.com" style="color:#0c447c">fritimecommunesintyamon@gmail.com</a></td>
-        </tr>
-        <tr style="vertical-align:top">
-          <td style="padding:5px 8px 5px 0">📝</td>
-          <td style="padding:5px 0"><strong>Rapport d'incident :</strong> En cas d'accident ou d'incident, un rapport officiel sera établi et les parents informés dans les meilleurs délais.</td>
-        </tr>
-        <tr style="vertical-align:top">
-          <td style="padding:5px 8px 5px 0">🚑</td>
-          <td style="padding:5px 0"><strong>Urgences :</strong> Nos bénévoles connaissent les premiers gestes de secours. Toutefois, en cas d'urgence extrême, les services compétents sont contactés immédiatement (144 · 117 · 118 · 1414) et vous aussi au même moment. <span style="color:#791f1f;font-weight:700">⚠️ Il est donc impératif d'être joignable par téléphone pendant toute la durée de l'activité.</span></td>
-        </tr>
-        <tr style="vertical-align:top">
-          <td style="padding:5px 8px 5px 0">🏥</td>
-          <td style="padding:5px 0"><strong>Informations médicales :</strong> Pour la sécurité de votre enfant, signalez au comité toute allergie, traitement médical, ou condition de santé particulière (asthme, épilepsie, diabète…). Ces informations sont confidentielles.</td>
-        </tr>
+        ${rappelsRows}
+        ${photoLigne}
+        ${urgLigne}
       </table>
     </div>
 
